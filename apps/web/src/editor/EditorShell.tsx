@@ -6,9 +6,9 @@ import { Icon } from "../components/Icon";
 import { AgentPalette } from "../agent/AgentPalette";
 import { ColorPage } from "./pages/ColorPage";
 import { CutPage } from "./pages/CutPage";
+import { DeliverPage } from "./pages/DeliverPage";
 import { EditPage } from "./pages/EditPage";
 import { MediaPage } from "./pages/MediaPage";
-import { PlaceholderPage } from "./pages/PlaceholderPage";
 
 const ACCENT = "#4FD1C5";
 const TABS: { id: PageId; label: string }[] = [
@@ -30,7 +30,7 @@ function PageBody({ page }: { page: PageId }) {
     case "edit":
       return <EditPage />;
     case "deliver":
-      return <PlaceholderPage title="Deliver" subtitle="Render settings · preview · queue" icon="upload" />;
+      return <DeliverPage />;
   }
 }
 
