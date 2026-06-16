@@ -7,7 +7,7 @@ import { mkdir, writeFile, stat } from "node:fs/promises";
 import { createReadStream } from "node:fs";
 import { Readable } from "node:stream";
 import { extname } from "node:path";
-import { createEditJob, getJob } from "./jobs";
+import { createEditJob, createTranscriptCutJob, getJob, getSource, transcribeSource } from "./jobs";
 
 const exec = promisify(execFile);
 
@@ -47,6 +47,30 @@ app.post("/api/jobs", async (c) => {
   await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
 
   const job = createEditJob(inputPath, MEDIA_DIR, { captions });
+  return c.json(job, 202);
+});
+
+/** Transcript editor — step 1: upload → word-level transcript + sourceId. */
+app.post("/api/transcribe", async (c) => {
+  const body = await c.req.parseBody();
+  const file = body["file"];
+  if (!(file instanceof File)) return c.json({ error: "missing 'file' (multipart)" }, 400);
+  const ext = extname(file.name || "") || ".mp4";
+  const inputPath = `${MEDIA_DIR}/src-${Date.now()}${ext}`;
+  await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
+  const source = await transcribeSource(inputPath, MEDIA_DIR);
+  return c.json({ sourceId: source.id, duration: source.duration, words: source.words });
+});
+
+/** Transcript editor — step 2: apply edits (remove word indices) → render. */
+app.post("/api/jobs/transcript-cut", async (c) => {
+  const body = (await c.req.json().catch(() => ({}))) as { sourceId?: string; removedIndices?: unknown; captions?: unknown };
+  const source = body.sourceId ? getSource(body.sourceId) : undefined;
+  if (!source) return c.json({ error: "unknown sourceId — re-upload" }, 404);
+  const removedIndices = Array.isArray(body.removedIndices)
+    ? body.removedIndices.filter((n): n is number => Number.isInteger(n))
+    : [];
+  const job = createTranscriptCutJob(source, removedIndices, MEDIA_DIR, { captions: body.captions !== false });
   return c.json(job, 202);
 });
 

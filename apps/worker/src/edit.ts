@@ -90,6 +90,56 @@ export function planCuts(
   return { segments, remapped, keptDur, removedDur: Math.max(0, totalDur - keptDur) };
 }
 
+/** Build a cut plan by removing the spans of the given word indices (transcript editing). */
+export function planCutsFromRemovedWords(
+  words: Word[],
+  removedIndices: number[],
+  totalDur: number,
+  opts: { pad?: number } = {},
+): CutPlan {
+  const pad = opts.pad ?? 0.04;
+  const removed = new Set(removedIndices);
+  const remove: Segment[] = [];
+  words.forEach((w, i) => {
+    if (removed.has(i)) remove.push({ start: Math.max(0, w.start - pad), end: w.end + pad });
+  });
+  remove.sort((a, b) => a.start - b.start);
+  const merged: Segment[] = [];
+  for (const iv of remove) {
+    if (iv.end <= iv.start) continue;
+    const m = merged[merged.length - 1];
+    if (m && iv.start <= m.end) m.end = Math.max(m.end, iv.end);
+    else merged.push({ ...iv });
+  }
+  let cursor = 0;
+  const segs: Segment[] = [];
+  for (const r of merged) {
+    if (r.start > cursor) segs.push({ start: cursor, end: Math.min(r.start, totalDur) });
+    cursor = Math.max(cursor, r.end);
+  }
+  if (cursor < totalDur) segs.push({ start: cursor, end: totalDur });
+  const segments = segs.filter((s) => s.end - s.start > 0.02);
+  if (segments.length === 0) segments.push({ start: 0, end: totalDur });
+  const removedBefore: number[] = [];
+  let removedAcc = 0;
+  let prevEnd = 0;
+  for (const seg of segments) {
+    removedAcc += seg.start - prevEnd;
+    removedBefore.push(removedAcc);
+    prevEnd = seg.end;
+  }
+  const segAt = (t: number) => segments.findIndex((s) => t >= s.start && t <= s.end);
+  const remapped: Word[] = [];
+  words.forEach((w, i) => {
+    if (removed.has(i)) return;
+    const si = segAt(w.start);
+    if (si === -1) return;
+    remapped.push({ word: w.word, start: Math.max(0, w.start - removedBefore[si]), end: Math.max(0, w.end - removedBefore[si]) });
+  });
+  const keptDur = segments.reduce((a, s) => a + (s.end - s.start), 0);
+  return { segments, remapped, keptDur, removedDur: Math.max(0, totalDur - keptDur) };
+}
+
 const assTime = (t: number) => {
   const h = Math.floor(t / 3600);
   const m = Math.floor((t % 3600) / 60);
@@ -134,25 +184,18 @@ export interface EditResult {
   captionsApplied: boolean;
 }
 
-/** Full edit pipeline: extract audio → Whisper → plan cuts → ffmpeg cut+caption+loudnorm → MP4. */
-export async function runEditPipeline(
+/** Render a cut plan to MP4: trim+concat+loudnorm, then best-effort caption burn-in. */
+async function renderPlan(
   inputPath: string,
+  plan: CutPlan,
+  dims: { width: number; height: number },
   workDir: string,
   jobId: string,
-  opts: { captions?: boolean } = {},
-): Promise<EditResult> {
-  const captions = opts.captions ?? true;
-  const audioPath = `${workDir}/${jobId}.wav`;
+  captions: boolean,
+): Promise<{ outputPath: string; captionsApplied: boolean }> {
   const assPath = `${workDir}/${jobId}.ass`;
   const outputPath = `${workDir}/${jobId}.mp4`;
-
   const cutPath = `${workDir}/${jobId}.cut.mp4`;
-  const [totalDur, dims] = await Promise.all([ffprobeDuration(inputPath), ffprobeDimensions(inputPath)]);
-  await extractAudio(inputPath, audioPath);
-  const words = await transcribe(audioPath);
-  const plan = planCuts(words, totalDur);
-  // eslint-disable-next-line no-console
-  console.log(`[edit] ${jobId}: ${words.length} words → ${plan.segments.length} segs, removed ${plan.removedDur.toFixed(1)}s`);
 
   // Pass 1: trim+concat each kept segment (reliable PTS handling) + loudnorm.
   const parts: string[] = [];
@@ -164,16 +207,13 @@ export async function runEditPipeline(
   parts.push(`${concatInputs}concat=n=${plan.segments.length}:v=1:a=1[vc][ac]`);
   parts.push(`[ac]loudnorm[a]`);
   await run("ffmpeg", [
-    "-y", "-i", inputPath,
-    "-filter_complex", parts.join(";"),
+    "-y", "-i", inputPath, "-filter_complex", parts.join(";"),
     "-map", "[vc]", "-map", "[a]",
     "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-pix_fmt", "yuv420p",
-    "-c:a", "aac", "-b:a", "160k",
-    cutPath,
+    "-c:a", "aac", "-b:a", "160k", cutPath,
   ]);
 
-  // Pass 2: burn captions (-vf subtitles, needs libass). Best-effort — fall back to uncaptioned
-  // if libass is unavailable so the pipeline always produces a valid result.
+  // Pass 2: best-effort caption burn-in (needs libass; fall back to uncaptioned).
   const remux = () => run("ffmpeg", ["-y", "-i", cutPath, "-c", "copy", "-movflags", "+faststart", outputPath]);
   let captionsApplied = false;
   if (captions && plan.remapped.length > 0) {
@@ -194,10 +234,51 @@ export async function runEditPipeline(
   } else {
     await remux();
   }
+  return { outputPath, captionsApplied };
+}
 
+/** Auto clean-up: extract audio → Whisper → plan cuts (filler + silence) → render. */
+export async function runEditPipeline(
+  inputPath: string,
+  workDir: string,
+  jobId: string,
+  opts: { captions?: boolean } = {},
+): Promise<EditResult> {
+  const captions = opts.captions ?? true;
+  const audioPath = `${workDir}/${jobId}.wav`;
+  const [totalDur, dims] = await Promise.all([ffprobeDuration(inputPath), ffprobeDimensions(inputPath)]);
+  await extractAudio(inputPath, audioPath);
+  const words = await transcribe(audioPath);
+  const plan = planCuts(words, totalDur);
+  // eslint-disable-next-line no-console
+  console.log(`[edit] ${jobId}: ${words.length} words → ${plan.segments.length} segs, removed ${plan.removedDur.toFixed(1)}s`);
+  const { outputPath, captionsApplied } = await renderPlan(inputPath, plan, dims, workDir, jobId, captions);
   return {
-    captionsApplied,
-    outputPath,
+    captionsApplied, outputPath,
+    totalWords: words.length,
+    segments: plan.segments.length,
+    removedSec: Math.round(plan.removedDur * 10) / 10,
+  };
+}
+
+/** Transcript-driven cut (Descript-style): remove the given word indices' spans → render. */
+export async function runTranscriptCutPipeline(
+  inputPath: string,
+  words: Word[],
+  removedIndices: number[],
+  totalDur: number,
+  dims: { width: number; height: number },
+  workDir: string,
+  jobId: string,
+  opts: { captions?: boolean } = {},
+): Promise<EditResult> {
+  const captions = opts.captions ?? true;
+  const plan = planCutsFromRemovedWords(words, removedIndices, totalDur);
+  // eslint-disable-next-line no-console
+  console.log(`[transcript-cut] ${jobId}: removed ${removedIndices.length}/${words.length} words → ${plan.segments.length} segs, −${plan.removedDur.toFixed(1)}s`);
+  const { outputPath, captionsApplied } = await renderPlan(inputPath, plan, dims, workDir, jobId, captions);
+  return {
+    captionsApplied, outputPath,
     totalWords: words.length,
     segments: plan.segments.length,
     removedSec: Math.round(plan.removedDur * 10) / 10,
