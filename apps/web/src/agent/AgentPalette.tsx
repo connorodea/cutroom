@@ -15,7 +15,7 @@ export function AgentPalette() {
   const steps = useEditorStore((s) => s.steps);
   const title = useEditorStore((s) => s.title);
   const resetRun = useEditorStore((s) => s.resetRun);
-  const { run, loading } = useAgentRun();
+  const { run, loading, source } = useAgentRun();
   const [query, setQuery] = useState("");
 
   if (!agentOpen) return null;
@@ -114,6 +114,9 @@ export function AgentPalette() {
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 13.5, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{title || "Working…"}</div>
               </div>
+              {source === "fallback" && (
+                <span title="Agent unavailable — showing the scripted pipeline" style={{ fontSize: 9.5, fontFamily: "ui-monospace,'SF Mono',Menlo,monospace", color: "#E0A33E", background: "rgba(224,163,62,.12)", border: "1px solid rgba(224,163,62,.28)", borderRadius: 5, padding: "1px 6px" }}>scripted</span>
+              )}
               <span style={{ fontSize: 11, fontWeight: 600, fontFamily: "ui-monospace,'SF Mono',Menlo,monospace", display: "flex", alignItems: "center", gap: 6, color: statusColor }}>{statusText}</span>
             </div>
             <div style={{ height: 3, flex: "none", margin: "0 16px", borderRadius: 2, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>

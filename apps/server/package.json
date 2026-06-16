@@ -8,6 +8,7 @@
     "start": "tsx src/index.ts",
     "setup:env": "tsx scripts/setup-env.ts",
     "try:plan": "tsx scripts/try-plan.ts",
+    "build": "esbuild src/index.ts --bundle --platform=node --format=esm --target=node20 --outfile=dist/index.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
@@ -19,6 +20,7 @@
   },
   "devDependencies": {
     "@types/node": "^25.9.3",
+    "esbuild": "^0.28.1",
     "tsx": "^4.22.4",
     "typescript": "^5.9.3",
     "vitest": "^2.1.9"

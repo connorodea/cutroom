@@ -15,6 +15,7 @@ export function useAgentRun() {
   const advance = useEditorStore((s) => s.advance);
   const startRun = useEditorStore((s) => s.startRun);
   const [loading, setLoading] = useState(false);
+  const [source, setSource] = useState<"agent" | "fallback" | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   // Reveal steps on a cadence while the run is in progress.
@@ -27,9 +28,11 @@ export function useAgentRun() {
   const run = useCallback(
     async (prompt: string) => {
       setLoading(true);
+      setSource(null);
       try {
-        const { plan } = await fetchPlan(prompt);
-        startRun(plan.title, plan.steps);
+        const result = await fetchPlan(prompt);
+        setSource(result.source);
+        startRun(result.plan.title, result.plan.steps);
       } finally {
         setLoading(false);
       }
@@ -37,5 +40,5 @@ export function useAgentRun() {
     [startRun],
   );
 
-  return { run, loading };
+  return { run, loading, source };
 }

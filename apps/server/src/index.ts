@@ -1,11 +1,11 @@
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { CUTROOM_AGENT_ID } from "@cutroom/core";
-import { generatePlan } from "./agent";
+import { agentKeyPresent, generatePlan } from "./agent";
 
 const app = new Hono();
 
-app.get("/health", (c) => c.json({ ok: true, agent: CUTROOM_AGENT_ID }));
+app.get("/health", (c) => c.json({ ok: true, agent: CUTROOM_AGENT_ID, keyPresent: agentKeyPresent() }));
 
 /** Produce an edit plan for the ⌘K palette by running the Cutroom Agent. */
 app.post("/api/agent/plan", async (c) => {
