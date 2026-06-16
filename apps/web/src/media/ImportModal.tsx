@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { useEditorStore } from "../editor/store";
 import { Icon } from "../components/Icon";
 import { useEditJob } from "./useEditJob";
+import { TranscriptEditor } from "./TranscriptEditor";
 import { outputUrl } from "./workerClient";
 
 const ACCENT = "#4FD1C5";
@@ -13,6 +14,7 @@ export function ImportModal() {
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [transcriptMode, setTranscriptMode] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const { phase, job, error, run, reset } = useEditJob();
 
@@ -33,6 +35,7 @@ export function ImportModal() {
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setPreviewUrl(null);
     setFile(null);
+    setTranscriptMode(false);
     closeImport();
   };
 
@@ -81,16 +84,19 @@ export function ImportModal() {
             </div>
           )}
 
-          {file && phase !== "done" && (
+          {file && !transcriptMode && phase !== "done" && (
             <>
               <video src={previewUrl ?? undefined} controls style={{ width: "100%", borderRadius: 12, background: "#000", maxHeight: 320 }} />
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 12 }}>
-                <span style={{ fontSize: 12, color: "#9A9AA0", flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{file.name}</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 12, flexWrap: "wrap" }}>
+                <span style={{ fontSize: 12, color: "#9A9AA0", flex: 1, minWidth: 110, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{file.name}</span>
                 {!busy && (
                   <>
                     <button onClick={() => { reset(); setFile(null); if (previewUrl) URL.revokeObjectURL(previewUrl); setPreviewUrl(null); }} style={{ background: "transparent", color: "#C7C7CC", border: "1px solid rgba(255,255,255,0.10)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, cursor: "pointer" }}>Change</button>
+                    <button onClick={() => setTranscriptMode(true)} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", color: "#D6D6DB", border: "1px solid rgba(255,255,255,0.10)", borderRadius: 10, padding: "8px 14px", fontSize: 12.5, cursor: "pointer" }}>
+                      <Icon name="captions" size={14} color={ACCENT} />Edit transcript
+                    </button>
                     <button onClick={() => run(file, { captions: true })} style={{ display: "flex", alignItems: "center", gap: 7, background: ACCENT, color: "#0C1012", border: "none", borderRadius: 10, padding: "8px 16px", fontSize: 12.5, fontWeight: 600, cursor: "pointer" }}>
-                      <Icon name="sparkles" size={14} />Clean up with AI
+                      <Icon name="sparkles" size={14} />Clean up
                     </button>
                   </>
                 )}
@@ -104,8 +110,20 @@ export function ImportModal() {
             </>
           )}
 
-          {/* RESULT */}
-          {phase === "done" && result && (
+          {file && transcriptMode && (
+            <>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                <button onClick={() => setTranscriptMode(false)} style={{ background: "#202022", border: "1px solid rgba(255,255,255,0.10)", color: "#9A9AA0", borderRadius: 8, padding: "5px 10px", fontSize: 11.5, cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>
+                  <Icon name="arrow-left" size={12} />Back
+                </button>
+                <span style={{ fontSize: 12, color: "#9A9AA0", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{file.name}</span>
+              </div>
+              <TranscriptEditor file={file} />
+            </>
+          )}
+
+          {/* RESULT (clean-up flow) */}
+          {!transcriptMode && phase === "done" && result && (
             <>
               <video src={outputUrl(result.outputId)} controls autoPlay style={{ width: "100%", borderRadius: 12, background: "#000", maxHeight: 320 }} />
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 12, flexWrap: "wrap" }}>
@@ -124,7 +142,7 @@ export function ImportModal() {
             </>
           )}
 
-          {phase === "error" && (
+          {!transcriptMode && phase === "error" && (
             <div style={{ marginTop: 14, padding: "11px 13px", background: "rgba(224,80,78,0.10)", border: "1px solid rgba(224,80,78,0.3)", borderRadius: 10, fontSize: 12.5, color: "#F2A6A4" }}>
               Edit failed: {error}
             </div>
