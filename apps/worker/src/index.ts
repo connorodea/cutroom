@@ -23,6 +23,17 @@ await mkdir(MEDIA_DIR, { recursive: true });
 const app = new Hono();
 app.use("/api/*", cors()); // editor (cutroom.preecursor.com) is cross-origin
 
+// Opt-in API-token gate: only enforced when CUTROOM_API_TOKEN is set. The CLI / MCP / external
+// agents send `Authorization: Bearer <token>`; /health stays open for probes.
+const API_TOKEN = process.env.CUTROOM_API_TOKEN;
+if (API_TOKEN) {
+  app.use("/api/*", async (c, next) => {
+    if (c.req.path.endsWith("/health")) return next();
+    if (c.req.header("authorization") === `Bearer ${API_TOKEN}`) return next();
+    return c.json({ error: "unauthorized — send Authorization: Bearer <CUTROOM_API_TOKEN>" }, 401);
+  });
+}
+
 app.get("/health", (c) => c.json({ ok: true, service: "cutroom-worker" }));
 app.get("/api/worker/health", (c) => c.json({ ok: true, service: "cutroom-worker" }));
 
