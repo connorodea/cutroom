@@ -1,0 +1,23 @@
+{
+  "name": "cutroom",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Cutroom — AI-native pro video editor (Studio). A Preecursor app.",
+  "packageManager": "pnpm@10.33.1",
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm --filter @cutroom/web dev",
+    "dev:server": "pnpm --filter @cutroom/server dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
