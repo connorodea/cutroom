@@ -8,6 +8,8 @@ export interface EditorState {
   page: PageId;
   /** Whether the ⌘K agent palette is open. */
   agentOpen: boolean;
+  /** Whether the real Import & Clean-up modal is open. */
+  importOpen: boolean;
 
   // --- agent run state machine ---
   phase: AgentPhase;
@@ -20,6 +22,8 @@ export interface EditorState {
   openAgent: () => void;
   closeAgent: () => void;
   toggleAgent: () => void;
+  openImport: () => void;
+  closeImport: () => void;
 
   /** Begin a run: enters `running` at step 0 and opens the palette. */
   startRun: (title: string, steps: AgentStep[]) => void;
@@ -32,6 +36,7 @@ export interface EditorState {
 export const useEditorStore = create<EditorState>((set) => ({
   page: "color",
   agentOpen: false,
+  importOpen: false,
   phase: "idle",
   active: -1,
   title: "",
@@ -41,6 +46,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   openAgent: () => set({ agentOpen: true }),
   closeAgent: () => set({ agentOpen: false }),
   toggleAgent: () => set((s) => ({ agentOpen: !s.agentOpen })),
+  openImport: () => set({ importOpen: true }),
+  closeImport: () => set({ importOpen: false }),
 
   startRun: (title, steps) => set({ phase: "running", active: 0, title, steps, agentOpen: true }),
   advance: () =>
