@@ -1,0 +1,58 @@
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      # ---- CI gate: must pass before any deploy ----
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm build
+
+      # ---- Deploy (connorodea only) ----
+      - name: Set up SSH
+        if: github.repository_owner == 'connorodea'
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.HETZNER_CO_SSH_KEY }}" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          ssh-keyscan -H "${{ secrets.HETZNER_CO_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Rsync build to VPS
+        if: github.repository_owner == 'connorodea'
+        env:
+          HOST: ${{ secrets.HETZNER_CO_HOST }}
+          USER: ${{ secrets.HETZNER_CO_USER }}
+        run: |
+          SSH="ssh -i ~/.ssh/id_deploy"
+          rsync -az --delete -e "$SSH" apps/web/dist/    "$USER@$HOST:/var/www/cutroom/web/"
+          rsync -az --delete -e "$SSH" apps/server/dist/ "$USER@$HOST:/var/www/cutroom/server/"
+          rsync -az          -e "$SSH" deploy/           "$USER@$HOST:/var/www/cutroom/deploy/"
+
+      - name: Remote deploy
+        if: github.repository_owner == 'connorodea'
+        env:
+          HOST: ${{ secrets.HETZNER_CO_HOST }}
+          USER: ${{ secrets.HETZNER_CO_USER }}
+        run: ssh -i ~/.ssh/id_deploy "$USER@$HOST" 'bash /var/www/cutroom/deploy/deploy.sh'

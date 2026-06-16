@@ -1,0 +1,17 @@
+[Unit]
+Description=Cutroom agent server (Hono + managed Cutroom Agent)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/var/www/cutroom/server
+# Holds ANTHROPIC_API_KEY, PORT, CUTROOM_AGENT_MODEL — chmod 0600, never in the repo.
+EnvironmentFile=/etc/cutroom.env
+ExecStart=/usr/bin/env node /var/www/cutroom/server/index.mjs
+Restart=on-failure
+RestartSec=3
+# root to match the existing connorodea CO box; swap to a dedicated user later if desired.
+User=root
+
+[Install]
+WantedBy=multi-user.target
