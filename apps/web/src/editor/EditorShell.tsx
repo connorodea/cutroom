@@ -6,6 +6,7 @@ import { Icon } from "../components/Icon";
 import { AgentPalette } from "../agent/AgentPalette";
 import { ColorPage } from "./pages/ColorPage";
 import { CutPage } from "./pages/CutPage";
+import { EditPage } from "./pages/EditPage";
 import { MediaPage } from "./pages/MediaPage";
 import { PlaceholderPage } from "./pages/PlaceholderPage";
 
@@ -27,7 +28,7 @@ function PageBody({ page }: { page: PageId }) {
     case "cut":
       return <CutPage />;
     case "edit":
-      return <PlaceholderPage title="Edit" subtitle="Dual viewer · inspector · multitrack timeline" icon="sliders-horizontal" />;
+      return <EditPage />;
     case "deliver":
       return <PlaceholderPage title="Deliver" subtitle="Render settings · preview · queue" icon="upload" />;
   }
