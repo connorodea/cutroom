@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cutroom — AI Video Editing Platform · Architecture</title>
+<style>
+  :root{
+    --bg:#0A0A0B; --panel:#161618; --panel2:#1A1A1C; --card:#202022; --line:rgba(255,255,255,.08);
+    --t0:#F5F5F7; --t1:#C7C7CC; --t2:#9A9AA0; --t3:#79797F; --t4:#636368;
+    --teal:#4FD1C5; --teal-d:#2E9C95; --amber:#E0A33E; --orange:#F2A65A; --purple:#9B7BEA; --blue:#5B8DEF; --green:#43C59E;
+    --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"SF Pro Display",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(120% 80% at 50% -10%,#15171b 0%,var(--bg) 60%);color:var(--t0);font-family:var(--sans);line-height:1.45;padding:34px 28px 64px}
+  .wrap{max-width:1280px;margin:0 auto}
+  h1{font-size:26px;letter-spacing:-.02em;margin:0 0 4px}
+  h1 .mark{color:var(--teal)}
+  .sub{color:var(--t2);font-size:14px;margin:0 0 18px}
+  .legend{display:flex;flex-wrap:wrap;gap:14px;margin:0 0 26px;font-size:12px;color:var(--t2)}
+  .legend .k{display:flex;align-items:center;gap:7px}
+  .sw{width:13px;height:13px;border-radius:4px;flex:none}
+  .sw.shipped{background:rgba(79,209,197,.18);border:1.5px solid var(--teal)}
+  .sw.planned{background:transparent;border:1.5px dashed var(--t3)}
+  .sw.ext{background:rgba(242,166,90,.15);border:1.5px solid var(--orange)}
+  .sw.store{background:rgba(67,197,158,.15);border:1.5px solid var(--green)}
+
+  .band{display:grid;grid-template-columns:120px 1fr;gap:14px;align-items:stretch;margin:0 0 12px}
+  .band .lbl{display:flex;flex-direction:column;justify-content:center;align-items:flex-end;text-align:right;padding-right:4px}
+  .band .lbl .n{font-family:var(--mono);font-size:10px;color:var(--t4);letter-spacing:.12em;text-transform:uppercase}
+  .band .lbl .t{font-size:13px;font-weight:600;color:var(--t1)}
+  .row{display:flex;flex-wrap:wrap;gap:10px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px}
+  .card{flex:1 1 180px;min-width:170px;background:var(--card);border:1.5px solid var(--line);border-radius:11px;padding:11px 12px;position:relative}
+  .card.shipped{border-color:rgba(79,209,197,.45);box-shadow:inset 0 0 0 1px rgba(79,209,197,.08)}
+  .card.planned{border-style:dashed;border-color:var(--t3);opacity:.92}
+  .card.ext{border-color:rgba(242,166,90,.5)}
+  .card.store{border-color:rgba(67,197,158,.5)}
+  .card .h{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;margin-bottom:3px}
+  .card .h .badge{margin-left:auto;font-family:var(--mono);font-size:9px;padding:1px 6px;border-radius:5px}
+  .badge.s{color:var(--teal);background:rgba(79,209,197,.12);border:1px solid rgba(79,209,197,.3)}
+  .badge.p{color:var(--t3);background:rgba(255,255,255,.04);border:1px dashed var(--t4)}
+  .card .d{font-size:11.5px;color:var(--t2)}
+  .card .tech{font-family:var(--mono);font-size:10px;color:var(--t4);margin-top:5px}
+
+  .flowdown{display:flex;justify-content:center;color:var(--t4);font-size:16px;margin:-4px 0}
+  .section-h{font-size:13px;font-weight:600;color:var(--t1);margin:30px 0 12px;display:flex;align-items:center;gap:9px}
+  .section-h::before{content:"";width:6px;height:16px;background:var(--teal);border-radius:3px}
+
+  .pipe{display:flex;gap:8px;overflow:auto;padding:14px;background:var(--panel);border:1px solid var(--line);border-radius:14px}
+  .step{flex:1 1 0;min-width:140px;background:var(--card);border:1px solid var(--line);border-radius:11px;padding:11px 12px;position:relative}
+  .step .num{font-family:var(--mono);font-size:10px;color:var(--teal);font-weight:600}
+  .step .st{font-size:12.5px;font-weight:600;margin:3px 0 3px}
+  .step .sd{font-size:10.5px;color:var(--t3);font-family:var(--mono)}
+  .step:not(:last-child)::after{content:"→";position:absolute;right:-8px;top:50%;transform:translateY(-50%);color:var(--t4);font-size:14px;z-index:2}
+
+  .road{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+  .ph{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px;border-top:3px solid var(--t4)}
+  .ph.done{border-top-color:var(--teal)}
+  .ph.next{border-top-color:var(--amber)}
+  .ph .pk{font-family:var(--mono);font-size:10px;color:var(--t4);letter-spacing:.1em}
+  .ph .pt{font-size:13px;font-weight:600;margin:3px 0 4px}
+  .ph .pd{font-size:11px;color:var(--t2)}
+  .ph .ps{margin-top:7px;font-family:var(--mono);font-size:9.5px;padding:1px 7px;border-radius:5px;display:inline-block}
+  .ps.s_done{color:var(--teal);background:rgba(79,209,197,.12);border:1px solid rgba(79,209,197,.3)}
+  .ps.s_next{color:var(--amber);background:rgba(224,163,62,.12);border:1px solid rgba(224,163,62,.3)}
+  .ps.s_later{color:var(--t3);background:rgba(255,255,255,.04);border:1px solid var(--line)}
+
+  .todo{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .tcol{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px}
+  .tcol h3{margin:0 0 10px;font-size:12.5px;display:flex;align-items:center;gap:8px}
+  .dot{width:9px;height:9px;border-radius:50%}
+  .ti{display:flex;gap:9px;font-size:12px;color:var(--t1);padding:7px 0;border-bottom:1px solid var(--line)}
+  .ti:last-child{border-bottom:0}
+  .ti .cx{font-family:var(--mono);font-size:9px;padding:1px 6px;border-radius:5px;border:1px solid var(--line);color:var(--t3);flex:none;height:fit-content;margin-top:1px}
+  .ti .txt b{color:var(--t0)}
+  .ti .txt span{color:var(--t3)}
+  .note{font-size:11.5px;color:var(--t3);margin-top:8px;font-style:italic}
+  @media(max-width:880px){.todo{grid-template-columns:1fr}.road{grid-template-columns:1fr 1fr}.band{grid-template-columns:1fr}.band .lbl{align-items:flex-start;text-align:left}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1><span class="mark">Cutroom</span> — AI Video Editing Platform · Architecture</h1>
+  <p class="sub">Current shipped state + full target. Live today at <b>cutroom.preecursor.com</b>. Heavy processing on <b>Railway</b> (isolated compute) — keeps the shared CO box for the edge + agent API.</p>
+
+  <div class="legend">
+    <span class="k"><span class="sw shipped"></span> Shipped (live)</span>
+    <span class="k"><span class="sw planned"></span> Planned (target)</span>
+    <span class="k"><span class="sw ext"></span> External / 3rd-party</span>
+    <span class="k"><span class="sw store"></span> Storage</span>
+  </div>
+
+  <!-- ================= LAYERED ARCHITECTURE ================= -->
+  <div class="band">
+    <div class="lbl"><span class="n">Layer 1</span><span class="t">Client</span></div>
+    <div class="row">
+      <div class="card shipped"><div class="h">Editor UI<span class="badge s">live</span></div><div class="d">5 pages (Media/Cut/Edit/Color/Deliver) + ⌘K agent palette</div><div class="tech">React 19 · Vite · TS · Zustand</div></div>
+      <div class="card planned"><div class="h">Upload + Library<span class="badge p">P1</span></div><div class="d">Drag-drop real files; real media pool from uploads</div><div class="tech">resumable upload · &lt;video&gt;</div></div>
+      <div class="card planned"><div class="h">Real viewer + timeline<span class="badge p">P1</span></div><div class="d">Play real footage; timeline reflects real clips; job progress</div><div class="tech">&lt;video&gt; · WebVTT captions</div></div>
+    </div>
+  </div>
+  <div class="flowdown">↓ HTTPS</div>
+
+  <div class="band">
+    <div class="lbl"><span class="n">Layer 2</span><span class="t">Edge</span></div>
+    <div class="row">
+      <div class="card shipped"><div class="h">nginx (CO VPS)<span class="badge s">live</span></div><div class="d">Static SPA + reverse-proxy <b>/api</b> → :8790. SPA fallback.</div><div class="tech">nginx 1.24 · isolated server block</div></div>
+      <div class="card ext"><div class="h">TLS · Let's Encrypt<span class="badge s">live</span></div><div class="d">certbot, auto-renew. 80→443 redirect.</div><div class="tech">ACME</div></div>
+      <div class="card ext"><div class="h">DNS · Namecheap<span class="badge s">live</span></div><div class="d">cutroom.preecursor.com → 5.161.239.237 (connorodea)</div><div class="tech">A record</div></div>
+    </div>
+  </div>
+  <div class="flowdown">↓ /api</div>
+
+  <div class="band">
+    <div class="lbl"><span class="n">Layer 3</span><span class="t">API server</span></div>
+    <div class="row">
+      <div class="card shipped"><div class="h">Agent endpoint<span class="badge s">live</span></div><div class="d"><b>POST /api/agent/plan</b> → validated AgentPlan. /api/health.</div><div class="tech">Hono · Node · systemd :8790</div></div>
+      <div class="card planned"><div class="h">Upload + media<span class="badge p">P1</span></div><div class="d">/api/upload, /api/media/:id — store & serve real files</div><div class="tech">multipart · range serving</div></div>
+      <div class="card planned"><div class="h">Jobs API<span class="badge p">P1</span></div><div class="d">/api/jobs — submit edit, poll status, fetch output URL</div><div class="tech">SSE/poll status</div></div>
+    </div>
+  </div>
+  <div class="flowdown">↓ orchestrate</div>
+
+  <div class="band">
+    <div class="lbl"><span class="n">Layer 4</span><span class="t">AI / orchestration</span></div>
+    <div class="row">
+      <div class="card shipped ext"><div class="h">Cutroom Agent<span class="badge s">live</span></div><div class="d">Anthropic Managed Agent — plans multi-step edits; cloud container for code-exec.</div><div class="tech">agent_01NCv… · sonnet-4-6</div></div>
+      <div class="card planned ext"><div class="h">Whisper ASR<span class="badge p">P2</span></div><div class="d">Word-level transcript → silences, fillers, caption timing</div><div class="tech">OpenAI · verbose_json</div></div>
+      <div class="card planned ext"><div class="h">fal.ai models<span class="badge p">P3+</span></div><div class="d">Subject tracking (reframe), upscaling, audio/vision models</div><div class="tech">FAL_KEY · hosted</div></div>
+    </div>
+  </div>
+  <div class="flowdown">↓ enqueue</div>
+
+  <div class="band">
+    <div class="lbl"><span class="n">Layer 5</span><span class="t">Processing (Railway)</span></div>
+    <div class="row">
+      <div class="card planned"><div class="h">Job queue + worker<span class="badge p">P1</span></div><div class="d">Railway worker service — scales independently, isolated from the CO box</div><div class="tech">Railway · queue (pg/BullMQ)</div></div>
+      <div class="card planned"><div class="h">ffmpeg pipeline<span class="badge p">P2</span></div><div class="d">Cut · concat · caption burn-in · loudnorm · crop/reframe · render</div><div class="tech">ffmpeg · Railway container</div></div>
+      <div class="card planned"><div class="h">Plan → ops mapper<span class="badge p">P2</span></div><div class="d">Turns AgentPlan steps into real, deterministic ffmpeg/ASR ops</div><div class="tech">@cutroom/core ops</div></div>
+    </div>
+  </div>
+  <div class="flowdown">↕ read / write</div>
+
+  <div class="band">
+    <div class="lbl"><span class="n">Layer 6</span><span class="t">Storage</span></div>
+    <div class="row">
+      <div class="card planned store"><div class="h">Media store<span class="badge p">P1</span></div><div class="d">Uploads + rendered outputs — Railway volume now; object storage (R2/S3) later</div><div class="tech">Railway volume</div></div>
+      <div class="card planned store"><div class="h">Jobs + projects DB<span class="badge p">P1</span></div><div class="d">Job state, transcripts, edit decisions, project metadata</div><div class="tech">SQLite → Postgres</div></div>
+    </div>
+  </div>
+
+  <div class="band">
+    <div class="lbl"><span class="n">Layer 7</span><span class="t">DevOps</span></div>
+    <div class="row">
+      <div class="card shipped"><div class="h">CI/CD<span class="badge s">live*</span></div><div class="d">GitHub Actions: typecheck/test/build → rsync → systemd restart (secrets pending)</div><div class="tech">connorodea/cutroom</div></div>
+      <div class="card shipped"><div class="h">Runtime<span class="badge s">live</span></div><div class="d">systemd (cutroom.service) · esbuild bundle · /etc/cutroom.env</div><div class="tech">node 22 · Ubuntu 24.04</div></div>
+      <div class="card planned"><div class="h">Observability<span class="badge p">P2</span></div><div class="d">Job logs, render metrics, error alerts (Sentry available)</div><div class="tech">logs · metrics</div></div>
+    </div>
+  </div>
+
+  <!-- ================= HEADLINE PIPELINE (P2) ================= -->
+  <div class="section-h">Headline data flow — the "Clean up" edit (P2): real file in → real file out</div>
+  <div class="pipe">
+    <div class="step"><div class="num">01</div><div class="st">Upload</div><div class="sd">browser → /api/upload → media store</div></div>
+    <div class="step"><div class="num">02</div><div class="st">Transcribe</div><div class="sd">ffmpeg extract audio → Whisper → words+timing</div></div>
+    <div class="step"><div class="num">03</div><div class="st">Decide cuts</div><div class="sd">silences/filler → keep-segments (agent-assisted)</div></div>
+    <div class="step"><div class="num">04</div><div class="st">Cut + caption</div><div class="sd">ffmpeg trim/concat + burn captions + loudnorm</div></div>
+    <div class="step"><div class="num">05</div><div class="st">Render</div><div class="sd">encode H.264 MP4 → output store</div></div>
+    <div class="step"><div class="num">06</div><div class="st">Deliver</div><div class="sd">viewer plays result · download</div></div>
+  </div>
+
+  <!-- ================= ROADMAP ================= -->
+  <div class="section-h">Build-toward roadmap</div>
+  <div class="road">
+    <div class="ph next"><div class="pk">P1</div><div class="pt">Media foundation</div><div class="pd">Upload, store, real playback, async job model + DB.</div><div class="ps s_next">next</div></div>
+    <div class="ph"><div class="pk">P2</div><div class="pt">Clean-up edit</div><div class="pd">Whisper → cut silences/filler + captions + level → real MP4.</div><div class="ps s_later">then</div></div>
+    <div class="ph"><div class="pk">P3</div><div class="pt">Social reframe</div><div class="pd">Auto 9:16 with subject tracking + captions.</div><div class="ps s_later">later</div></div>
+    <div class="ph"><div class="pk">P4</div><div class="pt">Highlights → reel</div><div class="pd">Rank moments (transcript+energy) → assemble teaser.</div><div class="ps s_later">later</div></div>
+    <div class="ph"><div class="pk">P5</div><div class="pt">Color / multitrack</div><div class="pd">Real grading, multi-clip timelines, transitions.</div><div class="ps s_later">later</div></div>
+  </div>
+  <div class="ph done" style="margin-top:10px;display:block"><div class="pk">P0 ✓</div><div class="pt">Shipped foundation</div><div class="pd">Pixel-perfect editor UI (5 pages) + ⌘K agent (live managed agent) + deployed at cutroom.preecursor.com over HTTPS with CI scaffolding. <b>46 tests.</b></div><div class="ps s_done">done</div></div>
+
+  <!-- ================= NEXT STEPS ================= -->
+  <div class="section-h">Next steps</div>
+  <div class="todo">
+    <div class="tcol">
+      <h3><span class="dot" style="background:#ef5350"></span>Critical / blockers</h3>
+      <div class="ti"><span class="cx">M</span><div class="txt"><b>Job model + media store</b> <span>— async jobs, upload, output serving; everything downstream depends on it.</span></div></div>
+      <div class="ti"><span class="cx">S</span><div class="txt"><b>Verify ffmpeg on CO VPS</b> <span>— confirm/install ffmpeg + codecs before any pipeline work.</span></div></div>
+      <div class="ti"><span class="cx">M</span><div class="txt"><b>Resource guardrails</b> <span>— concurrency=1, nice/cgroup caps so renders never starve the shared box.</span></div></div>
+      <div class="ti"><span class="cx">S</span><div class="txt"><b>CI deploy secrets</b> <span>— deploy key + HETZNER_CO_* so main pushes auto-deploy.</span></div></div>
+    </div>
+    <div class="tcol">
+      <h3><span class="dot" style="background:#E0A33E"></span>High priority (P2 core)</h3>
+      <div class="ti"><span class="cx">M</span><div class="txt"><b>Whisper ASR step</b> <span>— extract audio, transcribe to word-level JSON, store transcript.</span></div></div>
+      <div class="ti"><span class="cx">M</span><div class="txt"><b>Silence/filler detector</b> <span>— transcript+audio → keep-segments; agent reviews edge cases.</span></div></div>
+      <div class="ti"><span class="cx">L</span><div class="txt"><b>ffmpeg cut+caption+level</b> <span>— trim/concat, burn word captions, loudnorm → MP4.</span></div></div>
+      <div class="ti"><span class="cx">M</span><div class="txt"><b>Wire ⌘K → real job</b> <span>— "remove silences + captions" runs the real pipeline, shows real progress.</span></div></div>
+    </div>
+    <div class="tcol">
+      <h3><span class="dot" style="background:#43C59E"></span>Future (P3–P5)</h3>
+      <div class="ti"><span class="cx">L</span><div class="txt"><b>9:16 auto-reframe</b> <span>— fal.ai subject tracking + crop.</span></div></div>
+      <div class="ti"><span class="cx">L</span><div class="txt"><b>Highlights → reel</b> <span>— rank moments, assemble.</span></div></div>
+      <div class="ti"><span class="cx">XL</span><div class="txt"><b>Object storage + worker box</b> <span>— move heavy jobs off the shared VPS as usage grows.</span></div></div>
+    </div>
+    <div class="tcol">
+      <h3><span class="dot" style="background:#5B8DEF"></span>Decisions needed</h3>
+      <div class="ti"><span class="cx">—</span><div class="txt"><b>Agent's real role</b> <span>— orchestrate the deterministic pipeline vs. execute ffmpeg in its own container?</span></div></div>
+      <div class="ti"><span class="cx">—</span><div class="txt"><b>Storage path</b> <span>— VPS disk MVP now; when to move to object storage (R2/S3)?</span></div></div>
+      <div class="ti"><span class="cx">—</span><div class="txt"><b>Auth / multi-user</b> <span>— single-user demo first, or accounts + per-user media from the start?</span></div></div>
+      <div class="ti"><span class="cx">—</span><div class="txt"><b>Caption style</b> <span>— burned-in (baked) vs soft WebVTT toggle as the default.</span></div></div>
+    </div>
+  </div>
+  <p class="note">* CI/CD pipeline is committed; live auto-deploy pending deploy key + GitHub secrets. Heavy processing runs on <b>Railway</b> (isolated compute) — keeps renders off the shared CO box. Storage starts on a Railway volume; move to object storage (R2/S3) under load.</p>
+</div>
+</body>
+</html>
