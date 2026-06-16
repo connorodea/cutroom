@@ -5,7 +5,11 @@ import { agentKeyPresent, generatePlan } from "./agent";
 
 const app = new Hono();
 
-app.get("/health", (c) => c.json({ ok: true, agent: CUTROOM_AGENT_ID, keyPresent: agentKeyPresent() }));
+// Health — exposed at both /health (internal) and /api/health (public, via the nginx /api proxy).
+const health = (c: { json: (v: unknown) => Response }) =>
+  c.json({ ok: true, agent: CUTROOM_AGENT_ID, keyPresent: agentKeyPresent() });
+app.get("/health", health);
+app.get("/api/health", health);
 
 /** Produce an edit plan for the ⌘K palette by running the Cutroom Agent. */
 app.post("/api/agent/plan", async (c) => {
