@@ -5,6 +5,7 @@ import { useEditorStore } from "./store";
 import { Icon } from "../components/Icon";
 import { AgentPalette } from "../agent/AgentPalette";
 import { ColorPage } from "./pages/ColorPage";
+import { MediaPage } from "./pages/MediaPage";
 import { PlaceholderPage } from "./pages/PlaceholderPage";
 
 const ACCENT = "#4FD1C5";
@@ -21,7 +22,7 @@ function PageBody({ page }: { page: PageId }) {
     case "color":
       return <ColorPage />;
     case "media":
-      return <PlaceholderPage title="Media" subtitle="Bins · browser · metadata · source" icon="folder" />;
+      return <MediaPage />;
     case "cut":
       return <PlaceholderPage title="Cut" subtitle="Source tape · viewer · dual timeline" icon="scissors" />;
     case "edit":

@@ -15,3 +15,6 @@ coverage/
 *.local
 .idea/
 .vscode/
+
+# Agent scratch / local settings
+.claude/
