@@ -1,0 +1,37 @@
+import {
+  Activity, ArrowLeft, ArrowUpRight, AudioLines, Captions, Check, ChevronDown,
+  CircleCheckBig, Clapperboard, CornerDownLeft, Crop, Dot, Film, Folder, Layers, Magnet,
+  Maximize2, Monitor, MousePointer2, Palette, Play, Plus, Quote, Redo2, Scissors,
+  Search, SkipBack, SkipForward, SlidersHorizontal, Smartphone, Sparkles, Type,
+  Undo2, Upload, Volume2, Wand2, ZoomIn, ZoomOut,
+  type LucideIcon,
+} from "lucide-react";
+
+/** Maps the design's kebab-case icon names to lucide-react components. */
+const ICONS: Record<string, LucideIcon> = {
+  activity: Activity, "arrow-left": ArrowLeft, "arrow-up-right": ArrowUpRight,
+  "audio-lines": AudioLines, captions: Captions, check: Check, "chevron-down": ChevronDown,
+  "circle-check-big": CircleCheckBig, clapperboard: Clapperboard, "corner-down-left": CornerDownLeft,
+  crop: Crop, dot: Dot, film: Film, folder: Folder, layers: Layers, magnet: Magnet, "maximize-2": Maximize2,
+  monitor: Monitor, "mouse-pointer-2": MousePointer2, palette: Palette, play: Play, plus: Plus,
+  quote: Quote, "redo-2": Redo2, scissors: Scissors, search: Search, "skip-back": SkipBack,
+  "skip-forward": SkipForward, "sliders-horizontal": SlidersHorizontal, smartphone: Smartphone,
+  sparkles: Sparkles, type: Type, "undo-2": Undo2, upload: Upload, "volume-2": Volume2,
+  "wand-2": Wand2, "zoom-in": ZoomIn, "zoom-out": ZoomOut,
+};
+
+export interface IconProps {
+  name: string;
+  size?: number;
+  color?: string;
+  strokeWidth?: number;
+  fill?: string;
+  style?: React.CSSProperties;
+}
+
+/** Inline SVG icon by design name. Inherits `currentColor` unless `color` is set. */
+export function Icon({ name, size = 16, color, strokeWidth = 2, fill = "none", style }: IconProps) {
+  const Cmp = ICONS[name];
+  if (!Cmp) return null;
+  return <Cmp size={size} color={color} strokeWidth={strokeWidth} fill={fill} style={style} />;
+}
