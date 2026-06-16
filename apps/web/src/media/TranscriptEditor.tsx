@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Icon } from "../components/Icon";
 import {
   outputUrl,
@@ -20,6 +20,15 @@ export function TranscriptEditor({ file }: { file: File }) {
   const [removed, setRemoved] = useState<Set<number>>(new Set());
   const [job, setJob] = useState<EditJob | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [srcUrl, setSrcUrl] = useState<string | null>(null);
+  const [activeWord, setActiveWord] = useState(-1);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const url = URL.createObjectURL(file);
+    setSrcUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
 
   useEffect(() => {
     let alive = true;
@@ -48,6 +57,15 @@ export function TranscriptEditor({ file }: { file: File }) {
       else next.add(i);
       return next;
     });
+
+  const onWordClick = (i: number) => {
+    toggle(i);
+    if (videoRef.current) videoRef.current.currentTime = words[i].start;
+  };
+  const onTimeUpdate = () => {
+    const t = videoRef.current?.currentTime ?? 0;
+    setActiveWord(words.findIndex((w) => t >= w.start && t <= w.end));
+  };
 
   const apply = async () => {
     setPhase("applying");
@@ -100,18 +118,22 @@ export function TranscriptEditor({ file }: { file: File }) {
 
   return (
     <>
+      {srcUrl && (
+        <video ref={videoRef} src={srcUrl} controls onTimeUpdate={onTimeUpdate} style={{ width: "100%", borderRadius: 12, background: "#000", maxHeight: 220, marginBottom: 10 }} />
+      )}
       <div style={{ fontSize: 11, color: "#79797F", marginBottom: 8, display: "flex", alignItems: "center", gap: 7 }}>
         <Icon name="captions" size={13} color={ACCENT} />
-        Click words to strike them — they'll be cut from the video.
+        Click a word to jump there · click to strike it — struck words get cut.
       </div>
-      <div style={{ maxHeight: 280, overflowY: "auto", background: "#161618", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "14px 16px", fontSize: 16.5, lineHeight: 2, color: "#D6D6DB" }}>
+      <div style={{ maxHeight: 200, overflowY: "auto", background: "#161618", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: "14px 16px", fontSize: 16, lineHeight: 2, color: "#D6D6DB" }}>
         {words.map((w, i) => {
           const cut = removed.has(i);
+          const active = i === activeWord && !cut;
           return (
             <span
               key={i}
-              onClick={() => toggle(i)}
-              style={{ cursor: "pointer", padding: "1px 3px", borderRadius: 5, color: cut ? "#636368" : "#E7E9ED", textDecoration: cut ? "line-through" : "none", textDecorationColor: "#E0544E", textDecorationThickness: cut ? 2 : undefined, background: cut ? "transparent" : "transparent" }}
+              onClick={() => onWordClick(i)}
+              style={{ cursor: "pointer", padding: "1px 3px", borderRadius: 5, color: cut ? "#636368" : active ? "#0C1012" : "#E7E9ED", background: active ? ACCENT : "transparent", textDecoration: cut ? "line-through" : "none", textDecorationColor: "#E0544E", textDecorationThickness: cut ? 2 : undefined }}
             >
               {w.word}{" "}
             </span>
