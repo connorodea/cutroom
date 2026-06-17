@@ -148,6 +148,13 @@ describe("JSON endpoints", () => {
     expect(JSON.parse(lastCall()[1]?.body as string)).toEqual({ outputId: "o6", op: "gif", width: 480 });
   });
 
+  it("chain supports the loop and thumbnail ops", async () => {
+    await client().chain("o7", "loop", { count: 3 });
+    expect(JSON.parse(lastCall()[1]?.body as string)).toEqual({ outputId: "o7", op: "loop", count: 3 });
+    await client().chain("o8", "thumbnail", { time: 2 });
+    expect(JSON.parse(lastCall()[1]?.body as string)).toEqual({ outputId: "o8", op: "thumbnail", time: 2 });
+  });
+
   it("highlights POSTs the sourceId and clip count", async () => {
     await client().highlights("src-1", { count: 5 });
     const [url, init] = lastCall();

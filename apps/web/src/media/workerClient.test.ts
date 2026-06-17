@@ -442,6 +442,13 @@ describe("getJob + pollJob", () => {
     expect(JSON.parse(lastCall()[1]?.body as string)).toEqual({ outputId: "out-2", op: "gif", width: 480 });
   });
 
+  it("submitChainJob chains loop and thumbnail ops with their params", async () => {
+    await submitChainJob("out-1", "loop", { count: 3 });
+    expect(JSON.parse(lastCall()[1]?.body as string)).toEqual({ outputId: "out-1", op: "loop", count: 3 });
+    await submitChainJob("out-2", "thumbnail", { time: 2 });
+    expect(JSON.parse(lastCall()[1]?.body as string)).toEqual({ outputId: "out-2", op: "thumbnail", time: 2 });
+  });
+
   it("submitChainJob throws the server error on failure", async () => {
     fetchMock.mockResolvedValueOnce(res({ error: "chain boom" }, { ok: false, status: 404 }));
     await expect(submitChainJob("x", "captions")).rejects.toThrow("chain boom");

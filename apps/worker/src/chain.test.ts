@@ -30,6 +30,8 @@ describe("parseChainOp", () => {
     expect(parseChainOp("reverse")).toBe("reverse");
     expect(parseChainOp("crop")).toBe("crop");
     expect(parseChainOp("gif")).toBe("gif");
+    expect(parseChainOp("loop")).toBe("loop");
+    expect(parseChainOp("thumbnail")).toBe("thumbnail");
   });
 
   it("returns null for an unknown or non-string op", () => {
