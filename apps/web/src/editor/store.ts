@@ -13,6 +13,9 @@ export interface EditorState {
   /** Whether the AI Create modal is open. */
   createOpen: boolean;
 
+  /** Output ids of AI-created videos this session, newest-first. */
+  createdOutputs: string[];
+
   // --- agent run state machine ---
   phase: AgentPhase;
   /** Index of the currently-running step; -1 when idle, steps.length when done. */
@@ -28,6 +31,8 @@ export interface EditorState {
   closeImport: () => void;
   openCreate: () => void;
   closeCreate: () => void;
+  /** Record an AI-created output id (newest-first, de-duplicated). */
+  addCreatedOutput: (outputId: string) => void;
 
   /** Begin a run: enters `running` at step 0 and opens the palette. */
   startRun: (title: string, steps: AgentStep[]) => void;
@@ -42,6 +47,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   agentOpen: false,
   importOpen: false,
   createOpen: false,
+  createdOutputs: [],
   phase: "idle",
   active: -1,
   title: "",
@@ -55,6 +61,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   closeImport: () => set({ importOpen: false }),
   openCreate: () => set({ createOpen: true }),
   closeCreate: () => set({ createOpen: false }),
+  addCreatedOutput: (outputId) =>
+    set((s) => ({ createdOutputs: [outputId, ...s.createdOutputs.filter((id) => id !== outputId)] })),
 
   startRun: (title, steps) => set({ phase: "running", active: 0, title, steps, agentOpen: true }),
   advance: () =>

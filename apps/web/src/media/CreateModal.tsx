@@ -10,6 +10,7 @@ type Phase = "idle" | "submitting" | "running" | "done" | "error";
 export function CreateModal() {
   const open = useEditorStore((s) => s.createOpen);
   const closeCreate = useEditorStore((s) => s.closeCreate);
+  const addCreatedOutput = useEditorStore((s) => s.addCreatedOutput);
 
   const [prompt, setPrompt] = useState("");
   const [aspect, setAspect] = useState<"landscape" | "portrait">("landscape");
@@ -48,8 +49,10 @@ export function CreateModal() {
       setPhase("running");
       const final = await pollJob(submitted.id, 2500);
       setJob(final);
-      if (final.status === "done") setPhase("done");
-      else {
+      if (final.status === "done") {
+        if (final.result) addCreatedOutput(final.result.outputId);
+        setPhase("done");
+      } else {
         setError(final.error || "render failed");
         setPhase("error");
       }

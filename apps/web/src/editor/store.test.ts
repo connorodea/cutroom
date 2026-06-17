@@ -61,4 +61,23 @@ describe("editor store", () => {
     expect(s.active).toBe(-1);
     expect(s.steps).toHaveLength(0);
   });
+
+  it("starts with no AI-created outputs", () => {
+    expect(useEditorStore.getState().createdOutputs).toEqual([]);
+  });
+
+  it("records AI-created outputs newest-first", () => {
+    const { addCreatedOutput } = useEditorStore.getState();
+    addCreatedOutput("a");
+    addCreatedOutput("b");
+    expect(useEditorStore.getState().createdOutputs).toEqual(["b", "a"]);
+  });
+
+  it("moves a re-added output to the front without duplicating", () => {
+    const { addCreatedOutput } = useEditorStore.getState();
+    addCreatedOutput("a");
+    addCreatedOutput("b");
+    addCreatedOutput("a");
+    expect(useEditorStore.getState().createdOutputs).toEqual(["a", "b"]);
+  });
 });
