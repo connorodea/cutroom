@@ -14,6 +14,7 @@ import {
   submitFadeJob,
   submitReverseJob,
   submitCropJob,
+  submitGifJob,
   submitChainJob,
   submitTranscriptCut,
   submitHighlightsJob,
@@ -302,6 +303,25 @@ describe("multipart submit endpoints", () => {
   it("submitCropJob throws the server error on failure", async () => {
     fetchMock.mockResolvedValueOnce(res({ error: "crop boom" }, { ok: false, status: 400 }));
     await expect(submitCropJob(sampleFile())).rejects.toThrow("crop boom");
+  });
+
+  it("submitGifJob POSTs the file with the width", async () => {
+    await submitGifJob(sampleFile(), { width: 320 });
+    const [url, init] = lastCall();
+    expect(url).toBe(`${BASE}/api/gif`);
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("width")).toBe("320");
+  });
+
+  it("submitGifJob defaults the width to 480", async () => {
+    await submitGifJob(sampleFile());
+    expect((lastCall()[1]?.body as FormData).get("width")).toBe("480");
+  });
+
+  it("submitGifJob throws the server error on failure", async () => {
+    fetchMock.mockResolvedValueOnce(res({ error: "gif boom" }, { ok: false, status: 400 }));
+    await expect(submitGifJob(sampleFile())).rejects.toThrow("gif boom");
   });
 
   it("submitOverlayJob POSTs the file plus a JSON overlays field", async () => {

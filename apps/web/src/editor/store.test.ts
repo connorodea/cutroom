@@ -162,6 +162,14 @@ describe("editor store", () => {
     expect(useEditorStore.getState().cropOpen).toBe(false);
   });
 
+  it("opens and closes the GIF modal", () => {
+    expect(useEditorStore.getState().gifOpen).toBe(false);
+    useEditorStore.getState().openGif();
+    expect(useEditorStore.getState().gifOpen).toBe(true);
+    useEditorStore.getState().closeGif();
+    expect(useEditorStore.getState().gifOpen).toBe(false);
+  });
+
   it("starts with the Overlay modal closed", () => {
     expect(useEditorStore.getState().overlayOpen).toBe(false);
   });

@@ -38,6 +38,8 @@ export interface EditorState {
   reverseOpen: boolean;
   /** Whether the Crop (region punch-in) modal is open. */
   cropOpen: boolean;
+  /** Whether the GIF export modal is open. */
+  gifOpen: boolean;
 
   /** Output ids of AI-created videos this session, newest-first. */
   createdOutputs: string[];
@@ -83,6 +85,8 @@ export interface EditorState {
   closeReverse: () => void;
   openCrop: () => void;
   closeCrop: () => void;
+  openGif: () => void;
+  closeGif: () => void;
   /** Record an AI-created output id (newest-first, de-duplicated). */
   addCreatedOutput: (outputId: string) => void;
 
@@ -112,6 +116,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   fadeOpen: false,
   reverseOpen: false,
   cropOpen: false,
+  gifOpen: false,
   createdOutputs: [],
   phase: "idle",
   active: -1,
@@ -152,6 +157,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   closeReverse: () => set({ reverseOpen: false }),
   openCrop: () => set({ cropOpen: true }),
   closeCrop: () => set({ cropOpen: false }),
+  openGif: () => set({ gifOpen: true }),
+  closeGif: () => set({ gifOpen: false }),
   addCreatedOutput: (outputId) =>
     set((s) => ({ createdOutputs: [outputId, ...s.createdOutputs.filter((id) => id !== outputId)] })),
 

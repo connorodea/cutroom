@@ -18,6 +18,7 @@ import {
   createColorJob,
   createCropJob,
   createFadeJob,
+  createGifJob,
   createReframeJob,
   createReverseJob,
   createRotateJob,
@@ -330,6 +331,18 @@ app.post("/api/crop", async (c) => {
   return c.json(job, 202);
 });
 
+/** GIF export — render an upload to a looping GIF: multipart { file, fps, width }. */
+app.post("/api/gif", async (c) => {
+  const body = await c.req.parseBody();
+  const file = body["file"];
+  if (!(file instanceof File)) return c.json({ error: "missing 'file' (multipart)" }, 400);
+  const ext = extname(file.name || "") || ".mp4";
+  const inputPath = `${MEDIA_DIR}/gif-${Date.now()}${ext}`;
+  await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
+  const job = createGifJob(inputPath, { fps: body["fps"], width: body["width"] }, MEDIA_DIR);
+  return c.json(job, 202);
+});
+
 /** Transcript editor — step 1: upload → word-level transcript + sourceId. */
 app.post("/api/transcribe", async (c) => {
   const body = await c.req.parseBody();
@@ -406,6 +419,7 @@ app.get("/api/jobs/:id", (c) => {
 
 const MEDIA_TYPES: Record<string, string> = {
   ".mp4": "video/mp4",
+  ".gif": "image/gif",
   ".png": "image/png",
   ".jpg": "image/jpeg",
   ".jpeg": "image/jpeg",
@@ -415,7 +429,7 @@ const MEDIA_TYPES: Record<string, string> = {
 /** Serve a rendered/generated output (MP4 or image) by job/output id. */
 app.get("/api/media/:id", async (c) => {
   const id = c.req.param("id").replace(/[^a-zA-Z0-9-]/g, "");
-  for (const ext of [".mp4", ".png", ".jpg", ".jpeg", ".webp"]) {
+  for (const ext of [".mp4", ".gif", ".png", ".jpg", ".jpeg", ".webp"]) {
     const path = `${MEDIA_DIR}/${id}${ext}`;
     try {
       const s = await stat(path);

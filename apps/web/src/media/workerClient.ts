@@ -8,7 +8,7 @@ const WORKER_URL =
 
 export interface EditJob {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: {
@@ -51,6 +51,8 @@ export interface EditJob {
     /** For crop jobs: the kept region's width/height fractions. */
     cropW?: number;
     cropH?: number;
+    /** For gif jobs: the output extension ("gif") so the UI can render it as an image. */
+    ext?: string;
   };
   error?: string;
 }
@@ -143,6 +145,19 @@ export async function submitCaptionsJob(file: File, opts: { position?: "bottom" 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error((body as { error?: string }).error || `captions failed (${res.status})`);
+  }
+  return (await res.json()) as EditJob;
+}
+
+/** Render a video to a looping GIF: multipart { file, width }. Output served as a .gif. */
+export async function submitGifJob(file: File, opts: { width?: number } = {}): Promise<EditJob> {
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("width", String(opts.width ?? 480));
+  const res = await fetch(`${WORKER_URL}/api/gif`, { method: "POST", body: fd });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error || `gif failed (${res.status})`);
   }
   return (await res.json()) as EditJob;
 }

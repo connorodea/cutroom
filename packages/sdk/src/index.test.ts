@@ -237,6 +237,17 @@ describe("multipart endpoints", () => {
     expect(fd.get("level")).toBe("1");
   });
 
+  it("gif POSTs the file with only the provided options", async () => {
+    await client().gif(tmpFile, { width: 320 });
+    const [url, init] = lastCall();
+    expect(url).toBe("http://x/api/gif");
+    expect(init?.method).toBe("POST");
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("width")).toBe("320");
+    expect(fd.get("fps")).toBeNull();
+  });
+
   it("crop POSTs the file with the preset and only provided overrides", async () => {
     await client().crop(tmpFile, { preset: "center", w: 0.4 });
     const [url, init] = lastCall();
