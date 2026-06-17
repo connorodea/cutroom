@@ -43,4 +43,10 @@ describe("planHighlights", () => {
   it("returns [] when there are no words", () => {
     expect(planHighlights([], 0)).toEqual([]);
   });
+
+  it("falls back to each run's own end when no total duration is given", () => {
+    // totalDur 0 (unknown) must not clamp the run end to 0 — it falls back to r.end.
+    const hs = planHighlights([w("a", 0, 1), w("b", 1, 2)], 0);
+    expect(hs).toEqual([{ start: 0, end: 2, text: "a b" }]);
+  });
 });

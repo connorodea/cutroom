@@ -90,6 +90,11 @@ describe("JSON submit endpoints", () => {
     await expect(submitHighlightsJob("src-7")).rejects.toThrow("no highlights");
   });
 
+  it("submitHighlightsJob falls back to a generic message when the body has no error (e.g. a proxy 502)", async () => {
+    fetchMock.mockResolvedValueOnce(res({}, { ok: false, status: 502 }));
+    await expect(submitHighlightsJob("src-7")).rejects.toThrow(/highlights failed \(502\)/);
+  });
+
   it("submitTranscriptCut POSTs the sourceId, indices and captions flag", async () => {
     await submitTranscriptCut("src-9", [1, 4], false);
     const [url, init] = lastCall();
@@ -329,6 +334,11 @@ describe("multipart submit endpoints", () => {
     await expect(submitReframeJob(sampleFile())).rejects.toThrow("reframe boom");
   });
 
+  it("submitReframeJob falls back to a generic message when the body has no error", async () => {
+    fetchMock.mockResolvedValueOnce(res({}, { ok: false, status: 502 }));
+    await expect(submitReframeJob(sampleFile())).rejects.toThrow(/reframe failed \(502\)/);
+  });
+
   it("submitOverlayJob throws the server error on failure", async () => {
     fetchMock.mockResolvedValueOnce(res({ error: "overlay boom" }, { ok: false, status: 400 }));
     await expect(submitOverlayJob(sampleFile(), [])).rejects.toThrow("overlay boom");
@@ -368,6 +378,11 @@ describe("getJob + pollJob", () => {
   it("submitChainJob throws the server error on failure", async () => {
     fetchMock.mockResolvedValueOnce(res({ error: "chain boom" }, { ok: false, status: 404 }));
     await expect(submitChainJob("x", "captions")).rejects.toThrow("chain boom");
+  });
+
+  it("submitChainJob falls back to a generic message when the body has no error", async () => {
+    fetchMock.mockResolvedValueOnce(res({}, { ok: false, status: 502 }));
+    await expect(submitChainJob("x", "captions")).rejects.toThrow(/chain failed \(502\)/);
   });
 
   it("getJob GETs /api/jobs/:id", async () => {
