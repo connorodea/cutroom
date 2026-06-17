@@ -165,6 +165,12 @@ describe("routeIntent", () => {
     expect(routeIntent("put these four videos in a grid")).toBe("grid");
   });
 
+  it("routes waveform / audiogram requests to waveform", () => {
+    expect(routeIntent("make an audiogram")).toBe("waveform");
+    expect(routeIntent("turn this audio into a waveform video")).toBe("waveform");
+    expect(routeIntent("visualize the audio")).toBe("waveform");
+  });
+
   it("prefers the specific operation over generic create", () => {
     expect(routeIntent("make a vertical video")).toBe("reframe");
   });

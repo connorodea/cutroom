@@ -32,6 +32,7 @@ import {
   createCensorJob,
   createMusicJob,
   createGridJob,
+  createWaveformJob,
   createStitchJob,
   createThumbnailJob,
   createWatermarkJob,
@@ -481,6 +482,18 @@ app.post("/api/grid", async (c) => {
     paths.push(p);
   }
   const job = createGridJob(paths, MEDIA_DIR);
+  return c.json(job, 202);
+});
+
+/** Waveform — render an audio file into an audiogram video: multipart { file (audio), mode, color, aspect }. */
+app.post("/api/waveform", async (c) => {
+  const body = await c.req.parseBody();
+  const file = body["file"];
+  if (!(file instanceof File)) return c.json({ error: "missing 'file' (audio, multipart)" }, 400);
+  const ext = extname(file.name || "") || ".mp3";
+  const audioPath = `${MEDIA_DIR}/wave-${Date.now()}${ext}`;
+  await writeFile(audioPath, Buffer.from(await file.arrayBuffer()));
+  const job = createWaveformJob(audioPath, body["mode"], body["color"], body["aspect"], MEDIA_DIR);
   return c.json(job, 202);
 });
 

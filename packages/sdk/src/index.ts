@@ -20,7 +20,7 @@ export interface TranscriptWord {
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "grid" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "grid" | "waveform" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -194,6 +194,12 @@ export class CutroomClient {
   async kenBurns(imagePath: string, opts: { direction?: "in" | "out" | "left" | "right"; seconds?: number; aspect?: "landscape" | "portrait" | "square" } = {}): Promise<Job> {
     const fd = await this.fileForm(imagePath, { direction: opts.direction ?? "in", seconds: String(opts.seconds ?? 5), aspect: opts.aspect ?? "landscape" });
     return this.json(await fetch(`${this.baseUrl}/api/kenburns`, { method: "POST", headers: this.authHeaders(), body: fd }));
+  }
+
+  /** Waveform: render an audio file into an audiogram video (mode cline/line/point, color, aspect) → job. */
+  async waveform(audioPath: string, opts: { mode?: "cline" | "line" | "point"; color?: "cyan" | "magenta" | "lime" | "white"; aspect?: "square" | "landscape" | "portrait" } = {}): Promise<Job> {
+    const fd = await this.fileForm(audioPath, { mode: opts.mode ?? "cline", color: opts.color ?? "cyan", aspect: opts.aspect ?? "square" });
+    return this.json(await fetch(`${this.baseUrl}/api/waveform`, { method: "POST", headers: this.authHeaders(), body: fd }));
   }
 
   /** Background music: mix `audioPath` under `videoPath` at `volume` (0–1, default 0.3) → job. */

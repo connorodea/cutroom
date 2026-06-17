@@ -2,7 +2,7 @@
 export type IntentTool =
   | "create" | "import" | "reframe" | "highlights" | "captions" | "overlay" | "generate"
   | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop"
-  | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "grid" | null;
+  | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "grid" | "waveform" | null;
 
 /**
  * Classify a free-text agent request into the editor tool that fulfills it. Heuristic + ordered:
@@ -85,6 +85,9 @@ export function routeIntent(prompt: string): IntentTool {
   }
   if (/\b(2\s*[x×]\s*2|grid|mosaic|tile\s+(four|4|the\s+clips)|four\s+(clips|videos)\s+(in|into))\b/.test(p)) {
     return "grid";
+  }
+  if (/\b(waveform|audiogram|audio\s?gram|visuali[sz]e\s+(the\s+)?audio|audio\s+visuali[sz]er)\b/.test(p)) {
+    return "waveform";
   }
   if (/\b(stitch|concat(enate)?|join\s+(the\s+)?clips|merge\s+(the\s+)?clips|combine\s+(the\s+)?clips)\b/.test(p)) {
     return "stitch";

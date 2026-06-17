@@ -88,6 +88,7 @@ describe("AgentPalette", () => {
     ["blur out the license plate", "censorOpen"],
     ["add background music", "musicOpen"],
     ["make a 2x2 grid", "gridOpen"],
+    ["make an audiogram", "waveformOpen"],
   ] as const)("routes '%s' to the matching tool and closes the palette", (prompt, flag) => {
     open();
     render(<AgentPalette />);

@@ -33,6 +33,7 @@ import { BorderModal } from "../media/BorderModal";
 import { CensorModal } from "../media/CensorModal";
 import { MusicModal } from "../media/MusicModal";
 import { GridModal } from "../media/GridModal";
+import { WaveformModal } from "../media/WaveformModal";
 import { ColorPage } from "./pages/ColorPage";
 import { CutPage } from "./pages/CutPage";
 import { DeliverPage } from "./pages/DeliverPage";
@@ -96,6 +97,7 @@ export function EditorShell() {
   const openCensor = useEditorStore((s) => s.openCensor);
   const openMusic = useEditorStore((s) => s.openMusic);
   const openGrid = useEditorStore((s) => s.openGrid);
+  const openWaveform = useEditorStore((s) => s.openWaveform);
   const toggleAgent = useEditorStore((s) => s.toggleAgent);
   const closeAgent = useEditorStore((s) => s.closeAgent);
   const agentOpen = useEditorStore((s) => s.agentOpen);
@@ -255,6 +257,9 @@ export function EditorShell() {
           <button onClick={openGrid} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
             <Icon name="grid-2x2" size={14} color={ACCENT} />Grid
           </button>
+          <button onClick={openWaveform} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
+            <Icon name="activity" size={14} color={ACCENT} />Audiogram
+          </button>
           <button style={{ display: "flex", alignItems: "center", gap: 7, background: ACCENT, color: "#0C1012", border: "none", borderRadius: 10, padding: "8px 16px", fontSize: 12.5, fontWeight: 600, cursor: "pointer" }}>
             <Icon name="upload" size={14} />Render
           </button>
@@ -292,6 +297,7 @@ export function EditorShell() {
       <CensorModal />
       <MusicModal />
       <GridModal />
+      <WaveformModal />
     </div>
   );
 }

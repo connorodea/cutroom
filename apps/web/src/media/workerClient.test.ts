@@ -28,6 +28,7 @@ import {
   submitCensorJob,
   submitMusicJob,
   submitGridJob,
+  submitWaveformJob,
   submitChainJob,
   submitTranscriptCut,
   submitHighlightsJob,
@@ -499,6 +500,30 @@ describe("multipart submit endpoints", () => {
   it("submitGridJob throws the server error on failure", async () => {
     fetchMock.mockResolvedValueOnce(res({ error: "grid boom" }, { ok: false, status: 400 }));
     await expect(submitGridJob([sampleFile()])).rejects.toThrow("grid boom");
+  });
+
+  it("submitWaveformJob POSTs the audio with mode/color/aspect", async () => {
+    await submitWaveformJob(sampleFile(), { mode: "line", color: "magenta", aspect: "portrait" });
+    const [url, init] = lastCall();
+    expect(url).toBe(`${BASE}/api/waveform`);
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("mode")).toBe("line");
+    expect(fd.get("color")).toBe("magenta");
+    expect(fd.get("aspect")).toBe("portrait");
+  });
+
+  it("submitWaveformJob defaults to a square cyan centered line", async () => {
+    await submitWaveformJob(sampleFile());
+    const fd = lastCall()[1]?.body as FormData;
+    expect(fd.get("mode")).toBe("cline");
+    expect(fd.get("color")).toBe("cyan");
+    expect(fd.get("aspect")).toBe("square");
+  });
+
+  it("submitWaveformJob throws the server error on failure", async () => {
+    fetchMock.mockResolvedValueOnce(res({ error: "wave boom" }, { ok: false, status: 400 }));
+    await expect(submitWaveformJob(sampleFile())).rejects.toThrow("wave boom");
   });
 
   it("submitPipJob POSTs main + overlay with corner/scale", async () => {

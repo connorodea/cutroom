@@ -8,7 +8,7 @@ const WORKER_URL =
 
 export interface EditJob {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "grid" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "grid" | "waveform" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: {
@@ -77,6 +77,9 @@ export interface EditJob {
     musicVolume?: number;
     /** For grid jobs: how many cells were tiled. */
     cells?: number;
+    /** For waveform jobs: the render mode + color. */
+    waveMode?: string;
+    waveColor?: string;
   };
   error?: string;
 }
@@ -197,6 +200,21 @@ export async function submitFreezeJob(file: File, opts: { position?: string; sec
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error((body as { error?: string }).error || `freeze failed (${res.status})`);
+  }
+  return (await res.json()) as EditJob;
+}
+
+/** Waveform: render an audio file into an audiogram video: multipart { file (audio), mode, color, aspect }. */
+export async function submitWaveformJob(file: File, opts: { mode?: string; color?: string; aspect?: string } = {}): Promise<EditJob> {
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("mode", opts.mode ?? "cline");
+  fd.append("color", opts.color ?? "cyan");
+  fd.append("aspect", opts.aspect ?? "square");
+  const res = await fetch(`${WORKER_URL}/api/waveform`, { method: "POST", body: fd });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error || `waveform failed (${res.status})`);
   }
   return (await res.json()) as EditJob;
 }

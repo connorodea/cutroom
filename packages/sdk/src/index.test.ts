@@ -336,6 +336,25 @@ describe("multipart endpoints", () => {
     expect(fd.get("aspect")).toBe("landscape");
   });
 
+  it("waveform POSTs the audio with mode/color/aspect", async () => {
+    await client().waveform(tmpFile, { mode: "line", color: "magenta", aspect: "portrait" });
+    const [url, init] = lastCall();
+    expect(url).toBe("http://x/api/waveform");
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("mode")).toBe("line");
+    expect(fd.get("color")).toBe("magenta");
+    expect(fd.get("aspect")).toBe("portrait");
+  });
+
+  it("waveform defaults to a square cyan centered line", async () => {
+    await client().waveform(tmpFile);
+    const fd = lastCall()[1]?.body as FormData;
+    expect(fd.get("mode")).toBe("cline");
+    expect(fd.get("color")).toBe("cyan");
+    expect(fd.get("aspect")).toBe("square");
+  });
+
   it("music POSTs the video + music track with the volume", async () => {
     await client().music(tmpFile, tmpFile, { volume: 0.5 });
     const [url, init] = lastCall();

@@ -274,6 +274,14 @@ describe("editor store", () => {
     expect(useEditorStore.getState().gridOpen).toBe(false);
   });
 
+  it("opens and closes the Waveform modal", () => {
+    expect(useEditorStore.getState().waveformOpen).toBe(false);
+    useEditorStore.getState().openWaveform();
+    expect(useEditorStore.getState().waveformOpen).toBe(true);
+    useEditorStore.getState().closeWaveform();
+    expect(useEditorStore.getState().waveformOpen).toBe(false);
+  });
+
   it("starts with the Overlay modal closed", () => {
     expect(useEditorStore.getState().overlayOpen).toBe(false);
   });
