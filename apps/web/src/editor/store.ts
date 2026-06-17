@@ -36,6 +36,8 @@ export interface EditorState {
   fadeOpen: boolean;
   /** Whether the Reverse (reverse / boomerang) modal is open. */
   reverseOpen: boolean;
+  /** Whether the Crop (region punch-in) modal is open. */
+  cropOpen: boolean;
 
   /** Output ids of AI-created videos this session, newest-first. */
   createdOutputs: string[];
@@ -79,6 +81,8 @@ export interface EditorState {
   closeFade: () => void;
   openReverse: () => void;
   closeReverse: () => void;
+  openCrop: () => void;
+  closeCrop: () => void;
   /** Record an AI-created output id (newest-first, de-duplicated). */
   addCreatedOutput: (outputId: string) => void;
 
@@ -107,6 +111,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   audioOpen: false,
   fadeOpen: false,
   reverseOpen: false,
+  cropOpen: false,
   createdOutputs: [],
   phase: "idle",
   active: -1,
@@ -145,6 +150,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   closeFade: () => set({ fadeOpen: false }),
   openReverse: () => set({ reverseOpen: true }),
   closeReverse: () => set({ reverseOpen: false }),
+  openCrop: () => set({ cropOpen: true }),
+  closeCrop: () => set({ cropOpen: false }),
   addCreatedOutput: (outputId) =>
     set((s) => ({ createdOutputs: [outputId, ...s.createdOutputs.filter((id) => id !== outputId)] })),
 

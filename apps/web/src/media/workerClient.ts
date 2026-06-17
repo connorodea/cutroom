@@ -8,7 +8,7 @@ const WORKER_URL =
 
 export interface EditJob {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: {
@@ -48,6 +48,9 @@ export interface EditJob {
     fadeKind?: string;
     /** For reverse jobs: reverse or boomerang. */
     reverseMode?: string;
+    /** For crop jobs: the kept region's width/height fractions. */
+    cropW?: number;
+    cropH?: number;
   };
   error?: string;
 }
@@ -140,6 +143,19 @@ export async function submitCaptionsJob(file: File, opts: { position?: "bottom" 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error((body as { error?: string }).error || `captions failed (${res.status})`);
+  }
+  return (await res.json()) as EditJob;
+}
+
+/** Crop a video to a named region preset (center/top/bottom/left/right): multipart { file, preset }. */
+export async function submitCropJob(file: File, opts: { preset?: string } = {}): Promise<EditJob> {
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("preset", opts.preset ?? "center");
+  const res = await fetch(`${WORKER_URL}/api/crop`, { method: "POST", body: fd });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error || `crop failed (${res.status})`);
   }
   return (await res.json()) as EditJob;
 }

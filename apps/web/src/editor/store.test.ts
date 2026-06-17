@@ -154,6 +154,14 @@ describe("editor store", () => {
     expect(useEditorStore.getState().reverseOpen).toBe(false);
   });
 
+  it("opens and closes the Crop modal", () => {
+    expect(useEditorStore.getState().cropOpen).toBe(false);
+    useEditorStore.getState().openCrop();
+    expect(useEditorStore.getState().cropOpen).toBe(true);
+    useEditorStore.getState().closeCrop();
+    expect(useEditorStore.getState().cropOpen).toBe(false);
+  });
+
   it("starts with the Overlay modal closed", () => {
     expect(useEditorStore.getState().overlayOpen).toBe(false);
   });

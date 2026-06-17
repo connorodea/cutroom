@@ -20,7 +20,7 @@ export interface TranscriptWord {
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -161,6 +161,14 @@ export class CutroomClient {
   async speed(filePath: string, opts: { factor?: number } = {}): Promise<Job> {
     const fd = await this.fileForm(filePath, { factor: String(opts.factor ?? 2) });
     return this.json(await fetch(`${this.baseUrl}/api/speed`, { method: "POST", headers: this.authHeaders(), body: fd }));
+  }
+
+  /** Crop a video to a region — a named preset (center/top/bottom/left/right) or custom fractions → job. */
+  async crop(filePath: string, opts: { preset?: string; x?: number; y?: number; w?: number; h?: number } = {}): Promise<Job> {
+    const extra: Record<string, string> = {};
+    for (const [k, v] of Object.entries(opts)) if (v != null) extra[k] = String(v);
+    const fd = await this.fileForm(filePath, extra);
+    return this.json(await fetch(`${this.baseUrl}/api/crop`, { method: "POST", headers: this.authHeaders(), body: fd }));
   }
 
   /** Reverse a video ("reverse") or play it forward-then-reversed ("boomerang") → job. */

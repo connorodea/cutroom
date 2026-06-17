@@ -237,6 +237,18 @@ describe("multipart endpoints", () => {
     expect(fd.get("level")).toBe("1");
   });
 
+  it("crop POSTs the file with the preset and only provided overrides", async () => {
+    await client().crop(tmpFile, { preset: "center", w: 0.4 });
+    const [url, init] = lastCall();
+    expect(url).toBe("http://x/api/crop");
+    expect(init?.method).toBe("POST");
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("preset")).toBe("center");
+    expect(fd.get("w")).toBe("0.4");
+    expect(fd.get("x")).toBeNull();
+  });
+
   it("reverse POSTs the file with the mode", async () => {
     await client().reverse(tmpFile, { mode: "boomerang" });
     const [url, init] = lastCall();

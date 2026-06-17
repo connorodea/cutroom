@@ -12,6 +12,7 @@ import { runRotatePipeline } from "./rotate";
 import { runAudioPipeline } from "./audio";
 import { runFadePipeline } from "./fade";
 import { runReversePipeline } from "./reverse";
+import { runCropPipeline, type CropInput } from "./crop";
 import { generateImage, imageToVideo, downloadTo, type ImageModel, type VideoModel } from "./higgsfield";
 import { extractAudio, ffprobeDimensions, ffprobeDuration } from "./ffmpeg";
 import { transcribe, type Word } from "./transcribe";
@@ -20,7 +21,7 @@ export type JobStatus = "queued" | "running" | "done" | "error";
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "image" | "video";
   status: JobStatus;
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -424,6 +425,31 @@ export function createReverseJob(inputPath: string, mode: unknown, workDir: stri
       const r = await runReversePipeline(inputPath, mode, workDir, id);
       job.status = "done";
       job.result = { outputId: id, reverseMode: r.mode, hadAudio: r.hadAudio };
+    } catch (err) {
+      job.status = "error";
+      job.error = (err as Error).message;
+      // eslint-disable-next-line no-console
+      console.error("[job]", id, "failed:", err);
+    }
+  })();
+  return job;
+}
+
+/**
+ * Create + run a Crop job: punch into a rectangular region of the frame (named preset or custom
+ * fractions). The output is `${jobId}.mp4`. Runs async; poll the job for status.
+ */
+export function createCropJob(inputPath: string, input: CropInput, workDir: string): Job {
+  const id = randomUUID();
+  const job: Job = { id, type: "crop", status: "queued", createdAt: Date.now() };
+  jobs.set(id, job);
+  void (async () => {
+    try {
+      job.status = "running";
+      job.step = "crop region";
+      const r = await runCropPipeline(inputPath, input, workDir, id);
+      job.status = "done";
+      job.result = { outputId: id, cropW: r.rect.w, cropH: r.rect.h };
     } catch (err) {
       job.status = "error";
       job.error = (err as Error).message;
