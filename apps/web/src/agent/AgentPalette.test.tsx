@@ -58,6 +58,20 @@ describe("AgentPalette", () => {
     expect(screen.getByPlaceholderText(/Tell the agent what to make/)).toBeInTheDocument();
   });
 
+  it.each([
+    ["make it vertical for tiktok", "reframeOpen"],
+    ["give me the best moments", "highlightsOpen"],
+    ["clean up the silences and filler", "importOpen"],
+    ["create a short explainer", "createOpen"],
+  ] as const)("routes '%s' to the matching tool and closes the palette", (prompt, flag) => {
+    open();
+    render(<AgentPalette />);
+    fireEvent.change(screen.getByPlaceholderText(/Tell the agent what to make/), { target: { value: prompt } });
+    fireEvent.click(screen.getByRole("button", { name: /Run/ }));
+    expect((useEditorStore.getState() as unknown as Record<string, boolean>)[flag]).toBe(true);
+    expect(useEditorStore.getState().agentOpen).toBe(false);
+  });
+
   it("renders the run view with the plan's steps", async () => {
     open();
     fetchMock.mockResolvedValueOnce(res({ plan: { title: "Reel", steps: baseEditSteps }, source: "agent" }));

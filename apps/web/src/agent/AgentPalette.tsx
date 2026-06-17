@@ -2,6 +2,7 @@ import { useState } from "react";
 import { agentWorkflows } from "@cutroom/core";
 import { useEditorStore } from "../editor/store";
 import { useAgentRun } from "./useAgentRun";
+import { routeIntent } from "./routeIntent";
 import { Icon } from "../components/Icon";
 
 const ACCENT = "#4FD1C5";
@@ -15,6 +16,10 @@ export function AgentPalette() {
   const steps = useEditorStore((s) => s.steps);
   const title = useEditorStore((s) => s.title);
   const resetRun = useEditorStore((s) => s.resetRun);
+  const openCreate = useEditorStore((s) => s.openCreate);
+  const openImport = useEditorStore((s) => s.openImport);
+  const openReframe = useEditorStore((s) => s.openReframe);
+  const openHighlights = useEditorStore((s) => s.openHighlights);
   const { run, loading, source } = useAgentRun();
   const [query, setQuery] = useState("");
 
@@ -27,7 +32,17 @@ export function AgentPalette() {
   const statusText = isDone ? "Done" : "Working…";
   const statusColor = isDone ? ACCENT : "#E0A33E";
 
-  const submit = () => run(query.trim() || "Custom workflow");
+  // Route a clear single-tool request straight to that tool; otherwise plan it.
+  const submit = () => {
+    const q = query.trim();
+    const tool = routeIntent(q);
+    if (tool) {
+      closeAgent();
+      ({ create: openCreate, import: openImport, reframe: openReframe, highlights: openHighlights })[tool]();
+      return;
+    }
+    run(q || "Custom workflow");
+  };
   const back = () => {
     resetRun();
     setQuery("");
