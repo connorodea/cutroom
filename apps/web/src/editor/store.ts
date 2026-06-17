@@ -46,6 +46,8 @@ export interface EditorState {
   thumbnailOpen: boolean;
   /** Whether the Stitch (concatenate clips) modal is open. */
   stitchOpen: boolean;
+  /** Whether the Watermark (brand text) modal is open. */
+  watermarkOpen: boolean;
 
   /** Output ids of AI-created videos this session, newest-first. */
   createdOutputs: string[];
@@ -99,6 +101,8 @@ export interface EditorState {
   closeThumbnail: () => void;
   openStitch: () => void;
   closeStitch: () => void;
+  openWatermark: () => void;
+  closeWatermark: () => void;
   /** Record an AI-created output id (newest-first, de-duplicated). */
   addCreatedOutput: (outputId: string) => void;
 
@@ -132,6 +136,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   loopOpen: false,
   thumbnailOpen: false,
   stitchOpen: false,
+  watermarkOpen: false,
   createdOutputs: [],
   phase: "idle",
   active: -1,
@@ -180,6 +185,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   closeThumbnail: () => set({ thumbnailOpen: false }),
   openStitch: () => set({ stitchOpen: true }),
   closeStitch: () => set({ stitchOpen: false }),
+  openWatermark: () => set({ watermarkOpen: true }),
+  closeWatermark: () => set({ watermarkOpen: false }),
   addCreatedOutput: (outputId) =>
     set((s) => ({ createdOutputs: [outputId, ...s.createdOutputs.filter((id) => id !== outputId)] })),
 

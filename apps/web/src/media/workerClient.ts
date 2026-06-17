@@ -8,7 +8,7 @@ const WORKER_URL =
 
 export interface EditJob {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: {
@@ -149,6 +149,21 @@ export async function submitCaptionsJob(file: File, opts: { position?: "bottom" 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error((body as { error?: string }).error || `captions failed (${res.status})`);
+  }
+  return (await res.json()) as EditJob;
+}
+
+/** Burn a persistent corner watermark into a video: multipart { file, text, corner, opacity }. */
+export async function submitWatermarkJob(file: File, opts: { text: string; corner?: string; opacity?: number }): Promise<EditJob> {
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("text", opts.text);
+  fd.append("corner", opts.corner ?? "br");
+  fd.append("opacity", String(opts.opacity ?? 0.5));
+  const res = await fetch(`${WORKER_URL}/api/watermark`, { method: "POST", body: fd });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error || `watermark failed (${res.status})`);
   }
   return (await res.json()) as EditJob;
 }

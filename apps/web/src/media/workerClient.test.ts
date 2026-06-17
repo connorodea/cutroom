@@ -18,6 +18,7 @@ import {
   submitLoopJob,
   submitThumbnailJob,
   submitStitchJob,
+  submitWatermarkJob,
   submitChainJob,
   submitTranscriptCut,
   submitHighlightsJob,
@@ -325,6 +326,28 @@ describe("multipart submit endpoints", () => {
   it("submitLoopJob throws the server error on failure", async () => {
     fetchMock.mockResolvedValueOnce(res({ error: "loop boom" }, { ok: false, status: 400 }));
     await expect(submitLoopJob(sampleFile())).rejects.toThrow("loop boom");
+  });
+
+  it("submitWatermarkJob POSTs the file with text/corner/opacity", async () => {
+    await submitWatermarkJob(sampleFile(), { text: "@cutroom", corner: "tl", opacity: 0.4 });
+    const [url, init] = lastCall();
+    expect(url).toBe(`${BASE}/api/watermark`);
+    const fd = init?.body as FormData;
+    expect(fd.get("text")).toBe("@cutroom");
+    expect(fd.get("corner")).toBe("tl");
+    expect(fd.get("opacity")).toBe("0.4");
+  });
+
+  it("submitWatermarkJob defaults corner to br and opacity to 0.5", async () => {
+    await submitWatermarkJob(sampleFile(), { text: "brand" });
+    const fd = lastCall()[1]?.body as FormData;
+    expect(fd.get("corner")).toBe("br");
+    expect(fd.get("opacity")).toBe("0.5");
+  });
+
+  it("submitWatermarkJob throws the server error on failure", async () => {
+    fetchMock.mockResolvedValueOnce(res({ error: "wm boom" }, { ok: false, status: 400 }));
+    await expect(submitWatermarkJob(sampleFile(), { text: "x" })).rejects.toThrow("wm boom");
   });
 
   it("submitStitchJob POSTs all clips under a repeated 'files' field", async () => {

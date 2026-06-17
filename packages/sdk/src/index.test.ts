@@ -251,6 +251,24 @@ describe("multipart endpoints", () => {
     expect(fd.get("level")).toBe("1");
   });
 
+  it("watermark POSTs the file with text/corner/opacity", async () => {
+    await client().watermark(tmpFile, "@cutroom", { corner: "tl", opacity: 0.4 });
+    const [url, init] = lastCall();
+    expect(url).toBe("http://x/api/watermark");
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("text")).toBe("@cutroom");
+    expect(fd.get("corner")).toBe("tl");
+    expect(fd.get("opacity")).toBe("0.4");
+  });
+
+  it("watermark defaults corner to br and opacity to 0.5", async () => {
+    await client().watermark(tmpFile, "brand");
+    const fd = lastCall()[1]?.body as FormData;
+    expect(fd.get("corner")).toBe("br");
+    expect(fd.get("opacity")).toBe("0.5");
+  });
+
   it("stitch POSTs all the clips under a repeated 'files' field", async () => {
     await client().stitch([tmpFile, tmpFile]);
     const [url, init] = lastCall();

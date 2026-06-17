@@ -20,7 +20,7 @@ export interface TranscriptWord {
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -161,6 +161,12 @@ export class CutroomClient {
   async speed(filePath: string, opts: { factor?: number } = {}): Promise<Job> {
     const fd = await this.fileForm(filePath, { factor: String(opts.factor ?? 2) });
     return this.json(await fetch(`${this.baseUrl}/api/speed`, { method: "POST", headers: this.authHeaders(), body: fd }));
+  }
+
+  /** Burn a persistent corner watermark (text) into a video → job. corner tl/tr/bl/br, opacity 0.1–1. */
+  async watermark(filePath: string, text: string, opts: { corner?: "tl" | "tr" | "bl" | "br"; opacity?: number } = {}): Promise<Job> {
+    const fd = await this.fileForm(filePath, { text, corner: opts.corner ?? "br", opacity: String(opts.opacity ?? 0.5) });
+    return this.json(await fetch(`${this.baseUrl}/api/watermark`, { method: "POST", headers: this.authHeaders(), body: fd }));
   }
 
   /** Concatenate several clips (in order) into one video → job. Pass 2+ file paths. */

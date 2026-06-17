@@ -194,6 +194,14 @@ describe("editor store", () => {
     expect(useEditorStore.getState().stitchOpen).toBe(false);
   });
 
+  it("opens and closes the Watermark modal", () => {
+    expect(useEditorStore.getState().watermarkOpen).toBe(false);
+    useEditorStore.getState().openWatermark();
+    expect(useEditorStore.getState().watermarkOpen).toBe(true);
+    useEditorStore.getState().closeWatermark();
+    expect(useEditorStore.getState().watermarkOpen).toBe(false);
+  });
+
   it("starts with the Overlay modal closed", () => {
     expect(useEditorStore.getState().overlayOpen).toBe(false);
   });

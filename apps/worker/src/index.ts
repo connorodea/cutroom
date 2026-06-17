@@ -25,6 +25,7 @@ import {
   createRotateJob,
   createStitchJob,
   createThumbnailJob,
+  createWatermarkJob,
   createSpeedJob,
   createTrimJob,
   createTranscriptCutJob,
@@ -358,6 +359,20 @@ app.post("/api/loop", async (c) => {
   const inputPath = `${MEDIA_DIR}/loop-${Date.now()}${ext}`;
   await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
   const job = createLoopJob(inputPath, body["count"], MEDIA_DIR);
+  return c.json(job, 202);
+});
+
+/** Watermark — burn persistent corner text into an upload: multipart { file, text, corner, opacity }. */
+app.post("/api/watermark", async (c) => {
+  const body = await c.req.parseBody();
+  const file = body["file"];
+  if (!(file instanceof File)) return c.json({ error: "missing 'file' (multipart)" }, 400);
+  const text = String(body["text"] ?? "").trim();
+  if (!text) return c.json({ error: "missing 'text' for the watermark" }, 400);
+  const ext = extname(file.name || "") || ".mp4";
+  const inputPath = `${MEDIA_DIR}/wm-${Date.now()}${ext}`;
+  await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
+  const job = createWatermarkJob(inputPath, text, body["corner"], body["opacity"], MEDIA_DIR);
   return c.json(job, 202);
 });
 

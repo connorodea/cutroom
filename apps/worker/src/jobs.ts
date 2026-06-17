@@ -17,6 +17,7 @@ import { runGifPipeline, type GifInput } from "./gif";
 import { runLoopPipeline } from "./loop";
 import { runThumbnailPipeline } from "./thumbnail";
 import { runStitchPipeline } from "./stitch";
+import { runWatermarkPipeline } from "./watermark";
 import { generateImage, imageToVideo, downloadTo, type ImageModel, type VideoModel } from "./higgsfield";
 import { extractAudio, ffprobeDimensions, ffprobeDuration } from "./ffmpeg";
 import { transcribe, type Word } from "./transcribe";
@@ -25,7 +26,7 @@ export type JobStatus = "queued" | "running" | "done" | "error";
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "image" | "video";
   status: JobStatus;
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -554,6 +555,31 @@ export function createStitchJob(inputPaths: string[], workDir: string): Job {
       const r = await runStitchPipeline(inputPaths, workDir, id);
       job.status = "done";
       job.result = { outputId: id, clips: r.clips, hadAudio: r.hadAudio };
+    } catch (err) {
+      job.status = "error";
+      job.error = (err as Error).message;
+      // eslint-disable-next-line no-console
+      console.error("[job]", id, "failed:", err);
+    }
+  })();
+  return job;
+}
+
+/**
+ * Create + run a Watermark job: burn persistent corner text into the upload. The output is
+ * `${jobId}.mp4`. Runs async; poll the job for status.
+ */
+export function createWatermarkJob(inputPath: string, text: string, corner: unknown, opacity: unknown, workDir: string): Job {
+  const id = randomUUID();
+  const job: Job = { id, type: "watermark", status: "queued", createdAt: Date.now() };
+  jobs.set(id, job);
+  void (async () => {
+    try {
+      job.status = "running";
+      job.step = "render + composite watermark";
+      const r = await runWatermarkPipeline(inputPath, text, corner, opacity, workDir, id);
+      job.status = "done";
+      job.result = { outputId: id, corner: r.corner, opacity: r.opacity };
     } catch (err) {
       job.status = "error";
       job.error = (err as Error).message;
