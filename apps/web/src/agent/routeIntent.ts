@@ -1,5 +1,7 @@
 /** A tool the ⌘K agent can route a request to, or null when the request isn't a clear single tool. */
-export type IntentTool = "create" | "import" | "reframe" | "highlights" | "captions" | "overlay" | "generate" | null;
+export type IntentTool =
+  | "create" | "import" | "reframe" | "highlights" | "captions" | "overlay" | "generate"
+  | "speed" | "trim" | "color" | "rotate" | null;
 
 /**
  * Classify a free-text agent request into the editor tool that fulfills it. Heuristic + ordered:
@@ -22,6 +24,18 @@ export function routeIntent(prompt: string): IntentTool {
   }
   if (/\b(ai|higgsfield)\s+(image|picture|clip|footage|video)\b|\b(generate|make|create)\s+(an?\s+)?(image|picture)\b/.test(p)) {
     return "generate";
+  }
+  if (/\b(speed\s*(it\s*)?up|speed|faster|slow[\s-]?mo(tion)?|slow\s+it\s+down|time-?lapse|hyper-?lapse)\b/.test(p)) {
+    return "speed";
+  }
+  if (/\b(trim|shorten|cut\s+to\s+\d+|keep\s+(only\s+)?(the\s+)?(first|last)\s+\d+)\b/.test(p)) {
+    return "trim";
+  }
+  if (/\b(colou?r\s*grade|colou?r[\s-]?correct|grade\s+the\s+colou?r|vivid|cinematic|black\s+and\s+white|b\s*&\s*w|gray\s?scale|grey\s?scale|desaturate|saturation|warm\s+(tone|look|grade)|cool\s+(tone|look|grade))\b/.test(p)) {
+    return "color";
+  }
+  if (/\b(rotate|flip|mirror\s+it|sideways|upside[\s-]?down|turn\s+it\s+(left|right|sideways|upright)|straighten)\b/.test(p)) {
+    return "rotate";
   }
   if (/\b(clean\s?up|remove\s+(the\s+)?(silence|filler)|filler\s+words?|dead\s+air|cut\s+(the\s+)?(silence|dead))\b/.test(p)) {
     return "import";

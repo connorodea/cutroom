@@ -38,6 +38,30 @@ describe("routeIntent", () => {
     expect(routeIntent("make me some ai footage of a city")).toBe("generate");
   });
 
+  it("routes speed requests to speed", () => {
+    expect(routeIntent("speed this up")).toBe("speed");
+    expect(routeIntent("make it slow motion")).toBe("speed");
+    expect(routeIntent("turn it into a timelapse")).toBe("speed");
+  });
+
+  it("routes trim requests to trim", () => {
+    expect(routeIntent("trim the clip")).toBe("trim");
+    expect(routeIntent("shorten this video")).toBe("trim");
+    expect(routeIntent("keep the first 10 seconds")).toBe("trim");
+  });
+
+  it("routes color-grade requests to color", () => {
+    expect(routeIntent("make it black and white")).toBe("color");
+    expect(routeIntent("give it a cinematic look")).toBe("color");
+    expect(routeIntent("color grade this")).toBe("color");
+  });
+
+  it("routes rotate/flip requests to rotate", () => {
+    expect(routeIntent("rotate this clip")).toBe("rotate");
+    expect(routeIntent("it was shot sideways, fix it")).toBe("rotate");
+    expect(routeIntent("flip it horizontally")).toBe("rotate");
+  });
+
   it("prefers the specific operation over generic create", () => {
     expect(routeIntent("make a vertical video")).toBe("reframe");
   });

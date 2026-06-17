@@ -66,6 +66,10 @@ describe("AgentPalette", () => {
     ["add captions to this", "captionsOpen"],
     ["add a lower third with my name", "overlayOpen"],
     ["generate an image of a sunset", "generateOpen"],
+    ["speed this up", "speedOpen"],
+    ["trim the clip", "trimOpen"],
+    ["make it black and white", "colorOpen"],
+    ["rotate this clip", "rotateOpen"],
   ] as const)("routes '%s' to the matching tool and closes the palette", (prompt, flag) => {
     open();
     render(<AgentPalette />);
@@ -73,6 +77,45 @@ describe("AgentPalette", () => {
     fireEvent.click(screen.getByRole("button", { name: /Run/ }));
     expect((useEditorStore.getState() as unknown as Record<string, boolean>)[flag]).toBe(true);
     expect(useEditorStore.getState().agentOpen).toBe(false);
+  });
+
+  it("plans a 'Custom workflow' when submitted with an empty query", async () => {
+    open();
+    fetchMock.mockResolvedValueOnce(res({ plan: { title: "Custom workflow", steps: baseEditSteps }, source: "agent" }));
+    render(<AgentPalette />);
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /Run/ }));
+    });
+    expect(useEditorStore.getState().phase).toBe("running");
+    expect(useEditorStore.getState().title).toBe("Custom workflow");
+  });
+
+  it("runs an agentic workflow when its row is clicked", async () => {
+    open();
+    fetchMock.mockResolvedValueOnce(res({ plan: { title: agentWorkflows[0].title, steps: baseEditSteps }, source: "agent" }));
+    render(<AgentPalette />);
+    await act(async () => {
+      fireEvent.click(screen.getByText(agentWorkflows[0].title));
+    });
+    expect(useEditorStore.getState().phase).toBe("running");
+  });
+
+  it("submits on Enter, routing straight to the matched tool", () => {
+    open();
+    render(<AgentPalette />);
+    const input = screen.getByPlaceholderText(/Tell the agent what to make/);
+    fireEvent.change(input, { target: { value: "rotate this clip" } });
+    fireEvent.keyDown(input, { key: "Enter" });
+    expect(useEditorStore.getState().rotateOpen).toBe(true);
+    expect(useEditorStore.getState().agentOpen).toBe(false);
+  });
+
+  it("ignores non-Enter keystrokes in the composer", () => {
+    open();
+    render(<AgentPalette />);
+    const input = screen.getByPlaceholderText(/Tell the agent what to make/);
+    fireEvent.keyDown(input, { key: "a" });
+    expect(useEditorStore.getState().agentOpen).toBe(true);
   });
 
   it("renders the run view with the plan's steps", async () => {
