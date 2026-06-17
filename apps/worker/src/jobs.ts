@@ -3,6 +3,7 @@ import { runEditPipeline, runTranscriptCutPipeline } from "./edit";
 import { runCreatePipeline, type CreateInput } from "./create";
 import { applyOverlays } from "./overlay";
 import { runReframePipeline, type ReframeAspect, type ReframeMode } from "./reframe";
+import { planHighlights, runHighlightsPipeline, type HighlightOptions } from "./highlights";
 import { generateImage, imageToVideo, downloadTo, type ImageModel, type VideoModel } from "./higgsfield";
 import { extractAudio, ffprobeDimensions, ffprobeDuration } from "./ffmpeg";
 import { transcribe, type Word } from "./transcribe";
@@ -11,7 +12,7 @@ export type JobStatus = "queued" | "running" | "done" | "error";
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "image" | "video";
   status: JobStatus;
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -240,6 +241,33 @@ export function createTranscriptCutJob(
       const r = await runTranscriptCutPipeline(source.inputPath, source.words, removedIndices, source.duration, source.dims, workDir, id, opts);
       job.status = "done";
       job.result = { outputId: id, totalWords: r.totalWords, segments: r.segments, removedSec: r.removedSec };
+    } catch (err) {
+      job.status = "error";
+      job.error = (err as Error).message;
+      // eslint-disable-next-line no-console
+      console.error("[job]", id, "failed:", err);
+    }
+  })();
+  return job;
+}
+
+/**
+ * Build a "best moments" highlight reel from a transcribed source: pick the longest speech runs
+ * and stitch them into one MP4. The output is `${jobId}.mp4`. Runs async.
+ */
+export function createHighlightsJob(source: Source, opts: HighlightOptions, workDir: string): Job {
+  const id = randomUUID();
+  const job: Job = { id, type: "highlights", status: "queued", createdAt: Date.now() };
+  jobs.set(id, job);
+  void (async () => {
+    try {
+      job.status = "running";
+      job.step = "select highlights + stitch reel";
+      const highlights = planHighlights(source.words, source.duration, opts);
+      if (highlights.length === 0) throw new Error("no highlights found in this transcript");
+      const r = await runHighlightsPipeline(source.inputPath, highlights, workDir, id);
+      job.status = "done";
+      job.result = { outputId: id, clips: r.clips, durationSec: r.durationSec };
     } catch (err) {
       job.status = "error";
       job.error = (err as Error).message;

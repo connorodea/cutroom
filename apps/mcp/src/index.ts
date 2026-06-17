@@ -192,6 +192,23 @@ server.registerTool(
 );
 
 server.registerTool(
+  "cutroom_highlights",
+  {
+    description:
+      "Build a 'best moments' highlight reel from a transcribed source: picks the longest continuous speech runs and stitches them into one video. Pass the sourceId from cutroom_transcribe. Waits for the render and returns the output URL.",
+    inputSchema: {
+      sourceId: z.string().describe("sourceId from cutroom_transcribe."),
+      count: z.number().int().positive().optional().describe("Number of highlight clips to keep (default 3)."),
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+  },
+  async ({ sourceId, count }) => {
+    const job = await client.highlights(sourceId, { count });
+    return textResult(jobSummary(await client.pollJob(job.id)));
+  },
+);
+
+server.registerTool(
   "cutroom_get_job",
   {
     description: "Get the status (and result) of a Cutroom job by id.",

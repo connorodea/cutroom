@@ -115,6 +115,14 @@ describe("JSON endpoints", () => {
     await client().getJob("j9");
     expect(lastCall()[0]).toBe("http://x/api/jobs/j9");
   });
+
+  it("highlights POSTs the sourceId and clip count", async () => {
+    await client().highlights("src-1", { count: 5 });
+    const [url, init] = lastCall();
+    expect(url).toBe("http://x/api/jobs/highlights");
+    expect(init?.method).toBe("POST");
+    expect(JSON.parse(init?.body as string)).toEqual({ sourceId: "src-1", count: 5 });
+  });
 });
 
 describe("multipart endpoints", () => {

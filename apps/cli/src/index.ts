@@ -8,6 +8,7 @@ Usage:
   cutroom clean-up <file> [--no-captions] [--out <file>]      auto: cut silences/filler + captions
   cutroom transcribe <file>                                    word-level transcript (+ sourceId)
   cutroom transcript-cut <sourceId> <i,j,k> [--no-captions] [--out <file>]   remove words by index
+  cutroom highlights <sourceId> [--count N] [--out <file>]    best-moments reel from a transcribed source
   cutroom create "<prompt>" [--portrait] [--no-captions] [--no-graphics] [--generative] [--video-model dop|kling|seedance] [--overlays <json|@file>] [--out <file>]
                                                                AI: script → stock/generative footage → voiceover → captions → graphics
   cutroom overlay <file> <json|@file> [--out <file>]           composite titles/lower-thirds/callouts/badges onto a video
@@ -143,6 +144,14 @@ async function main(): Promise<void> {
         aspect: aspect === "square" || aspect === "landscape" ? aspect : aspect === "portrait" ? "portrait" : undefined,
         mode: mode === "crop" ? "crop" : mode === "blur" ? "blur" : undefined,
       });
+      await finish(client, job, flag(args, "out"));
+      break;
+    }
+
+    case "highlights": {
+      if (!args[0]) throw new Error("usage: cutroom highlights <sourceId> [--count N] [--out <file>]");
+      const count = flag(args, "count");
+      const job = await client.highlights(args[0], { count: count ? Number(count) : undefined });
       await finish(client, job, flag(args, "out"));
       break;
     }

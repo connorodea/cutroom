@@ -10,6 +10,7 @@ import { extname } from "node:path";
 import {
   createCreateJob,
   createEditJob,
+  createHighlightsJob,
   createImageGenJob,
   createOverlayJob,
   createReframeJob,
@@ -173,6 +174,16 @@ app.post("/api/jobs/transcript-cut", async (c) => {
     ? body.removedIndices.filter((n): n is number => Number.isInteger(n))
     : [];
   const job = createTranscriptCutJob(source, removedIndices, MEDIA_DIR, { captions: body.captions !== false });
+  return c.json(job, 202);
+});
+
+/** Auto-highlights: build a "best moments" reel from a transcribed source. JSON { sourceId, count? }. */
+app.post("/api/jobs/highlights", async (c) => {
+  const body = (await c.req.json().catch(() => ({}))) as { sourceId?: string; count?: unknown };
+  const source = body.sourceId ? getSource(body.sourceId) : undefined;
+  if (!source) return c.json({ error: "unknown sourceId — re-upload" }, 404);
+  const count = typeof body.count === "number" && body.count > 0 ? Math.floor(body.count) : undefined;
+  const job = createHighlightsJob(source, { count }, MEDIA_DIR);
   return c.json(job, 202);
 });
 

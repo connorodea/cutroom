@@ -20,7 +20,7 @@ export interface TranscriptWord {
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -215,6 +215,17 @@ export class CutroomClient {
         method: "POST",
         headers: this.authHeaders({ "content-type": "application/json" }),
         body: JSON.stringify(opts),
+      }),
+    );
+  }
+
+  /** Build a "best moments" highlight reel from a transcribed source (from transcribe) → job. */
+  async highlights(sourceId: string, opts: { count?: number } = {}): Promise<Job> {
+    return this.json(
+      await fetch(`${this.baseUrl}/api/jobs/highlights`, {
+        method: "POST",
+        headers: this.authHeaders({ "content-type": "application/json" }),
+        body: JSON.stringify({ sourceId, count: opts.count }),
       }),
     );
   }
