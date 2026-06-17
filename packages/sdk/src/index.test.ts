@@ -190,6 +190,24 @@ describe("multipart endpoints", () => {
     expect(fd.get("brightness")).toBeNull();
   });
 
+  it("fade POSTs the file with the kind and duration", async () => {
+    await client().fade(tmpFile, { kind: "in", duration: 1 });
+    const [url, init] = lastCall();
+    expect(url).toBe("http://x/api/fade");
+    expect(init?.method).toBe("POST");
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("kind")).toBe("in");
+    expect(fd.get("duration")).toBe("1");
+  });
+
+  it("fade defaults the kind to both and duration to 0.5", async () => {
+    await client().fade(tmpFile);
+    const fd = lastCall()[1]?.body as FormData;
+    expect(fd.get("kind")).toBe("both");
+    expect(fd.get("duration")).toBe("0.5");
+  });
+
   it("audio POSTs the file with the mode and level", async () => {
     await client().audio(tmpFile, { mode: "volume", level: 0.5 });
     const [url, init] = lastCall();

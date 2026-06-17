@@ -20,7 +20,7 @@ export interface TranscriptWord {
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -161,6 +161,12 @@ export class CutroomClient {
   async speed(filePath: string, opts: { factor?: number } = {}): Promise<Job> {
     const fd = await this.fileForm(filePath, { factor: String(opts.factor ?? 2) });
     return this.json(await fetch(`${this.baseUrl}/api/speed`, { method: "POST", headers: this.authHeaders(), body: fd }));
+  }
+
+  /** Add an intro/outro fade (kind "in" | "out" | "both") of `duration` seconds to a video → job. */
+  async fade(filePath: string, opts: { kind?: "in" | "out" | "both"; duration?: number } = {}): Promise<Job> {
+    const fd = await this.fileForm(filePath, { kind: opts.kind ?? "both", duration: String(opts.duration ?? 0.5) });
+    return this.json(await fetch(`${this.baseUrl}/api/fade`, { method: "POST", headers: this.authHeaders(), body: fd }));
   }
 
   /** Audio op on a video: scale the volume (mode "volume" + level), "mute", or "normalize" loudness → job. */

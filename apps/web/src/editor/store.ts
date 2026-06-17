@@ -32,6 +32,8 @@ export interface EditorState {
   rotateOpen: boolean;
   /** Whether the Audio (volume / mute / normalize) modal is open. */
   audioOpen: boolean;
+  /** Whether the Fade (in / out) modal is open. */
+  fadeOpen: boolean;
 
   /** Output ids of AI-created videos this session, newest-first. */
   createdOutputs: string[];
@@ -71,6 +73,8 @@ export interface EditorState {
   closeRotate: () => void;
   openAudio: () => void;
   closeAudio: () => void;
+  openFade: () => void;
+  closeFade: () => void;
   /** Record an AI-created output id (newest-first, de-duplicated). */
   addCreatedOutput: (outputId: string) => void;
 
@@ -97,6 +101,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   colorOpen: false,
   rotateOpen: false,
   audioOpen: false,
+  fadeOpen: false,
   createdOutputs: [],
   phase: "idle",
   active: -1,
@@ -131,6 +136,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   closeRotate: () => set({ rotateOpen: false }),
   openAudio: () => set({ audioOpen: true }),
   closeAudio: () => set({ audioOpen: false }),
+  openFade: () => set({ fadeOpen: true }),
+  closeFade: () => set({ fadeOpen: false }),
   addCreatedOutput: (outputId) =>
     set((s) => ({ createdOutputs: [outputId, ...s.createdOutputs.filter((id) => id !== outputId)] })),
 

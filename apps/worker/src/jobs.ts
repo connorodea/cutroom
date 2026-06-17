@@ -10,6 +10,7 @@ import { runTrimPipeline } from "./trim";
 import { runColorPipeline, type ColorInput } from "./color";
 import { runRotatePipeline } from "./rotate";
 import { runAudioPipeline } from "./audio";
+import { runFadePipeline } from "./fade";
 import { generateImage, imageToVideo, downloadTo, type ImageModel, type VideoModel } from "./higgsfield";
 import { extractAudio, ffprobeDimensions, ffprobeDuration } from "./ffmpeg";
 import { transcribe, type Word } from "./transcribe";
@@ -18,7 +19,7 @@ export type JobStatus = "queued" | "running" | "done" | "error";
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "image" | "video";
   status: JobStatus;
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -372,6 +373,31 @@ export function createAudioJob(inputPath: string, mode: unknown, level: unknown,
       const r = await runAudioPipeline(inputPath, mode, level, workDir, id);
       job.status = "done";
       job.result = { outputId: id, audioMode: r.mode, hadAudio: r.hadAudio };
+    } catch (err) {
+      job.status = "error";
+      job.error = (err as Error).message;
+      // eslint-disable-next-line no-console
+      console.error("[job]", id, "failed:", err);
+    }
+  })();
+  return job;
+}
+
+/**
+ * Create + run a Fade job: add an intro fade-from-black and/or outro fade-to-black (with matching
+ * audio fades). The output is `${jobId}.mp4`. Runs async; poll the job for status.
+ */
+export function createFadeJob(inputPath: string, kind: unknown, dur: unknown, workDir: string): Job {
+  const id = randomUUID();
+  const job: Job = { id, type: "fade", status: "queued", createdAt: Date.now() };
+  jobs.set(id, job);
+  void (async () => {
+    try {
+      job.status = "running";
+      job.step = "fade (in / out)";
+      const r = await runFadePipeline(inputPath, kind, dur, workDir, id);
+      job.status = "done";
+      job.result = { outputId: id, fadeKind: r.kind, dur: r.dur };
     } catch (err) {
       job.status = "error";
       job.error = (err as Error).message;

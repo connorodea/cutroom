@@ -11,6 +11,7 @@ import {
   submitColorJob,
   submitRotateJob,
   submitAudioJob,
+  submitFadeJob,
   submitChainJob,
   submitTranscriptCut,
   submitHighlightsJob,
@@ -234,6 +235,28 @@ describe("multipart submit endpoints", () => {
   it("submitAudioJob throws the server error on failure", async () => {
     fetchMock.mockResolvedValueOnce(res({ error: "audio boom" }, { ok: false, status: 400 }));
     await expect(submitAudioJob(sampleFile())).rejects.toThrow("audio boom");
+  });
+
+  it("submitFadeJob POSTs the file with the kind and duration", async () => {
+    await submitFadeJob(sampleFile(), { kind: "in", duration: 1 });
+    const [url, init] = lastCall();
+    expect(url).toBe(`${BASE}/api/fade`);
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("kind")).toBe("in");
+    expect(fd.get("duration")).toBe("1");
+  });
+
+  it("submitFadeJob defaults kind to both and duration to 0.5", async () => {
+    await submitFadeJob(sampleFile());
+    const fd = lastCall()[1]?.body as FormData;
+    expect(fd.get("kind")).toBe("both");
+    expect(fd.get("duration")).toBe("0.5");
+  });
+
+  it("submitFadeJob throws the server error on failure", async () => {
+    fetchMock.mockResolvedValueOnce(res({ error: "fade boom" }, { ok: false, status: 400 }));
+    await expect(submitFadeJob(sampleFile())).rejects.toThrow("fade boom");
   });
 
   it("submitOverlayJob POSTs the file plus a JSON overlays field", async () => {

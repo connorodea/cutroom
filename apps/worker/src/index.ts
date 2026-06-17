@@ -16,6 +16,7 @@ import {
   createOverlayJob,
   createAudioJob,
   createColorJob,
+  createFadeJob,
   createReframeJob,
   createRotateJob,
   createSpeedJob,
@@ -271,6 +272,18 @@ app.post("/api/audio", async (c) => {
   const inputPath = `${MEDIA_DIR}/aud-${Date.now()}${ext}`;
   await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
   const job = createAudioJob(inputPath, body["mode"], body["level"], MEDIA_DIR);
+  return c.json(job, 202);
+});
+
+/** Fade — add an intro/outro fade-from/to-black: multipart { file, kind, duration }. */
+app.post("/api/fade", async (c) => {
+  const body = await c.req.parseBody();
+  const file = body["file"];
+  if (!(file instanceof File)) return c.json({ error: "missing 'file' (multipart)" }, 400);
+  const ext = extname(file.name || "") || ".mp4";
+  const inputPath = `${MEDIA_DIR}/fade-${Date.now()}${ext}`;
+  await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
+  const job = createFadeJob(inputPath, body["kind"], body["duration"], MEDIA_DIR);
   return c.json(job, 202);
 });
 
