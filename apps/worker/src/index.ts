@@ -27,6 +27,7 @@ import {
   createSplitJob,
   createFreezeJob,
   createKenBurnsJob,
+  createChromaKeyJob,
   createStitchJob,
   createThumbnailJob,
   createWatermarkJob,
@@ -403,6 +404,22 @@ app.post("/api/kenburns", async (c) => {
   const imagePath = `${MEDIA_DIR}/kb-${Date.now()}${ext}`;
   await writeFile(imagePath, Buffer.from(await file.arrayBuffer()));
   const job = createKenBurnsJob(imagePath, body["direction"], body["seconds"], body["aspect"], MEDIA_DIR);
+  return c.json(job, 202);
+});
+
+/** Chroma key — key a screen color out of a green-screen clip + composite over a backdrop: multipart { file (subject), background, color, similarity, blend }. */
+app.post("/api/chromakey", async (c) => {
+  const body = await c.req.parseBody();
+  const subject = body["file"];
+  const background = body["background"];
+  if (!(subject instanceof File) || !(background instanceof File)) return c.json({ error: "provide 'file' (green-screen clip) and 'background' (multipart)" }, 400);
+  const sext = extname(subject.name || "") || ".mp4";
+  const bext = extname(background.name || "") || ".mp4";
+  const subjectPath = `${MEDIA_DIR}/ck-${Date.now()}-s${sext}`;
+  const backgroundPath = `${MEDIA_DIR}/ck-${Date.now()}-b${bext}`;
+  await writeFile(subjectPath, Buffer.from(await subject.arrayBuffer()));
+  await writeFile(backgroundPath, Buffer.from(await background.arrayBuffer()));
+  const job = createChromaKeyJob(subjectPath, backgroundPath, body["color"], body["similarity"], body["blend"], MEDIA_DIR);
   return c.json(job, 202);
 });
 

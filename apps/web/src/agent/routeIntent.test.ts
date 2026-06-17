@@ -135,6 +135,12 @@ describe("routeIntent", () => {
     expect(routeIntent("pan and zoom across the image")).toBe("kenburns");
   });
 
+  it("routes green-screen / chroma-key requests to chromakey", () => {
+    expect(routeIntent("key out the green screen")).toBe("chromakey");
+    expect(routeIntent("chroma key this clip")).toBe("chromakey");
+    expect(routeIntent("replace the green background")).toBe("chromakey");
+  });
+
   it("prefers the specific operation over generic create", () => {
     expect(routeIntent("make a vertical video")).toBe("reframe");
   });

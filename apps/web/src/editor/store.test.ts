@@ -234,6 +234,14 @@ describe("editor store", () => {
     expect(useEditorStore.getState().kenBurnsOpen).toBe(false);
   });
 
+  it("opens and closes the Chroma-key modal", () => {
+    expect(useEditorStore.getState().chromaKeyOpen).toBe(false);
+    useEditorStore.getState().openChromaKey();
+    expect(useEditorStore.getState().chromaKeyOpen).toBe(true);
+    useEditorStore.getState().closeChromaKey();
+    expect(useEditorStore.getState().chromaKeyOpen).toBe(false);
+  });
+
   it("starts with the Overlay modal closed", () => {
     expect(useEditorStore.getState().overlayOpen).toBe(false);
   });

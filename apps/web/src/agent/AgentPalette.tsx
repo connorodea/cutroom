@@ -40,6 +40,7 @@ export function AgentPalette() {
   const openSplit = useEditorStore((s) => s.openSplit);
   const openFreeze = useEditorStore((s) => s.openFreeze);
   const openKenBurns = useEditorStore((s) => s.openKenBurns);
+  const openChromaKey = useEditorStore((s) => s.openChromaKey);
   const { run, loading, source } = useAgentRun();
   const [query, setQuery] = useState("");
 
@@ -58,7 +59,7 @@ export function AgentPalette() {
     const tool = routeIntent(q);
     if (tool) {
       closeAgent();
-      ({ create: openCreate, import: openImport, reframe: openReframe, highlights: openHighlights, captions: openCaptions, overlay: openOverlay, generate: openGenerate, speed: openSpeed, trim: openTrim, color: openColor, rotate: openRotate, audio: openAudio, fade: openFade, reverse: openReverse, crop: openCrop, gif: openGif, loop: openLoop, thumbnail: openThumbnail, stitch: openStitch, watermark: openWatermark, pip: openPip, split: openSplit, freeze: openFreeze, kenburns: openKenBurns })[tool]();
+      ({ create: openCreate, import: openImport, reframe: openReframe, highlights: openHighlights, captions: openCaptions, overlay: openOverlay, generate: openGenerate, speed: openSpeed, trim: openTrim, color: openColor, rotate: openRotate, audio: openAudio, fade: openFade, reverse: openReverse, crop: openCrop, gif: openGif, loop: openLoop, thumbnail: openThumbnail, stitch: openStitch, watermark: openWatermark, pip: openPip, split: openSplit, freeze: openFreeze, kenburns: openKenBurns, chromakey: openChromaKey })[tool]();
       return;
     }
     run(q || "Custom workflow");

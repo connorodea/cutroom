@@ -8,7 +8,7 @@ const WORKER_URL =
 
 export interface EditJob {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: {
@@ -63,6 +63,10 @@ export interface EditJob {
     /** For Ken Burns jobs: the pan/zoom direction + clip length. */
     kbDirection?: string;
     kbSeconds?: number;
+    /** For chroma-key jobs: the keyed color + tuning. */
+    chromaColor?: string;
+    chromaSimilarity?: number;
+    chromaBlend?: number;
   };
   error?: string;
 }
@@ -183,6 +187,22 @@ export async function submitFreezeJob(file: File, opts: { position?: string; sec
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error((body as { error?: string }).error || `freeze failed (${res.status})`);
+  }
+  return (await res.json()) as EditJob;
+}
+
+/** Chroma key: key a screen color out of a green-screen clip + composite over a backdrop: multipart { file (subject), background, color, similarity, blend }. */
+export async function submitChromaKeyJob(subject: File, background: File, opts: { color?: string; similarity?: number; blend?: number } = {}): Promise<EditJob> {
+  const fd = new FormData();
+  fd.append("file", subject);
+  fd.append("background", background);
+  fd.append("color", opts.color ?? "green");
+  fd.append("similarity", String(opts.similarity ?? 0.3));
+  fd.append("blend", String(opts.blend ?? 0.1));
+  const res = await fetch(`${WORKER_URL}/api/chromakey`, { method: "POST", body: fd });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error || `chroma key failed (${res.status})`);
   }
   return (await res.json()) as EditJob;
 }

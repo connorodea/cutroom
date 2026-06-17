@@ -302,6 +302,26 @@ describe("multipart endpoints", () => {
     expect(fd.get("aspect")).toBe("landscape");
   });
 
+  it("chromaKey POSTs the subject + background with color/similarity/blend", async () => {
+    await client().chromaKey(tmpFile, tmpFile, { color: "blue", similarity: 0.4, blend: 0.2 });
+    const [url, init] = lastCall();
+    expect(url).toBe("http://x/api/chromakey");
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("background")).toBeInstanceOf(File);
+    expect(fd.get("color")).toBe("blue");
+    expect(fd.get("similarity")).toBe("0.4");
+    expect(fd.get("blend")).toBe("0.2");
+  });
+
+  it("chromaKey defaults to green at 0.3/0.1", async () => {
+    await client().chromaKey(tmpFile, tmpFile);
+    const fd = lastCall()[1]?.body as FormData;
+    expect(fd.get("color")).toBe("green");
+    expect(fd.get("similarity")).toBe("0.3");
+    expect(fd.get("blend")).toBe("0.1");
+  });
+
   it("pip POSTs the main + overlay files with corner/scale", async () => {
     await client().pip(tmpFile, tmpFile, { corner: "tl", scale: 0.25 });
     const [url, init] = lastCall();

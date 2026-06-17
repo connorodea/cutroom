@@ -20,7 +20,7 @@ export interface TranscriptWord {
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -182,6 +182,17 @@ export class CutroomClient {
   async kenBurns(imagePath: string, opts: { direction?: "in" | "out" | "left" | "right"; seconds?: number; aspect?: "landscape" | "portrait" | "square" } = {}): Promise<Job> {
     const fd = await this.fileForm(imagePath, { direction: opts.direction ?? "in", seconds: String(opts.seconds ?? 5), aspect: opts.aspect ?? "landscape" });
     return this.json(await fetch(`${this.baseUrl}/api/kenburns`, { method: "POST", headers: this.authHeaders(), body: fd }));
+  }
+
+  /** Chroma key: key `color` out of `subjectPath` (green/blue-screen) and composite over `backgroundPath` → job. */
+  async chromaKey(subjectPath: string, backgroundPath: string, opts: { color?: "green" | "blue" | string; similarity?: number; blend?: number } = {}): Promise<Job> {
+    const fd = new FormData();
+    fd.append("file", new File([await readFile(subjectPath)], basename(subjectPath)));
+    fd.append("background", new File([await readFile(backgroundPath)], basename(backgroundPath)));
+    fd.append("color", opts.color ?? "green");
+    fd.append("similarity", String(opts.similarity ?? 0.3));
+    fd.append("blend", String(opts.blend ?? 0.1));
+    return this.json(await fetch(`${this.baseUrl}/api/chromakey`, { method: "POST", headers: this.authHeaders(), body: fd }));
   }
 
   /** Picture-in-picture: composite `overlayPath` into a corner of `mainPath` → job. corner tl/tr/bl/br, scale 0.1–0.5. */

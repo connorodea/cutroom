@@ -23,6 +23,7 @@ import {
   submitSplitJob,
   submitFreezeJob,
   submitKenBurnsJob,
+  submitChromaKeyJob,
   submitChainJob,
   submitTranscriptCut,
   submitHighlightsJob,
@@ -391,6 +392,31 @@ describe("multipart submit endpoints", () => {
   it("submitKenBurnsJob throws the server error on failure", async () => {
     fetchMock.mockResolvedValueOnce(res({ error: "kb boom" }, { ok: false, status: 400 }));
     await expect(submitKenBurnsJob(sampleFile())).rejects.toThrow("kb boom");
+  });
+
+  it("submitChromaKeyJob POSTs the subject + background with color/similarity/blend", async () => {
+    await submitChromaKeyJob(sampleFile(), sampleFile(), { color: "blue", similarity: 0.4, blend: 0.2 });
+    const [url, init] = lastCall();
+    expect(url).toBe(`${BASE}/api/chromakey`);
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("background")).toBeInstanceOf(File);
+    expect(fd.get("color")).toBe("blue");
+    expect(fd.get("similarity")).toBe("0.4");
+    expect(fd.get("blend")).toBe("0.2");
+  });
+
+  it("submitChromaKeyJob defaults to green at 0.3/0.1", async () => {
+    await submitChromaKeyJob(sampleFile(), sampleFile());
+    const fd = lastCall()[1]?.body as FormData;
+    expect(fd.get("color")).toBe("green");
+    expect(fd.get("similarity")).toBe("0.3");
+    expect(fd.get("blend")).toBe("0.1");
+  });
+
+  it("submitChromaKeyJob throws the server error on failure", async () => {
+    fetchMock.mockResolvedValueOnce(res({ error: "ck boom" }, { ok: false, status: 400 }));
+    await expect(submitChromaKeyJob(sampleFile(), sampleFile())).rejects.toThrow("ck boom");
   });
 
   it("submitPipJob POSTs main + overlay with corner/scale", async () => {

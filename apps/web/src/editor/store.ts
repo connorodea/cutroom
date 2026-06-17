@@ -56,6 +56,8 @@ export interface EditorState {
   freezeOpen: boolean;
   /** Whether the Ken Burns (animate a still) modal is open. */
   kenBurnsOpen: boolean;
+  /** Whether the Chroma-key (green screen) modal is open. */
+  chromaKeyOpen: boolean;
 
   /** Output ids of AI-created videos this session, newest-first. */
   createdOutputs: string[];
@@ -119,6 +121,8 @@ export interface EditorState {
   closeFreeze: () => void;
   openKenBurns: () => void;
   closeKenBurns: () => void;
+  openChromaKey: () => void;
+  closeChromaKey: () => void;
   /** Record an AI-created output id (newest-first, de-duplicated). */
   addCreatedOutput: (outputId: string) => void;
 
@@ -157,6 +161,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   splitOpen: false,
   freezeOpen: false,
   kenBurnsOpen: false,
+  chromaKeyOpen: false,
   createdOutputs: [],
   phase: "idle",
   active: -1,
@@ -215,6 +220,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   closeFreeze: () => set({ freezeOpen: false }),
   openKenBurns: () => set({ kenBurnsOpen: true }),
   closeKenBurns: () => set({ kenBurnsOpen: false }),
+  openChromaKey: () => set({ chromaKeyOpen: true }),
+  closeChromaKey: () => set({ chromaKeyOpen: false }),
   addCreatedOutput: (outputId) =>
     set((s) => ({ createdOutputs: [outputId, ...s.createdOutputs.filter((id) => id !== outputId)] })),
 
