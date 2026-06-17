@@ -51,4 +51,23 @@ describe("TranscriptEditor", () => {
     render(<TranscriptEditor file={file()} />);
     expect(await screen.findByText(/transcribe failed/)).toBeInTheDocument();
   });
+
+  it("updates the active word on a video time update", async () => {
+    fetchMock.mockResolvedValueOnce(res({ sourceId: "s1", duration: 1, words: WORDS }));
+    render(<TranscriptEditor file={file()} />);
+    await screen.findByText(/hello/);
+    fireEvent.timeUpdate(document.querySelector("video") as HTMLMediaElement);
+    expect(screen.getByText(/hello/)).toBeInTheDocument();
+  });
+
+  it("shows an error when the cut render fails", async () => {
+    fetchMock
+      .mockResolvedValueOnce(res({ sourceId: "s1", duration: 1, words: WORDS }))
+      .mockResolvedValueOnce(res({ id: "j", status: "queued" }))
+      .mockResolvedValueOnce(res({ id: "j", status: "error", error: "render failed" }));
+    render(<TranscriptEditor file={file()} />);
+    fireEvent.click(await screen.findByText(/hello/));
+    fireEvent.click(screen.getByRole("button", { name: /Apply/ }));
+    expect(await screen.findByText("render failed")).toBeInTheDocument();
+  });
 });

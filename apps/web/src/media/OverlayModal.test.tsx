@@ -68,6 +68,20 @@ describe("OverlayModal", () => {
     expect(await screen.findByText("Done")).toBeInTheDocument();
   });
 
+  it("surfaces an error when compositing fails", async () => {
+    open();
+    render(<OverlayModal />);
+    uploadVideo();
+    fireEvent.click(screen.getByRole("button", { name: /Add graphic/ }));
+    fireEvent.click(screen.getByText("Title"));
+    fireEvent.change(screen.getByPlaceholderText("Text"), { target: { value: "My Title" } });
+    fetchMock.mockResolvedValueOnce(res({ error: "overlay boom" }, { ok: false, status: 400 }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /Composite/ }));
+    });
+    expect(await screen.findByText(/Overlay failed/)).toBeInTheDocument();
+  });
+
   it("renders and updates the x/y inputs for a callout", () => {
     open();
     render(<OverlayModal />);

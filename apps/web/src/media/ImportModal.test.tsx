@@ -59,4 +59,24 @@ describe("ImportModal", () => {
     });
     expect(await screen.findByText("Done")).toBeInTheDocument();
   });
+
+  it("surfaces an error when clean-up fails", async () => {
+    open();
+    render(<ImportModal />);
+    uploadVideo();
+    fetchMock.mockResolvedValueOnce(res("", { ok: false, status: 500 }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /Clean up/ }));
+    });
+    expect(await screen.findByText(/Edit failed/)).toBeInTheDocument();
+  });
+
+  it("enters transcript mode and shows the transcribed words", async () => {
+    open();
+    render(<ImportModal />);
+    uploadVideo();
+    fetchMock.mockResolvedValueOnce(res({ sourceId: "s1", duration: 1, words: [{ word: "hi", start: 0, end: 0.5 }] }));
+    fireEvent.click(screen.getByRole("button", { name: /Edit transcript/ }));
+    expect(await screen.findByText(/hi/)).toBeInTheDocument();
+  });
 });
