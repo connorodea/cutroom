@@ -35,6 +35,29 @@ describe("planCuts", () => {
     expect(plan.segments).toEqual([{ start: 0, end: 0.6 }]);
   });
 
+  it("trims leading and trailing silence around the speech", () => {
+    // One word from 1..2s in a 3s clip: >0.7s of silence both before and after gets cut.
+    const plan = planCuts([w("hi", 1, 2)], 3);
+    expect(names(plan.remapped)).toEqual(["hi"]);
+    expect(plan.segments).toHaveLength(1);
+    expect(plan.segments[0].start).toBeCloseTo(0.88, 5); // 1 - pad(0.12)
+    expect(plan.segments[0].end).toBeCloseTo(2.12, 5); // 2 + pad(0.12)
+    expect(plan.removedDur).toBeGreaterThan(1.5);
+  });
+
+  it("merges two overlapping filler removals into one cut", () => {
+    // um (0..0.34) and uh (0.28..0.64) padded-overlap → a single merged removal.
+    const plan = planCuts([w("um", 0, 0.3), w("uh", 0.32, 0.6), w("hi", 0.65, 1)], 1);
+    expect(names(plan.remapped)).toEqual(["hi"]);
+    expect(plan.segments).toHaveLength(1);
+  });
+
+  it("falls back to the whole clip when everything would be removed", () => {
+    const plan = planCuts([w("um", 0, 0.5)], 0.5);
+    expect(plan.segments).toEqual([{ start: 0, end: 0.5 }]);
+    expect(names(plan.remapped)).toEqual(["um"]);
+  });
+
   it("remaps the first kept word to near zero", () => {
     const plan = planCuts([w("a", 0, 0.3), w("b", 2.0, 2.3)], 2.3);
     expect(plan.remapped[0].start).toBeCloseTo(0, 5);
@@ -61,6 +84,28 @@ describe("planCutsFromRemovedWords", () => {
   it("falls back to a single full segment when the only word is removed", () => {
     const plan = planCutsFromRemovedWords([w("only", 0, 0.7)], [0], 0.7);
     expect(plan.segments).toEqual([{ start: 0, end: 0.7 }]);
+    expect(plan.remapped).toHaveLength(0);
+  });
+
+  it("ignores a malformed removed word whose end precedes its start", () => {
+    const plan = planCutsFromRemovedWords([w("bad", 1, 0.5)], [0], 2);
+    expect(plan.segments).toEqual([{ start: 0, end: 2 }]);
+    expect(plan.remapped).toHaveLength(0);
+  });
+
+  it("merges adjacent removed spans into one cut and keeps a later word", () => {
+    const words = [w("a", 0, 1), w("b", 1, 2), w("c", 2.5, 3.5)];
+    const plan = planCutsFromRemovedWords(words, [0, 1], 3.5);
+    // The padded removals of a (0..1.04) and b (0.96..2.04) overlap and merge into one span.
+    expect(plan.segments).toEqual([{ start: 2.04, end: 3.5 }]);
+    expect(names(plan.remapped)).toEqual(["c"]);
+  });
+
+  it("drops a kept word whose start falls inside an adjacent cut's padding", () => {
+    const words = [w("a", 0, 1), w("b", 1, 2), w("c", 2, 3)];
+    const plan = planCutsFromRemovedWords(words, [0, 1], 3);
+    // c starts at 2.0 but b's removal pads the cut to 2.04, so c's start lands in the cut → no caption.
+    expect(plan.segments).toEqual([{ start: 2.04, end: 3 }]);
     expect(plan.remapped).toHaveLength(0);
   });
 });
