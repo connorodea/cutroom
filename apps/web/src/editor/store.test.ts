@@ -90,6 +90,14 @@ describe("editor store", () => {
     expect(useEditorStore.getState().highlightsOpen).toBe(false);
   });
 
+  it("opens and closes the Captions modal", () => {
+    expect(useEditorStore.getState().captionsOpen).toBe(false);
+    useEditorStore.getState().openCaptions();
+    expect(useEditorStore.getState().captionsOpen).toBe(true);
+    useEditorStore.getState().closeCaptions();
+    expect(useEditorStore.getState().captionsOpen).toBe(false);
+  });
+
   it("starts with the Overlay modal closed", () => {
     expect(useEditorStore.getState().overlayOpen).toBe(false);
   });

@@ -5,6 +5,7 @@ import {
   submitVideoGenJob,
   submitEditJob,
   submitOverlayJob,
+  submitCaptionsJob,
   submitTranscriptCut,
   submitHighlightsJob,
   submitReframeJob,
@@ -107,6 +108,18 @@ describe("multipart submit endpoints", () => {
   it("submitEditJob throws on a failed upload", async () => {
     fetchMock.mockResolvedValueOnce(res("", { ok: false, status: 413 }));
     await expect(submitEditJob(sampleFile())).rejects.toThrow(/upload failed \(413\)/);
+  });
+
+  it("submitCaptionsJob POSTs the file to /api/captions", async () => {
+    await submitCaptionsJob(sampleFile());
+    const [url, init] = lastCall();
+    expect(url).toBe(`${BASE}/api/captions`);
+    expect((init?.body as FormData).get("file")).toBeInstanceOf(File);
+  });
+
+  it("submitCaptionsJob throws the server error on failure", async () => {
+    fetchMock.mockResolvedValueOnce(res({ error: "captions boom" }, { ok: false, status: 400 }));
+    await expect(submitCaptionsJob(sampleFile())).rejects.toThrow("captions boom");
   });
 
   it("submitOverlayJob POSTs the file plus a JSON overlays field", async () => {

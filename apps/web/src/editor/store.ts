@@ -20,6 +20,8 @@ export interface EditorState {
   reframeOpen: boolean;
   /** Whether the Highlights (best-moments reel) modal is open. */
   highlightsOpen: boolean;
+  /** Whether the Captions (burn-in) modal is open. */
+  captionsOpen: boolean;
 
   /** Output ids of AI-created videos this session, newest-first. */
   createdOutputs: string[];
@@ -47,6 +49,8 @@ export interface EditorState {
   closeReframe: () => void;
   openHighlights: () => void;
   closeHighlights: () => void;
+  openCaptions: () => void;
+  closeCaptions: () => void;
   /** Record an AI-created output id (newest-first, de-duplicated). */
   addCreatedOutput: (outputId: string) => void;
 
@@ -67,6 +71,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   overlayOpen: false,
   reframeOpen: false,
   highlightsOpen: false,
+  captionsOpen: false,
   createdOutputs: [],
   phase: "idle",
   active: -1,
@@ -89,6 +94,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   closeReframe: () => set({ reframeOpen: false }),
   openHighlights: () => set({ highlightsOpen: true }),
   closeHighlights: () => set({ highlightsOpen: false }),
+  openCaptions: () => set({ captionsOpen: true }),
+  closeCaptions: () => set({ captionsOpen: false }),
   addCreatedOutput: (outputId) =>
     set((s) => ({ createdOutputs: [outputId, ...s.createdOutputs.filter((id) => id !== outputId)] })),
 

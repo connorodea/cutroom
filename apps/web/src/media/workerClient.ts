@@ -8,7 +8,7 @@ const WORKER_URL =
 
 export interface EditJob {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: {
@@ -111,6 +111,18 @@ export async function submitEditJob(file: File, opts: { captions?: boolean } = {
   fd.append("captions", String(opts.captions ?? true));
   const res = await fetch(`${WORKER_URL}/api/jobs`, { method: "POST", body: fd });
   if (!res.ok) throw new Error(`upload failed (${res.status})`);
+  return (await res.json()) as EditJob;
+}
+
+/** Burn word-aligned captions onto a video (no cutting): multipart { file }. */
+export async function submitCaptionsJob(file: File): Promise<EditJob> {
+  const fd = new FormData();
+  fd.append("file", file);
+  const res = await fetch(`${WORKER_URL}/api/captions`, { method: "POST", body: fd });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error || `captions failed (${res.status})`);
+  }
   return (await res.json()) as EditJob;
 }
 
