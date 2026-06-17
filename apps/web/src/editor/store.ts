@@ -42,6 +42,8 @@ export interface EditorState {
   gifOpen: boolean;
   /** Whether the Loop (repeat N times) modal is open. */
   loopOpen: boolean;
+  /** Whether the Thumbnail (poster frame) modal is open. */
+  thumbnailOpen: boolean;
 
   /** Output ids of AI-created videos this session, newest-first. */
   createdOutputs: string[];
@@ -91,6 +93,8 @@ export interface EditorState {
   closeGif: () => void;
   openLoop: () => void;
   closeLoop: () => void;
+  openThumbnail: () => void;
+  closeThumbnail: () => void;
   /** Record an AI-created output id (newest-first, de-duplicated). */
   addCreatedOutput: (outputId: string) => void;
 
@@ -122,6 +126,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   cropOpen: false,
   gifOpen: false,
   loopOpen: false,
+  thumbnailOpen: false,
   createdOutputs: [],
   phase: "idle",
   active: -1,
@@ -166,6 +171,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   closeGif: () => set({ gifOpen: false }),
   openLoop: () => set({ loopOpen: true }),
   closeLoop: () => set({ loopOpen: false }),
+  openThumbnail: () => set({ thumbnailOpen: true }),
+  closeThumbnail: () => set({ thumbnailOpen: false }),
   addCreatedOutput: (outputId) =>
     set((s) => ({ createdOutputs: [outputId, ...s.createdOutputs.filter((id) => id !== outputId)] })),
 

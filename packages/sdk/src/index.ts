@@ -20,7 +20,7 @@ export interface TranscriptWord {
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -161,6 +161,12 @@ export class CutroomClient {
   async speed(filePath: string, opts: { factor?: number } = {}): Promise<Job> {
     const fd = await this.fileForm(filePath, { factor: String(opts.factor ?? 2) });
     return this.json(await fetch(`${this.baseUrl}/api/speed`, { method: "POST", headers: this.authHeaders(), body: fd }));
+  }
+
+  /** Grab a poster frame from a video at `time` seconds (default: the clip midpoint) → job; output a .png. */
+  async thumbnail(filePath: string, opts: { time?: number } = {}): Promise<Job> {
+    const fd = await this.fileForm(filePath, opts.time != null ? { time: String(opts.time) } : {});
+    return this.json(await fetch(`${this.baseUrl}/api/thumbnail`, { method: "POST", headers: this.authHeaders(), body: fd }));
   }
 
   /** Repeat a video end-to-end `count` times (2–10, default 2) → job. */

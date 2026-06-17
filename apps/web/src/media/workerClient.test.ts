@@ -16,6 +16,7 @@ import {
   submitCropJob,
   submitGifJob,
   submitLoopJob,
+  submitThumbnailJob,
   submitChainJob,
   submitTranscriptCut,
   submitHighlightsJob,
@@ -323,6 +324,25 @@ describe("multipart submit endpoints", () => {
   it("submitLoopJob throws the server error on failure", async () => {
     fetchMock.mockResolvedValueOnce(res({ error: "loop boom" }, { ok: false, status: 400 }));
     await expect(submitLoopJob(sampleFile())).rejects.toThrow("loop boom");
+  });
+
+  it("submitThumbnailJob POSTs the file with the time", async () => {
+    await submitThumbnailJob(sampleFile(), { time: 3.5 });
+    const [url, init] = lastCall();
+    expect(url).toBe(`${BASE}/api/thumbnail`);
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("time")).toBe("3.5");
+  });
+
+  it("submitThumbnailJob defaults the time to 0", async () => {
+    await submitThumbnailJob(sampleFile());
+    expect((lastCall()[1]?.body as FormData).get("time")).toBe("0");
+  });
+
+  it("submitThumbnailJob throws the server error on failure", async () => {
+    fetchMock.mockResolvedValueOnce(res({ error: "thumb boom" }, { ok: false, status: 400 }));
+    await expect(submitThumbnailJob(sampleFile())).rejects.toThrow("thumb boom");
   });
 
   it("submitGifJob POSTs the file with the width", async () => {

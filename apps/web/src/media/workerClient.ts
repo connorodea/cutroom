@@ -8,7 +8,7 @@ const WORKER_URL =
 
 export interface EditJob {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: {
@@ -55,6 +55,8 @@ export interface EditJob {
     ext?: string;
     /** For loop jobs: how many times the clip was repeated. */
     count?: number;
+    /** For thumbnail jobs: the timestamp (seconds) the poster frame was grabbed at. */
+    time?: number;
   };
   error?: string;
 }
@@ -147,6 +149,19 @@ export async function submitCaptionsJob(file: File, opts: { position?: "bottom" 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error((body as { error?: string }).error || `captions failed (${res.status})`);
+  }
+  return (await res.json()) as EditJob;
+}
+
+/** Grab a poster frame as a PNG at `time` seconds: multipart { file, time }. Output served as a .png. */
+export async function submitThumbnailJob(file: File, opts: { time?: number } = {}): Promise<EditJob> {
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("time", String(opts.time ?? 0));
+  const res = await fetch(`${WORKER_URL}/api/thumbnail`, { method: "POST", body: fd });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error || `thumbnail failed (${res.status})`);
   }
   return (await res.json()) as EditJob;
 }

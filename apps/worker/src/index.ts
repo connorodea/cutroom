@@ -23,6 +23,7 @@ import {
   createReframeJob,
   createReverseJob,
   createRotateJob,
+  createThumbnailJob,
   createSpeedJob,
   createTrimJob,
   createTranscriptCutJob,
@@ -349,6 +350,18 @@ app.post("/api/loop", async (c) => {
   const inputPath = `${MEDIA_DIR}/loop-${Date.now()}${ext}`;
   await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
   const job = createLoopJob(inputPath, body["count"], MEDIA_DIR);
+  return c.json(job, 202);
+});
+
+/** Thumbnail — grab a poster frame as a PNG: multipart { file, time }. */
+app.post("/api/thumbnail", async (c) => {
+  const body = await c.req.parseBody();
+  const file = body["file"];
+  if (!(file instanceof File)) return c.json({ error: "missing 'file' (multipart)" }, 400);
+  const ext = extname(file.name || "") || ".mp4";
+  const inputPath = `${MEDIA_DIR}/thumb-${Date.now()}${ext}`;
+  await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
+  const job = createThumbnailJob(inputPath, body["time"], MEDIA_DIR);
   return c.json(job, 202);
 });
 

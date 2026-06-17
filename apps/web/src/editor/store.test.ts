@@ -178,6 +178,14 @@ describe("editor store", () => {
     expect(useEditorStore.getState().loopOpen).toBe(false);
   });
 
+  it("opens and closes the Thumbnail modal", () => {
+    expect(useEditorStore.getState().thumbnailOpen).toBe(false);
+    useEditorStore.getState().openThumbnail();
+    expect(useEditorStore.getState().thumbnailOpen).toBe(true);
+    useEditorStore.getState().closeThumbnail();
+    expect(useEditorStore.getState().thumbnailOpen).toBe(false);
+  });
+
   it("starts with the Overlay modal closed", () => {
     expect(useEditorStore.getState().overlayOpen).toBe(false);
   });

@@ -21,6 +21,7 @@ import { ReverseModal } from "../media/ReverseModal";
 import { CropModal } from "../media/CropModal";
 import { GifModal } from "../media/GifModal";
 import { LoopModal } from "../media/LoopModal";
+import { ThumbnailModal } from "../media/ThumbnailModal";
 import { ColorPage } from "./pages/ColorPage";
 import { CutPage } from "./pages/CutPage";
 import { DeliverPage } from "./pages/DeliverPage";
@@ -72,6 +73,7 @@ export function EditorShell() {
   const openCrop = useEditorStore((s) => s.openCrop);
   const openGif = useEditorStore((s) => s.openGif);
   const openLoop = useEditorStore((s) => s.openLoop);
+  const openThumbnail = useEditorStore((s) => s.openThumbnail);
   const toggleAgent = useEditorStore((s) => s.toggleAgent);
   const closeAgent = useEditorStore((s) => s.closeAgent);
   const agentOpen = useEditorStore((s) => s.agentOpen);
@@ -195,6 +197,9 @@ export function EditorShell() {
           <button onClick={openLoop} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
             <Icon name="repeat" size={14} color={ACCENT} />Loop
           </button>
+          <button onClick={openThumbnail} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
+            <Icon name="camera" size={14} color={ACCENT} />Thumbnail
+          </button>
           <button style={{ display: "flex", alignItems: "center", gap: 7, background: ACCENT, color: "#0C1012", border: "none", borderRadius: 10, padding: "8px 16px", fontSize: 12.5, fontWeight: 600, cursor: "pointer" }}>
             <Icon name="upload" size={14} />Render
           </button>
@@ -220,6 +225,7 @@ export function EditorShell() {
       <CropModal />
       <GifModal />
       <LoopModal />
+      <ThumbnailModal />
     </div>
   );
 }

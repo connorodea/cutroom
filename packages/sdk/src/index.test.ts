@@ -244,6 +244,21 @@ describe("multipart endpoints", () => {
     expect(fd.get("level")).toBe("1");
   });
 
+  it("thumbnail POSTs the file with the time", async () => {
+    await client().thumbnail(tmpFile, { time: 3.5 });
+    const [url, init] = lastCall();
+    expect(url).toBe("http://x/api/thumbnail");
+    expect(init?.method).toBe("POST");
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("time")).toBe("3.5");
+  });
+
+  it("thumbnail omits time when not given (server uses the midpoint)", async () => {
+    await client().thumbnail(tmpFile);
+    expect((lastCall()[1]?.body as FormData).get("time")).toBeNull();
+  });
+
   it("loop POSTs the file with the count", async () => {
     await client().loop(tmpFile, { count: 3 });
     const [url, init] = lastCall();
