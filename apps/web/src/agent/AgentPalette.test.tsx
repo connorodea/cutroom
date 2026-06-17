@@ -86,6 +86,7 @@ describe("AgentPalette", () => {
     ["key out the green screen", "chromaKeyOpen"],
     ["add a white border", "borderOpen"],
     ["blur out the license plate", "censorOpen"],
+    ["add background music", "musicOpen"],
   ] as const)("routes '%s' to the matching tool and closes the palette", (prompt, flag) => {
     open();
     render(<AgentPalette />);

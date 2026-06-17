@@ -336,6 +336,21 @@ describe("multipart endpoints", () => {
     expect(fd.get("aspect")).toBe("landscape");
   });
 
+  it("music POSTs the video + music track with the volume", async () => {
+    await client().music(tmpFile, tmpFile, { volume: 0.5 });
+    const [url, init] = lastCall();
+    expect(url).toBe("http://x/api/music");
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("music")).toBeInstanceOf(File);
+    expect(fd.get("volume")).toBe("0.5");
+  });
+
+  it("music defaults the volume to 0.3", async () => {
+    await client().music(tmpFile, tmpFile);
+    expect((lastCall()[1]?.body as FormData).get("volume")).toBe("0.3");
+  });
+
   it("chromaKey POSTs the subject + background with color/similarity/blend", async () => {
     await client().chromaKey(tmpFile, tmpFile, { color: "blue", similarity: 0.4, blend: 0.2 });
     const [url, init] = lastCall();

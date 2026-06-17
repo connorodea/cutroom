@@ -26,6 +26,7 @@ import {
   submitChromaKeyJob,
   submitBorderJob,
   submitCensorJob,
+  submitMusicJob,
   submitChainJob,
   submitTranscriptCut,
   submitHighlightsJob,
@@ -463,6 +464,26 @@ describe("multipart submit endpoints", () => {
   it("submitCensorJob throws the server error on failure", async () => {
     fetchMock.mockResolvedValueOnce(res({ error: "censor boom" }, { ok: false, status: 400 }));
     await expect(submitCensorJob(sampleFile())).rejects.toThrow("censor boom");
+  });
+
+  it("submitMusicJob POSTs the video + music with the volume", async () => {
+    await submitMusicJob(sampleFile(), sampleFile(), { volume: 0.5 });
+    const [url, init] = lastCall();
+    expect(url).toBe(`${BASE}/api/music`);
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("music")).toBeInstanceOf(File);
+    expect(fd.get("volume")).toBe("0.5");
+  });
+
+  it("submitMusicJob defaults the volume to 0.3", async () => {
+    await submitMusicJob(sampleFile(), sampleFile());
+    expect((lastCall()[1]?.body as FormData).get("volume")).toBe("0.3");
+  });
+
+  it("submitMusicJob throws the server error on failure", async () => {
+    fetchMock.mockResolvedValueOnce(res({ error: "music boom" }, { ok: false, status: 400 }));
+    await expect(submitMusicJob(sampleFile(), sampleFile())).rejects.toThrow("music boom");
   });
 
   it("submitPipJob POSTs main + overlay with corner/scale", async () => {

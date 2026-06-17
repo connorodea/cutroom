@@ -153,6 +153,12 @@ describe("routeIntent", () => {
     expect(routeIntent("pixelate the logo")).toBe("censor");
   });
 
+  it("routes background-music requests to music", () => {
+    expect(routeIntent("add background music")).toBe("music");
+    expect(routeIntent("put a soundtrack under this")).toBe("music");
+    expect(routeIntent("lay a music track under the clip")).toBe("music");
+  });
+
   it("prefers the specific operation over generic create", () => {
     expect(routeIntent("make a vertical video")).toBe("reframe");
   });

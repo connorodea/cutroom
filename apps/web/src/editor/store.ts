@@ -62,6 +62,8 @@ export interface EditorState {
   borderOpen: boolean;
   /** Whether the Censor (blur region) modal is open. */
   censorOpen: boolean;
+  /** Whether the Background-music modal is open. */
+  musicOpen: boolean;
 
   /** Output ids of AI-created videos this session, newest-first. */
   createdOutputs: string[];
@@ -131,6 +133,8 @@ export interface EditorState {
   closeBorder: () => void;
   openCensor: () => void;
   closeCensor: () => void;
+  openMusic: () => void;
+  closeMusic: () => void;
   /** Record an AI-created output id (newest-first, de-duplicated). */
   addCreatedOutput: (outputId: string) => void;
 
@@ -172,6 +176,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   chromaKeyOpen: false,
   borderOpen: false,
   censorOpen: false,
+  musicOpen: false,
   createdOutputs: [],
   phase: "idle",
   active: -1,
@@ -236,6 +241,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   closeBorder: () => set({ borderOpen: false }),
   openCensor: () => set({ censorOpen: true }),
   closeCensor: () => set({ censorOpen: false }),
+  openMusic: () => set({ musicOpen: true }),
+  closeMusic: () => set({ musicOpen: false }),
   addCreatedOutput: (outputId) =>
     set((s) => ({ createdOutputs: [outputId, ...s.createdOutputs.filter((id) => id !== outputId)] })),
 

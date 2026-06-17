@@ -258,6 +258,14 @@ describe("editor store", () => {
     expect(useEditorStore.getState().censorOpen).toBe(false);
   });
 
+  it("opens and closes the Music modal", () => {
+    expect(useEditorStore.getState().musicOpen).toBe(false);
+    useEditorStore.getState().openMusic();
+    expect(useEditorStore.getState().musicOpen).toBe(true);
+    useEditorStore.getState().closeMusic();
+    expect(useEditorStore.getState().musicOpen).toBe(false);
+  });
+
   it("starts with the Overlay modal closed", () => {
     expect(useEditorStore.getState().overlayOpen).toBe(false);
   });

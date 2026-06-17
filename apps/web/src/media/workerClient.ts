@@ -8,7 +8,7 @@ const WORKER_URL =
 
 export interface EditJob {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: {
@@ -73,6 +73,8 @@ export interface EditJob {
     /** For censor jobs: the blurred region + blur strength. */
     censorRegion?: string;
     censorStrength?: number;
+    /** For music jobs: the music volume (0–1). */
+    musicVolume?: number;
   };
   error?: string;
 }
@@ -193,6 +195,20 @@ export async function submitFreezeJob(file: File, opts: { position?: string; sec
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error((body as { error?: string }).error || `freeze failed (${res.status})`);
+  }
+  return (await res.json()) as EditJob;
+}
+
+/** Background music: mix a music track under a clip: multipart { file (video), music (audio), volume }. */
+export async function submitMusicJob(video: File, music: File, opts: { volume?: number } = {}): Promise<EditJob> {
+  const fd = new FormData();
+  fd.append("file", video);
+  fd.append("music", music);
+  fd.append("volume", String(opts.volume ?? 0.3));
+  const res = await fetch(`${WORKER_URL}/api/music`, { method: "POST", body: fd });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error || `music failed (${res.status})`);
   }
   return (await res.json()) as EditJob;
 }

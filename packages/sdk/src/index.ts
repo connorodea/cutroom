@@ -20,7 +20,7 @@ export interface TranscriptWord {
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -194,6 +194,15 @@ export class CutroomClient {
   async kenBurns(imagePath: string, opts: { direction?: "in" | "out" | "left" | "right"; seconds?: number; aspect?: "landscape" | "portrait" | "square" } = {}): Promise<Job> {
     const fd = await this.fileForm(imagePath, { direction: opts.direction ?? "in", seconds: String(opts.seconds ?? 5), aspect: opts.aspect ?? "landscape" });
     return this.json(await fetch(`${this.baseUrl}/api/kenburns`, { method: "POST", headers: this.authHeaders(), body: fd }));
+  }
+
+  /** Background music: mix `audioPath` under `videoPath` at `volume` (0–1, default 0.3) → job. */
+  async music(videoPath: string, audioPath: string, opts: { volume?: number } = {}): Promise<Job> {
+    const fd = new FormData();
+    fd.append("file", new File([await readFile(videoPath)], basename(videoPath)));
+    fd.append("music", new File([await readFile(audioPath)], basename(audioPath)));
+    fd.append("volume", String(opts.volume ?? 0.3));
+    return this.json(await fetch(`${this.baseUrl}/api/music`, { method: "POST", headers: this.authHeaders(), body: fd }));
   }
 
   /** Chroma key: key `color` out of `subjectPath` (green/blue-screen) and composite over `backgroundPath` → job. */

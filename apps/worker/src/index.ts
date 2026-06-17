@@ -30,6 +30,7 @@ import {
   createChromaKeyJob,
   createBorderJob,
   createCensorJob,
+  createMusicJob,
   createStitchJob,
   createThumbnailJob,
   createWatermarkJob,
@@ -446,6 +447,22 @@ app.post("/api/censor", async (c) => {
   const inputPath = `${MEDIA_DIR}/censor-${Date.now()}${ext}`;
   await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
   const job = createCensorJob(inputPath, body["region"], body["strength"], MEDIA_DIR);
+  return c.json(job, 202);
+});
+
+/** Background music — mix a music track under a clip: multipart { file (video), music (audio), volume }. */
+app.post("/api/music", async (c) => {
+  const body = await c.req.parseBody();
+  const video = body["file"];
+  const music = body["music"];
+  if (!(video instanceof File) || !(music instanceof File)) return c.json({ error: "provide 'file' (video) and 'music' (audio, multipart)" }, 400);
+  const vext = extname(video.name || "") || ".mp4";
+  const mext = extname(music.name || "") || ".mp3";
+  const videoPath = `${MEDIA_DIR}/music-${Date.now()}-v${vext}`;
+  const audioPath = `${MEDIA_DIR}/music-${Date.now()}-a${mext}`;
+  await writeFile(videoPath, Buffer.from(await video.arrayBuffer()));
+  await writeFile(audioPath, Buffer.from(await music.arrayBuffer()));
+  const job = createMusicJob(videoPath, audioPath, body["volume"], MEDIA_DIR);
   return c.json(job, 202);
 });
 
