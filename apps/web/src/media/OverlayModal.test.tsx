@@ -3,14 +3,23 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import { useEditorStore } from "../editor/store";
 import { OverlayModal } from "./OverlayModal";
 
+function res(data: unknown, { ok = true, status = 200 }: { ok?: boolean; status?: number } = {}): Response {
+  return { ok, status, json: async () => data } as unknown as Response;
+}
 const open = () => act(() => useEditorStore.setState({ overlayOpen: true }));
+let fetchMock: ReturnType<typeof vi.fn>;
 
 beforeEach(() => {
   // jsdom has no object-URL support; the dropzone needs it on file select.
   (URL as unknown as { createObjectURL: unknown }).createObjectURL = vi.fn(() => "blob:x");
   (URL as unknown as { revokeObjectURL: unknown }).revokeObjectURL = vi.fn();
+  fetchMock = vi.fn();
+  vi.stubGlobal("fetch", fetchMock);
 });
-afterEach(() => act(() => useEditorStore.setState(useEditorStore.getInitialState(), true)));
+afterEach(() => {
+  vi.unstubAllGlobals();
+  act(() => useEditorStore.setState(useEditorStore.getInitialState(), true));
+});
 
 function uploadVideo() {
   const input = document.querySelector('input[type="file"]') as HTMLInputElement;
@@ -41,5 +50,21 @@ describe("OverlayModal", () => {
     fireEvent.click(screen.getByRole("button", { name: /Add graphic/ }));
     fireEvent.click(screen.getByText("Title"));
     expect(screen.getByRole("button", { name: /Composite/ })).toBeEnabled();
+  });
+
+  it("composites and shows the result on success", async () => {
+    open();
+    render(<OverlayModal />);
+    uploadVideo();
+    fireEvent.click(screen.getByRole("button", { name: /Add graphic/ }));
+    fireEvent.click(screen.getByText("Title"));
+    fireEvent.change(screen.getByPlaceholderText("Text"), { target: { value: "My Title" } });
+    fetchMock
+      .mockResolvedValueOnce(res({ id: "o1", type: "overlay", status: "queued" }))
+      .mockResolvedValueOnce(res({ id: "o1", type: "overlay", status: "done", result: { outputId: "o1", overlaysApplied: 1 } }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /Composite/ }));
+    });
+    expect(await screen.findByText("Done")).toBeInTheDocument();
   });
 });
