@@ -251,6 +251,16 @@ describe("multipart endpoints", () => {
     expect(fd.get("level")).toBe("1");
   });
 
+  it("stitch POSTs all the clips under a repeated 'files' field", async () => {
+    await client().stitch([tmpFile, tmpFile]);
+    const [url, init] = lastCall();
+    expect(url).toBe("http://x/api/stitch");
+    expect(init?.method).toBe("POST");
+    const fd = init?.body as FormData;
+    expect(fd.getAll("files")).toHaveLength(2);
+    expect(fd.getAll("files")[0]).toBeInstanceOf(File);
+  });
+
   it("thumbnail POSTs the file with the time", async () => {
     await client().thumbnail(tmpFile, { time: 3.5 });
     const [url, init] = lastCall();

@@ -8,7 +8,7 @@ const WORKER_URL =
 
 export interface EditJob {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: {
@@ -149,6 +149,18 @@ export async function submitCaptionsJob(file: File, opts: { position?: "bottom" 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error((body as { error?: string }).error || `captions failed (${res.status})`);
+  }
+  return (await res.json()) as EditJob;
+}
+
+/** Concatenate several clips into one: multipart with a repeated 'files' field. */
+export async function submitStitchJob(files: File[]): Promise<EditJob> {
+  const fd = new FormData();
+  for (const f of files) fd.append("files", f);
+  const res = await fetch(`${WORKER_URL}/api/stitch`, { method: "POST", body: fd });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error || `stitch failed (${res.status})`);
   }
   return (await res.json()) as EditJob;
 }

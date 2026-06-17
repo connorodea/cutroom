@@ -16,6 +16,7 @@ import { runCropPipeline, type CropInput } from "./crop";
 import { runGifPipeline, type GifInput } from "./gif";
 import { runLoopPipeline } from "./loop";
 import { runThumbnailPipeline } from "./thumbnail";
+import { runStitchPipeline } from "./stitch";
 import { generateImage, imageToVideo, downloadTo, type ImageModel, type VideoModel } from "./higgsfield";
 import { extractAudio, ffprobeDimensions, ffprobeDuration } from "./ffmpeg";
 import { transcribe, type Word } from "./transcribe";
@@ -24,7 +25,7 @@ export type JobStatus = "queued" | "running" | "done" | "error";
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "image" | "video";
   status: JobStatus;
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -528,6 +529,31 @@ export function createThumbnailJob(inputPath: string, time: unknown, workDir: st
       const r = await runThumbnailPipeline(inputPath, time, workDir, id);
       job.status = "done";
       job.result = { outputId: id, time: r.time, ext: "png" };
+    } catch (err) {
+      job.status = "error";
+      job.error = (err as Error).message;
+      // eslint-disable-next-line no-console
+      console.error("[job]", id, "failed:", err);
+    }
+  })();
+  return job;
+}
+
+/**
+ * Create + run a Stitch job: concatenate several uploaded clips (in order) into one. The output is
+ * `${jobId}.mp4`. Runs async; poll the job for status.
+ */
+export function createStitchJob(inputPaths: string[], workDir: string): Job {
+  const id = randomUUID();
+  const job: Job = { id, type: "stitch", status: "queued", createdAt: Date.now() };
+  jobs.set(id, job);
+  void (async () => {
+    try {
+      job.status = "running";
+      job.step = "normalize + concat clips";
+      const r = await runStitchPipeline(inputPaths, workDir, id);
+      job.status = "done";
+      job.result = { outputId: id, clips: r.clips, hadAudio: r.hadAudio };
     } catch (err) {
       job.status = "error";
       job.error = (err as Error).message;

@@ -186,6 +186,14 @@ describe("editor store", () => {
     expect(useEditorStore.getState().thumbnailOpen).toBe(false);
   });
 
+  it("opens and closes the Stitch modal", () => {
+    expect(useEditorStore.getState().stitchOpen).toBe(false);
+    useEditorStore.getState().openStitch();
+    expect(useEditorStore.getState().stitchOpen).toBe(true);
+    useEditorStore.getState().closeStitch();
+    expect(useEditorStore.getState().stitchOpen).toBe(false);
+  });
+
   it("starts with the Overlay modal closed", () => {
     expect(useEditorStore.getState().overlayOpen).toBe(false);
   });

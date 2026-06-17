@@ -17,6 +17,7 @@ import {
   submitGifJob,
   submitLoopJob,
   submitThumbnailJob,
+  submitStitchJob,
   submitChainJob,
   submitTranscriptCut,
   submitHighlightsJob,
@@ -324,6 +325,18 @@ describe("multipart submit endpoints", () => {
   it("submitLoopJob throws the server error on failure", async () => {
     fetchMock.mockResolvedValueOnce(res({ error: "loop boom" }, { ok: false, status: 400 }));
     await expect(submitLoopJob(sampleFile())).rejects.toThrow("loop boom");
+  });
+
+  it("submitStitchJob POSTs all clips under a repeated 'files' field", async () => {
+    await submitStitchJob([sampleFile(), sampleFile()]);
+    const [url, init] = lastCall();
+    expect(url).toBe(`${BASE}/api/stitch`);
+    expect((init?.body as FormData).getAll("files")).toHaveLength(2);
+  });
+
+  it("submitStitchJob throws the server error on failure", async () => {
+    fetchMock.mockResolvedValueOnce(res({ error: "stitch boom" }, { ok: false, status: 400 }));
+    await expect(submitStitchJob([sampleFile(), sampleFile()])).rejects.toThrow("stitch boom");
   });
 
   it("submitThumbnailJob POSTs the file with the time", async () => {

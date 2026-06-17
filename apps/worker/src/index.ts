@@ -23,6 +23,7 @@ import {
   createReframeJob,
   createReverseJob,
   createRotateJob,
+  createStitchJob,
   createThumbnailJob,
   createSpeedJob,
   createTrimJob,
@@ -357,6 +358,23 @@ app.post("/api/loop", async (c) => {
   const inputPath = `${MEDIA_DIR}/loop-${Date.now()}${ext}`;
   await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
   const job = createLoopJob(inputPath, body["count"], MEDIA_DIR);
+  return c.json(job, 202);
+});
+
+/** Stitch — concatenate several uploaded clips into one: multipart with repeated 'files'. */
+app.post("/api/stitch", async (c) => {
+  const body = await c.req.parseBody({ all: true });
+  const raw = body["files"];
+  const files = (Array.isArray(raw) ? raw : [raw]).filter((f): f is File => f instanceof File);
+  if (files.length < 2) return c.json({ error: "provide at least 2 'files' (multipart) to stitch" }, 400);
+  const paths: string[] = [];
+  for (let i = 0; i < files.length; i++) {
+    const ext = extname(files[i].name || "") || ".mp4";
+    const p = `${MEDIA_DIR}/st-${Date.now()}-${i}${ext}`;
+    await writeFile(p, Buffer.from(await files[i].arrayBuffer()));
+    paths.push(p);
+  }
+  const job = createStitchJob(paths, MEDIA_DIR);
   return c.json(job, 202);
 });
 

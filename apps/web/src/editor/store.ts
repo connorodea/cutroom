@@ -44,6 +44,8 @@ export interface EditorState {
   loopOpen: boolean;
   /** Whether the Thumbnail (poster frame) modal is open. */
   thumbnailOpen: boolean;
+  /** Whether the Stitch (concatenate clips) modal is open. */
+  stitchOpen: boolean;
 
   /** Output ids of AI-created videos this session, newest-first. */
   createdOutputs: string[];
@@ -95,6 +97,8 @@ export interface EditorState {
   closeLoop: () => void;
   openThumbnail: () => void;
   closeThumbnail: () => void;
+  openStitch: () => void;
+  closeStitch: () => void;
   /** Record an AI-created output id (newest-first, de-duplicated). */
   addCreatedOutput: (outputId: string) => void;
 
@@ -127,6 +131,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   gifOpen: false,
   loopOpen: false,
   thumbnailOpen: false,
+  stitchOpen: false,
   createdOutputs: [],
   phase: "idle",
   active: -1,
@@ -173,6 +178,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   closeLoop: () => set({ loopOpen: false }),
   openThumbnail: () => set({ thumbnailOpen: true }),
   closeThumbnail: () => set({ thumbnailOpen: false }),
+  openStitch: () => set({ stitchOpen: true }),
+  closeStitch: () => set({ stitchOpen: false }),
   addCreatedOutput: (outputId) =>
     set((s) => ({ createdOutputs: [outputId, ...s.createdOutputs.filter((id) => id !== outputId)] })),
 

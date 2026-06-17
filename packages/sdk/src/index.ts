@@ -20,7 +20,7 @@ export interface TranscriptWord {
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -161,6 +161,13 @@ export class CutroomClient {
   async speed(filePath: string, opts: { factor?: number } = {}): Promise<Job> {
     const fd = await this.fileForm(filePath, { factor: String(opts.factor ?? 2) });
     return this.json(await fetch(`${this.baseUrl}/api/speed`, { method: "POST", headers: this.authHeaders(), body: fd }));
+  }
+
+  /** Concatenate several clips (in order) into one video → job. Pass 2+ file paths. */
+  async stitch(filePaths: string[]): Promise<Job> {
+    const fd = new FormData();
+    for (const p of filePaths) fd.append("files", new File([await readFile(p)], basename(p)));
+    return this.json(await fetch(`${this.baseUrl}/api/stitch`, { method: "POST", headers: this.authHeaders(), body: fd }));
   }
 
   /** Grab a poster frame from a video at `time` seconds (default: the clip midpoint) → job; output a .png. */
