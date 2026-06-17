@@ -6,6 +6,7 @@ import { runReframePipeline, type ReframeAspect, type ReframeMode } from "./refr
 import { planHighlights, runHighlightsPipeline, type HighlightOptions } from "./highlights";
 import { runCaptionsPipeline } from "./captions";
 import { runSpeedPipeline } from "./speed";
+import { runTrimPipeline } from "./trim";
 import { generateImage, imageToVideo, downloadTo, type ImageModel, type VideoModel } from "./higgsfield";
 import { extractAudio, ffprobeDimensions, ffprobeDuration } from "./ffmpeg";
 import { transcribe, type Word } from "./transcribe";
@@ -14,7 +15,7 @@ export type JobStatus = "queued" | "running" | "done" | "error";
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "image" | "video";
   status: JobStatus;
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -268,6 +269,31 @@ export function createSpeedJob(inputPath: string, factor: number, workDir: strin
       const r = await runSpeedPipeline(inputPath, factor, workDir, id);
       job.status = "done";
       job.result = { outputId: id, factor: r.factor, hadAudio: r.hadAudio };
+    } catch (err) {
+      job.status = "error";
+      job.error = (err as Error).message;
+      // eslint-disable-next-line no-console
+      console.error("[job]", id, "failed:", err);
+    }
+  })();
+  return job;
+}
+
+/**
+ * Create + run a Trim job: keep an explicit [start, end] window of the upload (clamped against the
+ * clip's duration). The output is `${jobId}.mp4`. Runs async; poll the job for status.
+ */
+export function createTrimJob(inputPath: string, rawStart: unknown, rawEnd: unknown, workDir: string): Job {
+  const id = randomUUID();
+  const job: Job = { id, type: "trim", status: "queued", createdAt: Date.now() };
+  jobs.set(id, job);
+  void (async () => {
+    try {
+      job.status = "running";
+      job.step = "trim window + re-encode";
+      const r = await runTrimPipeline(inputPath, rawStart, rawEnd, workDir, id);
+      job.status = "done";
+      job.result = { outputId: id, start: r.start, end: r.end, durationSec: r.durationSec };
     } catch (err) {
       job.status = "error";
       job.error = (err as Error).message;

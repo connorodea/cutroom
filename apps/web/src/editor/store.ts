@@ -24,6 +24,8 @@ export interface EditorState {
   captionsOpen: boolean;
   /** Whether the Speed (slow-mo / timelapse) modal is open. */
   speedOpen: boolean;
+  /** Whether the Trim (in/out window) modal is open. */
+  trimOpen: boolean;
 
   /** Output ids of AI-created videos this session, newest-first. */
   createdOutputs: string[];
@@ -55,6 +57,8 @@ export interface EditorState {
   closeCaptions: () => void;
   openSpeed: () => void;
   closeSpeed: () => void;
+  openTrim: () => void;
+  closeTrim: () => void;
   /** Record an AI-created output id (newest-first, de-duplicated). */
   addCreatedOutput: (outputId: string) => void;
 
@@ -77,6 +81,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   highlightsOpen: false,
   captionsOpen: false,
   speedOpen: false,
+  trimOpen: false,
   createdOutputs: [],
   phase: "idle",
   active: -1,
@@ -103,6 +108,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   closeCaptions: () => set({ captionsOpen: false }),
   openSpeed: () => set({ speedOpen: true }),
   closeSpeed: () => set({ speedOpen: false }),
+  openTrim: () => set({ trimOpen: true }),
+  closeTrim: () => set({ trimOpen: false }),
   addCreatedOutput: (outputId) =>
     set((s) => ({ createdOutputs: [outputId, ...s.createdOutputs.filter((id) => id !== outputId)] })),
 

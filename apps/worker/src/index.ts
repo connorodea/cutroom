@@ -16,6 +16,7 @@ import {
   createOverlayJob,
   createReframeJob,
   createSpeedJob,
+  createTrimJob,
   createTranscriptCutJob,
   createVideoGenJob,
   getJob,
@@ -205,6 +206,18 @@ app.post("/api/speed", async (c) => {
   const inputPath = `${MEDIA_DIR}/sp-${Date.now()}${ext}`;
   await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
   const job = createSpeedJob(inputPath, factor, MEDIA_DIR);
+  return c.json(job, 202);
+});
+
+/** Trim — keep an explicit [start,end] window of an upload: multipart { file, start, end }. */
+app.post("/api/trim", async (c) => {
+  const body = await c.req.parseBody();
+  const file = body["file"];
+  if (!(file instanceof File)) return c.json({ error: "missing 'file' (multipart)" }, 400);
+  const ext = extname(file.name || "") || ".mp4";
+  const inputPath = `${MEDIA_DIR}/tr-${Date.now()}${ext}`;
+  await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
+  const job = createTrimJob(inputPath, body["start"], body["end"], MEDIA_DIR);
   return c.json(job, 202);
 });
 

@@ -106,6 +106,14 @@ describe("editor store", () => {
     expect(useEditorStore.getState().speedOpen).toBe(false);
   });
 
+  it("opens and closes the Trim modal", () => {
+    expect(useEditorStore.getState().trimOpen).toBe(false);
+    useEditorStore.getState().openTrim();
+    expect(useEditorStore.getState().trimOpen).toBe(true);
+    useEditorStore.getState().closeTrim();
+    expect(useEditorStore.getState().trimOpen).toBe(false);
+  });
+
   it("starts with the Overlay modal closed", () => {
     expect(useEditorStore.getState().overlayOpen).toBe(false);
   });

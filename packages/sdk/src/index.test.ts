@@ -171,6 +171,24 @@ describe("multipart endpoints", () => {
     expect((lastCall()[1]?.body as FormData).get("factor")).toBe("2");
   });
 
+  it("trim POSTs the file with the start/end window", async () => {
+    await client().trim(tmpFile, { start: 5, end: 12 });
+    const [url, init] = lastCall();
+    expect(url).toBe("http://x/api/trim");
+    expect(init?.method).toBe("POST");
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("start")).toBe("5");
+    expect(fd.get("end")).toBe("12");
+  });
+
+  it("trim defaults start to 0 and leaves end open", async () => {
+    await client().trim(tmpFile);
+    const fd = lastCall()[1]?.body as FormData;
+    expect(fd.get("start")).toBe("0");
+    expect(fd.get("end")).toBe("");
+  });
+
   it("transcribe POSTs the file to /api/transcribe", async () => {
     await client().transcribe(tmpFile);
     const [url, init] = lastCall();

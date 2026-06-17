@@ -7,6 +7,7 @@ import {
   submitOverlayJob,
   submitCaptionsJob,
   submitSpeedJob,
+  submitTrimJob,
   submitChainJob,
   submitTranscriptCut,
   submitHighlightsJob,
@@ -148,6 +149,28 @@ describe("multipart submit endpoints", () => {
   it("submitSpeedJob throws the server error on failure", async () => {
     fetchMock.mockResolvedValueOnce(res({ error: "speed boom" }, { ok: false, status: 400 }));
     await expect(submitSpeedJob(sampleFile())).rejects.toThrow("speed boom");
+  });
+
+  it("submitTrimJob POSTs the file with the start/end window", async () => {
+    await submitTrimJob(sampleFile(), { start: 5, end: 12 });
+    const [url, init] = lastCall();
+    expect(url).toBe(`${BASE}/api/trim`);
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("start")).toBe("5");
+    expect(fd.get("end")).toBe("12");
+  });
+
+  it("submitTrimJob defaults start to 0 and leaves end open", async () => {
+    await submitTrimJob(sampleFile());
+    const fd = lastCall()[1]?.body as FormData;
+    expect(fd.get("start")).toBe("0");
+    expect(fd.get("end")).toBe("");
+  });
+
+  it("submitTrimJob throws the server error on failure", async () => {
+    fetchMock.mockResolvedValueOnce(res({ error: "trim boom" }, { ok: false, status: 400 }));
+    await expect(submitTrimJob(sampleFile())).rejects.toThrow("trim boom");
   });
 
   it("submitOverlayJob POSTs the file plus a JSON overlays field", async () => {

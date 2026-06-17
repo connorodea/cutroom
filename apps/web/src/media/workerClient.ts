@@ -8,7 +8,7 @@ const WORKER_URL =
 
 export interface EditJob {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: {
@@ -34,6 +34,9 @@ export interface EditJob {
     /** For speed jobs: the applied retime factor + whether audio was retimed. */
     factor?: number;
     hadAudio?: boolean;
+    /** For trim jobs: the kept window (seconds). */
+    start?: number;
+    end?: number;
   };
   error?: string;
 }
@@ -126,6 +129,20 @@ export async function submitCaptionsJob(file: File, opts: { position?: "bottom" 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error((body as { error?: string }).error || `captions failed (${res.status})`);
+  }
+  return (await res.json()) as EditJob;
+}
+
+/** Keep an explicit [start,end] second window of a video: multipart { file, start, end }. */
+export async function submitTrimJob(file: File, opts: { start?: number; end?: number } = {}): Promise<EditJob> {
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("start", String(opts.start ?? 0));
+  fd.append("end", opts.end == null ? "" : String(opts.end));
+  const res = await fetch(`${WORKER_URL}/api/trim`, { method: "POST", body: fd });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error || `trim failed (${res.status})`);
   }
   return (await res.json()) as EditJob;
 }
