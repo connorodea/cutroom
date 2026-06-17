@@ -20,6 +20,7 @@ import {
   getSource,
   transcribeSource,
 } from "./jobs";
+import { parseTokens, isAuthorized } from "./auth";
 
 const exec = promisify(execFile);
 
@@ -35,14 +36,15 @@ await mkdir(MEDIA_DIR, { recursive: true });
 const app = new Hono();
 app.use("/api/*", cors()); // editor (cutroom.preecursor.com) is cross-origin
 
-// Opt-in API-token gate: only enforced when CUTROOM_API_TOKEN is set. The CLI / MCP / external
-// agents send `Authorization: Bearer <token>`; /health stays open for probes.
-const API_TOKEN = process.env.CUTROOM_API_TOKEN;
-if (API_TOKEN) {
+// Opt-in API-token gate: enforced only when token(s) are configured. Supports MULTIPLE keys
+// (per-user/per-integration) via CUTROOM_API_TOKENS (comma-separated), plus the legacy single
+// CUTROOM_API_TOKEN. Clients send `Authorization: Bearer <token>`; /health stays open for probes.
+const API_TOKENS = new Set([...parseTokens(process.env.CUTROOM_API_TOKENS), ...parseTokens(process.env.CUTROOM_API_TOKEN)]);
+if (API_TOKENS.size > 0) {
   app.use("/api/*", async (c, next) => {
     if (c.req.path.endsWith("/health")) return next();
-    if (c.req.header("authorization") === `Bearer ${API_TOKEN}`) return next();
-    return c.json({ error: "unauthorized — send Authorization: Bearer <CUTROOM_API_TOKEN>" }, 401);
+    if (isAuthorized(c.req.header("authorization"), API_TOKENS)) return next();
+    return c.json({ error: "unauthorized — send Authorization: Bearer <token>" }, 401);
   });
 }
 
