@@ -68,6 +68,14 @@ describe("OverlayModal", () => {
     expect(await screen.findByText("Done")).toBeInTheDocument();
   });
 
+  it("closes via the ✕ button", () => {
+    open();
+    render(<OverlayModal />);
+    uploadVideo();
+    fireEvent.click(screen.getByText("✕"));
+    expect(useEditorStore.getState().overlayOpen).toBe(false);
+  });
+
   it("rejects an empty-text graphic on composite", async () => {
     open();
     render(<OverlayModal />);

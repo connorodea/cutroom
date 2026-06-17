@@ -37,6 +37,13 @@ describe("CreateModal", () => {
     expect(screen.getByRole("button", { name: /Generate/ })).toBeEnabled();
   });
 
+  it("closes via the ✕ button", () => {
+    open();
+    render(<CreateModal />);
+    fireEvent.click(screen.getByText("✕"));
+    expect(useEditorStore.getState().createOpen).toBe(false);
+  });
+
   it("shows the generative credits note when the source is generative", () => {
     open();
     render(<CreateModal />);

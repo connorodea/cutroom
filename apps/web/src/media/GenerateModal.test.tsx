@@ -45,6 +45,30 @@ describe("GenerateModal", () => {
     expect(screen.getByPlaceholderText(/Describe the clip/)).toBeInTheDocument();
   });
 
+  it("switches aspect and video model", () => {
+    open();
+    render(<GenerateModal />);
+    fireEvent.click(screen.getByText("9:16"));
+    fireEvent.click(screen.getByText("Video"));
+    fireEvent.click(screen.getByText("Kling"));
+    expect(screen.getByText("Kling")).toBeInTheDocument();
+  });
+
+  it("generates a video in video mode and records it as a clip", async () => {
+    open();
+    fetchMock
+      .mockResolvedValueOnce(res({ id: "v1", type: "video", status: "queued" }))
+      .mockResolvedValueOnce(res({ id: "v1", type: "video", status: "done", result: { outputId: "v1", kind: "video" } }));
+    render(<GenerateModal />);
+    fireEvent.click(screen.getByText("Video"));
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "a drone shot" } });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /Generate/ }));
+    });
+    expect(await screen.findByText("Done")).toBeInTheDocument();
+    expect(useEditorStore.getState().createdOutputs).toContain("v1");
+  });
+
   it("submits and shows the result on success", async () => {
     open();
     fetchMock
