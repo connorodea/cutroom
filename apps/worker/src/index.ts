@@ -7,7 +7,17 @@ import { mkdir, writeFile, stat } from "node:fs/promises";
 import { createReadStream } from "node:fs";
 import { Readable } from "node:stream";
 import { extname } from "node:path";
-import { createCreateJob, createEditJob, createOverlayJob, createTranscriptCutJob, getJob, getSource, transcribeSource } from "./jobs";
+import {
+  createCreateJob,
+  createEditJob,
+  createImageGenJob,
+  createOverlayJob,
+  createTranscriptCutJob,
+  createVideoGenJob,
+  getJob,
+  getSource,
+  transcribeSource,
+} from "./jobs";
 
 const exec = promisify(execFile);
 
@@ -74,6 +84,8 @@ app.post("/api/create", async (c) => {
     captions?: unknown;
     overlays?: unknown;
     autoGraphics?: unknown;
+    source?: unknown;
+    videoModel?: unknown;
   };
   const prompt = typeof body.prompt === "string" && body.prompt.trim() ? body.prompt.trim() : undefined;
   const script = Array.isArray(body.script)
@@ -86,8 +98,10 @@ app.post("/api/create", async (c) => {
   }
   const aspect = body.aspect === "portrait" ? "portrait" : "landscape";
   const overlays = Array.isArray(body.overlays) ? body.overlays : undefined;
+  const source = body.source === "generative" ? "generative" : "stock";
+  const videoModel = ["dop", "kling", "seedance"].includes(String(body.videoModel)) ? (String(body.videoModel) as "dop" | "kling" | "seedance") : undefined;
   const job = createCreateJob(
-    { prompt, script, aspect, captions: body.captions !== false, overlays, autoGraphics: body.autoGraphics !== false },
+    { prompt, script, aspect, captions: body.captions !== false, overlays, autoGraphics: body.autoGraphics !== false, source, videoModel },
     MEDIA_DIR,
   );
   return c.json(job, 202);
@@ -142,6 +156,39 @@ app.post("/api/jobs/transcript-cut", async (c) => {
   return c.json(job, 202);
 });
 
+/** Generate an image with Higgsfield: JSON { prompt, aspect?, model? }. Poll the job. */
+app.post("/api/generate/image", async (c) => {
+  const body = (await c.req.json().catch(() => ({}))) as { prompt?: unknown; aspect?: unknown; model?: unknown };
+  const prompt = typeof body.prompt === "string" && body.prompt.trim() ? body.prompt.trim() : undefined;
+  if (!prompt) return c.json({ error: "provide 'prompt' (string)" }, 400);
+  const aspect = typeof body.aspect === "string" ? body.aspect : undefined;
+  const model = body.model === "reve" ? "reve" : "soul";
+  const job = createImageGenJob({ prompt, aspect, model }, MEDIA_DIR);
+  return c.json(job, 202);
+});
+
+/**
+ * Generate a video with Higgsfield: JSON { prompt, imageUrl?, model?, aspect?, duration? }.
+ * With imageUrl it animates that image; otherwise it makes a base image from prompt first. Poll the job.
+ */
+app.post("/api/generate/video", async (c) => {
+  const body = (await c.req.json().catch(() => ({}))) as {
+    prompt?: unknown;
+    imageUrl?: unknown;
+    model?: unknown;
+    aspect?: unknown;
+    duration?: unknown;
+  };
+  const prompt = typeof body.prompt === "string" && body.prompt.trim() ? body.prompt.trim() : "";
+  const imageUrl = typeof body.imageUrl === "string" && body.imageUrl.trim() ? body.imageUrl.trim() : undefined;
+  if (!prompt && !imageUrl) return c.json({ error: "provide 'prompt' or 'imageUrl'" }, 400);
+  const model = ["dop", "kling", "seedance"].includes(String(body.model)) ? (String(body.model) as "dop" | "kling" | "seedance") : undefined;
+  const aspect = typeof body.aspect === "string" ? body.aspect : undefined;
+  const duration = typeof body.duration === "number" ? body.duration : undefined;
+  const job = createVideoGenJob({ prompt, imageUrl, model, aspect, duration }, MEDIA_DIR);
+  return c.json(job, 202);
+});
+
 /** Poll a job. */
 app.get("/api/jobs/:id", (c) => {
   const job = getJob(c.req.param("id"));
@@ -149,19 +196,30 @@ app.get("/api/jobs/:id", (c) => {
   return c.json(job);
 });
 
-/** Serve a rendered output MP4 by job/output id. */
+const MEDIA_TYPES: Record<string, string> = {
+  ".mp4": "video/mp4",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".webp": "image/webp",
+};
+
+/** Serve a rendered/generated output (MP4 or image) by job/output id. */
 app.get("/api/media/:id", async (c) => {
   const id = c.req.param("id").replace(/[^a-zA-Z0-9-]/g, "");
-  const path = `${MEDIA_DIR}/${id}.mp4`;
-  try {
-    const s = await stat(path);
-    c.header("Content-Type", "video/mp4");
-    c.header("Content-Length", String(s.size));
-    c.header("Accept-Ranges", "bytes");
-    return c.body(Readable.toWeb(createReadStream(path)) as ReadableStream);
-  } catch {
-    return c.json({ error: "not found" }, 404);
+  for (const ext of [".mp4", ".png", ".jpg", ".jpeg", ".webp"]) {
+    const path = `${MEDIA_DIR}/${id}${ext}`;
+    try {
+      const s = await stat(path);
+      c.header("Content-Type", MEDIA_TYPES[ext]);
+      c.header("Content-Length", String(s.size));
+      if (ext === ".mp4") c.header("Accept-Ranges", "bytes");
+      return c.body(Readable.toWeb(createReadStream(path)) as ReadableStream);
+    } catch {
+      // try next extension
+    }
   }
+  return c.json({ error: "not found" }, 404);
 });
 
 const port = Number(process.env.PORT ?? 8080);

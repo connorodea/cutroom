@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { runEditPipeline, runTranscriptCutPipeline } from "./edit";
 import { runCreatePipeline, type CreateInput } from "./create";
 import { applyOverlays } from "./overlay";
+import { generateImage, imageToVideo, downloadTo, type ImageModel, type VideoModel } from "./higgsfield";
 import { extractAudio, ffprobeDimensions, ffprobeDuration } from "./ffmpeg";
 import { transcribe, type Word } from "./transcribe";
 
@@ -9,7 +10,7 @@ export type JobStatus = "queued" | "running" | "done" | "error";
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay";
+  type: "edit" | "create" | "overlay" | "image" | "video";
   status: JobStatus;
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -69,6 +70,7 @@ export function createCreateJob(input: CreateInput, workDir: string): Job {
         segments: r.segments,
         durationSec: r.durationSec,
         usedStock: r.usedStock,
+        usedGenerative: r.usedGenerative,
         captionsApplied: r.captionsApplied,
         overlaysApplied: r.overlaysApplied,
       };
@@ -98,6 +100,63 @@ export function createOverlayJob(inputPath: string, overlays: unknown, workDir: 
       const r = await applyOverlays(inputPath, overlays, dims, workDir, id);
       job.status = "done";
       job.result = { outputId: id, overlaysApplied: r.applied };
+    } catch (err) {
+      job.status = "error";
+      job.error = (err as Error).message;
+      // eslint-disable-next-line no-console
+      console.error("[job]", id, "failed:", err);
+    }
+  })();
+  return job;
+}
+
+/** Generate an image with Higgsfield (text→image). Saved to `${jobId}.png`. Runs async. */
+export function createImageGenJob(opts: { prompt: string; aspect?: string; model?: ImageModel }, workDir: string): Job {
+  const id = randomUUID();
+  const job: Job = { id, type: "image", status: "queued", createdAt: Date.now() };
+  jobs.set(id, job);
+  void (async () => {
+    try {
+      job.status = "running";
+      job.step = "generate image (Higgsfield)";
+      const url = await generateImage(opts.prompt, opts.aspect ?? "16:9", opts.model ?? "soul");
+      await downloadTo(url, `${workDir}/${id}.png`);
+      job.status = "done";
+      job.result = { outputId: id, kind: "image", sourceUrl: url };
+    } catch (err) {
+      job.status = "error";
+      job.error = (err as Error).message;
+      // eslint-disable-next-line no-console
+      console.error("[job]", id, "failed:", err);
+    }
+  })();
+  return job;
+}
+
+/**
+ * Generate a video with Higgsfield. With an `imageUrl`, animates it (image→video); otherwise
+ * generates a base image from `prompt` first (text→image→video). Saved to `${jobId}.mp4`. Async.
+ */
+export function createVideoGenJob(
+  opts: { prompt: string; imageUrl?: string; model?: VideoModel; aspect?: string; duration?: number },
+  workDir: string,
+): Job {
+  const id = randomUUID();
+  const job: Job = { id, type: "video", status: "queued", createdAt: Date.now() };
+  jobs.set(id, job);
+  void (async () => {
+    try {
+      job.status = "running";
+      let imageUrl = opts.imageUrl;
+      if (!imageUrl) {
+        job.step = "generate base image (Higgsfield)";
+        imageUrl = await generateImage(opts.prompt, opts.aspect ?? "16:9");
+      }
+      job.step = "animate image → video (Higgsfield)";
+      const videoUrl = await imageToVideo(imageUrl, opts.prompt, { model: opts.model, duration: opts.duration, aspect: opts.aspect });
+      await downloadTo(videoUrl, `${workDir}/${id}.mp4`);
+      job.status = "done";
+      job.result = { outputId: id, kind: "video", sourceUrl: videoUrl };
     } catch (err) {
       job.status = "error";
       job.error = (err as Error).message;

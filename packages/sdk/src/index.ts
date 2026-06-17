@@ -20,7 +20,7 @@ export interface TranscriptWord {
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay";
+  type: "edit" | "create" | "overlay" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -64,6 +64,26 @@ export interface CreateOptions {
   overlays?: OverlayInput[];
   /** Let the AI design on-screen graphics (default true). */
   autoGraphics?: boolean;
+  /** Footage source: "stock" (Pexels, default) or "generative" (Higgsfield text→image→video). */
+  source?: "stock" | "generative";
+  /** Higgsfield video model for the generative source. */
+  videoModel?: "dop" | "kling" | "seedance";
+}
+
+export interface ImageGenOptions {
+  prompt: string;
+  aspect?: string;
+  model?: "soul" | "reve";
+}
+
+export interface VideoGenOptions {
+  /** Motion prompt (and the base-image prompt when no imageUrl is given). */
+  prompt?: string;
+  /** Animate this image (image→video); omit to generate a base image first (text→image→video). */
+  imageUrl?: string;
+  model?: "dop" | "kling" | "seedance";
+  aspect?: string;
+  duration?: number;
 }
 
 export interface Transcript {
@@ -154,6 +174,28 @@ export class CutroomClient {
   async overlay(filePath: string, overlays: OverlayInput[]): Promise<Job> {
     const fd = await this.fileForm(filePath, { overlays: JSON.stringify(overlays) });
     return this.json(await fetch(`${this.baseUrl}/api/overlay`, { method: "POST", headers: this.authHeaders(), body: fd }));
+  }
+
+  /** Generate an image from a prompt via Higgsfield → job (output served at /api/media/:id). */
+  async generateImage(opts: ImageGenOptions): Promise<Job> {
+    return this.json(
+      await fetch(`${this.baseUrl}/api/generate/image`, {
+        method: "POST",
+        headers: this.authHeaders({ "content-type": "application/json" }),
+        body: JSON.stringify(opts),
+      }),
+    );
+  }
+
+  /** Generate a video via Higgsfield (text→image→video, or image→video with imageUrl) → job. */
+  async generateVideo(opts: VideoGenOptions): Promise<Job> {
+    return this.json(
+      await fetch(`${this.baseUrl}/api/generate/video`, {
+        method: "POST",
+        headers: this.authHeaders({ "content-type": "application/json" }),
+        body: JSON.stringify(opts),
+      }),
+    );
   }
 
   async getJob(id: string): Promise<Job> {

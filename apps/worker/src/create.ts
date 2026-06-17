@@ -6,6 +6,7 @@ import { synthesize } from "./tts";
 import { findClipUrl } from "./pexels";
 import { writeScript, suggestOverlays, type ScriptSegment, type TimedSegment } from "./script";
 import { applyOverlays } from "./overlay";
+import { generateImage, imageToVideo, isConfigured as higgsfieldConfigured, type VideoModel } from "./higgsfield";
 
 const SIZES = {
   landscape: { w: 1280, h: 720, orientation: "landscape" as const },
@@ -17,6 +18,7 @@ export interface CreateResult {
   segments: number;
   durationSec: number;
   usedStock: number;
+  usedGenerative: number;
   captionsApplied: boolean;
   overlaysApplied: number;
 }
@@ -30,6 +32,10 @@ export interface CreateInput {
   overlays?: unknown[];
   /** When true (default) and no explicit overlays, the AI designs on-screen graphics. */
   autoGraphics?: boolean;
+  /** "stock" (Pexels, default) or "generative" (Higgsfield text→image→video per scene). */
+  source?: "stock" | "generative";
+  /** Higgsfield video model for the generative source (default "dop"). */
+  videoModel?: VideoModel;
 }
 
 async function concat(listItems: string[], listPath: string, outPath: string, audio: boolean): Promise<void> {
@@ -55,8 +61,11 @@ export async function runCreatePipeline(
   const segVideos: string[] = [];
   const voiceParts: string[] = [];
   const timed: TimedSegment[] = [];
+  const aspectRatio = orientation === "portrait" ? "9:16" : "16:9";
+  const generative = input.source === "generative" && higgsfieldConfigured();
   let clock = 0;
   let usedStock = 0;
+  let usedGenerative = 0;
 
   for (let i = 0; i < segments.length; i++) {
     const seg = segments[i];
@@ -68,19 +77,35 @@ export async function runCreatePipeline(
     voiceParts.push(ttsPath);
 
     const segVid = `${workDir}/${jobId}-vid${i}.mp4`;
-    const clipUrl = await findClipUrl(seg.query, orientation).catch(() => null);
-    if (clipUrl) {
+
+    // Source the scene's raw clip: Higgsfield (generative) or Pexels (stock).
+    let rawUrl: string | null = null;
+    let fromGenerative = false;
+    if (generative) {
+      try {
+        const imageUrl = await generateImage(seg.query || seg.text, aspectRatio);
+        rawUrl = await imageToVideo(imageUrl, seg.text, { model: input.videoModel, duration: Math.ceil(dur), aspect: aspectRatio });
+        fromGenerative = true;
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.warn("[create] generative scene failed, falling back to stock:", (err as Error).message.split("\n")[0]);
+      }
+    }
+    if (!rawUrl) rawUrl = await findClipUrl(seg.query, orientation).catch(() => null);
+
+    if (rawUrl) {
       const raw = `${workDir}/${jobId}-raw${i}.mp4`;
-      const res = await fetch(clipUrl);
+      const res = await fetch(rawUrl);
       await writeFile(raw, Buffer.from(await res.arrayBuffer()));
       await run("ffmpeg", [
         "-y", "-stream_loop", "-1", "-i", raw, "-t", dur.toFixed(2),
         "-vf", `scale=${w}:${h}:force_original_aspect_ratio=increase,crop=${w}:${h},setsar=1`,
         "-r", "25", "-an", "-c:v", "libx264", "-preset", "veryfast", "-pix_fmt", "yuv420p", segVid,
       ]);
-      usedStock++;
+      if (fromGenerative) usedGenerative++;
+      else usedStock++;
     } else {
-      // Fallback: branded slide when no stock matched.
+      // Fallback: branded slide when no clip matched.
       await run("ffmpeg", [
         "-y", "-f", "lavfi", "-i", `color=c=0x20262E:s=${w}x${h}:r=25:d=${dur.toFixed(2)}`,
         "-an", "-c:v", "libx264", "-preset", "veryfast", "-pix_fmt", "yuv420p", segVid,
@@ -139,12 +164,13 @@ export async function runCreatePipeline(
 
   const durationSec = Math.round((await ffprobeDuration(ov.outputPath)) * 10) / 10;
   // eslint-disable-next-line no-console
-  console.log(`[create] ${jobId}: ${segments.length} segs, ${usedStock} stock, ${ov.applied} overlays, ${durationSec}s`);
+  console.log(`[create] ${jobId}: ${segments.length} segs, ${usedStock} stock, ${usedGenerative} generative, ${ov.applied} overlays, ${durationSec}s`);
   return {
     outputPath: ov.outputPath,
     segments: segments.length,
     durationSec,
     usedStock,
+    usedGenerative,
     captionsApplied,
     overlaysApplied: ov.applied,
   };

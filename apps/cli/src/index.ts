@@ -8,9 +8,12 @@ Usage:
   cutroom clean-up <file> [--no-captions] [--out <file>]      auto: cut silences/filler + captions
   cutroom transcribe <file>                                    word-level transcript (+ sourceId)
   cutroom transcript-cut <sourceId> <i,j,k> [--no-captions] [--out <file>]   remove words by index
-  cutroom create "<prompt>" [--portrait] [--no-captions] [--no-graphics] [--overlays <json|@file>] [--out <file>]
-                                                               AI: script → stock footage → voiceover → captions → graphics
+  cutroom create "<prompt>" [--portrait] [--no-captions] [--no-graphics] [--generative] [--video-model dop|kling|seedance] [--overlays <json|@file>] [--out <file>]
+                                                               AI: script → stock/generative footage → voiceover → captions → graphics
   cutroom overlay <file> <json|@file> [--out <file>]           composite titles/lower-thirds/callouts/badges onto a video
+  cutroom generate-image "<prompt>" [--aspect 16:9] [--model soul|reve] [--out <file.png>]   Higgsfield text→image
+  cutroom generate-video "<prompt>" [--image-url <url>] [--model dop|kling|seedance] [--aspect 16:9] [--duration <s>] [--out <file.mp4>]
+                                                               Higgsfield text→image→video (or image→video with --image-url)
   cutroom status <jobId>
   cutroom download <outputId> <file>
 
@@ -78,14 +81,46 @@ async function main(): Promise<void> {
     }
 
     case "create": {
-      if (!args[0]) throw new Error('usage: cutroom create "<prompt>" [--portrait] [--no-graphics] [--out <file>]');
+      if (!args[0]) throw new Error('usage: cutroom create "<prompt>" [--portrait] [--no-graphics] [--generative] [--out <file>]');
       const overlaysArg = flag(args, "overlays");
+      const vm = flag(args, "video-model");
       const job = await client.create({
         prompt: args[0],
         aspect: has(args, "portrait") ? "portrait" : "landscape",
         captions: !has(args, "no-captions"),
         autoGraphics: !has(args, "no-graphics"),
+        source: has(args, "generative") ? "generative" : "stock",
+        videoModel: vm === "kling" || vm === "seedance" ? vm : vm === "dop" ? "dop" : undefined,
         overlays: overlaysArg ? ((await readJsonArg(overlaysArg)) as never) : undefined,
+      });
+      await finish(client, job, flag(args, "out"));
+      break;
+    }
+
+    case "generate-image": {
+      if (!args[0]) throw new Error('usage: cutroom generate-image "<prompt>" [--aspect 16:9] [--model soul|reve] [--out <file.png>]');
+      const model = flag(args, "model");
+      const job = await client.generateImage({
+        prompt: args[0],
+        aspect: flag(args, "aspect"),
+        model: model === "reve" ? "reve" : model === "soul" ? "soul" : undefined,
+      });
+      await finish(client, job, flag(args, "out"));
+      break;
+    }
+
+    case "generate-video": {
+      if (!args[0] && !flag(args, "image-url")) {
+        throw new Error('usage: cutroom generate-video "<prompt>" [--image-url <url>] [--model dop|kling|seedance] [--out <file.mp4>]');
+      }
+      const model = flag(args, "model");
+      const duration = flag(args, "duration");
+      const job = await client.generateVideo({
+        prompt: args[0],
+        imageUrl: flag(args, "image-url"),
+        model: model === "kling" || model === "seedance" ? model : model === "dop" ? "dop" : undefined,
+        aspect: flag(args, "aspect"),
+        duration: duration ? Number(duration) : undefined,
       });
       await finish(client, job, flag(args, "out"));
       break;

@@ -78,11 +78,50 @@ server.registerTool(
       captions: z.boolean().optional().describe("Burn word captions (default true)."),
       overlays: z.array(overlayElement).optional().describe("Explicit graphics; omit to let the AI design them."),
       autoGraphics: z.boolean().optional().describe("Let the AI design on-screen graphics (default true)."),
+      source: z.enum(["stock", "generative"]).optional().describe("Footage: stock (Pexels, default) or generative (Higgsfield)."),
+      videoModel: z.enum(["dop", "kling", "seedance"]).optional().describe("Higgsfield video model for the generative source."),
     },
     annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
   },
-  async ({ prompt, script, aspect, captions, overlays, autoGraphics }) => {
-    const job = await client.create({ prompt, script, aspect, captions, overlays, autoGraphics });
+  async ({ prompt, script, aspect, captions, overlays, autoGraphics, source, videoModel }) => {
+    const job = await client.create({ prompt, script, aspect, captions, overlays, autoGraphics, source, videoModel });
+    return textResult(jobSummary(await client.pollJob(job.id)));
+  },
+);
+
+server.registerTool(
+  "cutroom_generate_image",
+  {
+    description: "Generate an image from a text prompt via Higgsfield. Waits for the render and returns the output URL.",
+    inputSchema: {
+      prompt: z.string().describe("What to generate."),
+      aspect: z.string().optional().describe('Aspect ratio, e.g. "16:9" or "9:16" (default 16:9).'),
+      model: z.enum(["soul", "reve"]).optional().describe("Image model (default soul)."),
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+  },
+  async ({ prompt, aspect, model }) => {
+    const job = await client.generateImage({ prompt, aspect, model });
+    return textResult(jobSummary(await client.pollJob(job.id)));
+  },
+);
+
+server.registerTool(
+  "cutroom_generate_video",
+  {
+    description:
+      "Generate a video via Higgsfield. With imageUrl it animates that image (image→video); otherwise it generates a base image from the prompt first (text→image→video). Waits for the render and returns the output URL.",
+    inputSchema: {
+      prompt: z.string().optional().describe("Motion prompt (and base-image prompt when no imageUrl)."),
+      imageUrl: z.string().optional().describe("Animate this image instead of generating one."),
+      model: z.enum(["dop", "kling", "seedance"]).optional().describe("Video model (default dop)."),
+      aspect: z.string().optional().describe('Aspect ratio, e.g. "16:9" (default 16:9).'),
+      duration: z.number().optional().describe("Clip duration in seconds (model-dependent)."),
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+  },
+  async ({ prompt, imageUrl, model, aspect, duration }) => {
+    const job = await client.generateVideo({ prompt, imageUrl, model, aspect, duration });
     return textResult(jobSummary(await client.pollJob(job.id)));
   },
 );
