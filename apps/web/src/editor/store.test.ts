@@ -130,6 +130,14 @@ describe("editor store", () => {
     expect(useEditorStore.getState().rotateOpen).toBe(false);
   });
 
+  it("opens and closes the Audio modal", () => {
+    expect(useEditorStore.getState().audioOpen).toBe(false);
+    useEditorStore.getState().openAudio();
+    expect(useEditorStore.getState().audioOpen).toBe(true);
+    useEditorStore.getState().closeAudio();
+    expect(useEditorStore.getState().audioOpen).toBe(false);
+  });
+
   it("starts with the Overlay modal closed", () => {
     expect(useEditorStore.getState().overlayOpen).toBe(false);
   });

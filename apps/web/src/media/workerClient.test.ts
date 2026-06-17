@@ -10,6 +10,7 @@ import {
   submitTrimJob,
   submitColorJob,
   submitRotateJob,
+  submitAudioJob,
   submitChainJob,
   submitTranscriptCut,
   submitHighlightsJob,
@@ -211,6 +212,28 @@ describe("multipart submit endpoints", () => {
   it("submitRotateJob throws the server error on failure", async () => {
     fetchMock.mockResolvedValueOnce(res({ error: "rotate boom" }, { ok: false, status: 400 }));
     await expect(submitRotateJob(sampleFile())).rejects.toThrow("rotate boom");
+  });
+
+  it("submitAudioJob POSTs the file with the mode and level", async () => {
+    await submitAudioJob(sampleFile(), { mode: "mute" });
+    const [url, init] = lastCall();
+    expect(url).toBe(`${BASE}/api/audio`);
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("mode")).toBe("mute");
+    expect(fd.get("level")).toBe("1");
+  });
+
+  it("submitAudioJob defaults mode to volume and passes a custom level", async () => {
+    await submitAudioJob(sampleFile(), { level: 0.5 });
+    const fd = lastCall()[1]?.body as FormData;
+    expect(fd.get("mode")).toBe("volume");
+    expect(fd.get("level")).toBe("0.5");
+  });
+
+  it("submitAudioJob throws the server error on failure", async () => {
+    fetchMock.mockResolvedValueOnce(res({ error: "audio boom" }, { ok: false, status: 400 }));
+    await expect(submitAudioJob(sampleFile())).rejects.toThrow("audio boom");
   });
 
   it("submitOverlayJob POSTs the file plus a JSON overlays field", async () => {

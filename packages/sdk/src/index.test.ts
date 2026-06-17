@@ -190,6 +190,24 @@ describe("multipart endpoints", () => {
     expect(fd.get("brightness")).toBeNull();
   });
 
+  it("audio POSTs the file with the mode and level", async () => {
+    await client().audio(tmpFile, { mode: "volume", level: 0.5 });
+    const [url, init] = lastCall();
+    expect(url).toBe("http://x/api/audio");
+    expect(init?.method).toBe("POST");
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("mode")).toBe("volume");
+    expect(fd.get("level")).toBe("0.5");
+  });
+
+  it("audio defaults the mode to volume and level to 1", async () => {
+    await client().audio(tmpFile);
+    const fd = lastCall()[1]?.body as FormData;
+    expect(fd.get("mode")).toBe("volume");
+    expect(fd.get("level")).toBe("1");
+  });
+
   it("rotate POSTs the file with the orientation", async () => {
     await client().rotate(tmpFile, { orientation: "ccw" });
     const [url, init] = lastCall();

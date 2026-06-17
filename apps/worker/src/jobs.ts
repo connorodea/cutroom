@@ -9,6 +9,7 @@ import { runSpeedPipeline } from "./speed";
 import { runTrimPipeline } from "./trim";
 import { runColorPipeline, type ColorInput } from "./color";
 import { runRotatePipeline } from "./rotate";
+import { runAudioPipeline } from "./audio";
 import { generateImage, imageToVideo, downloadTo, type ImageModel, type VideoModel } from "./higgsfield";
 import { extractAudio, ffprobeDimensions, ffprobeDuration } from "./ffmpeg";
 import { transcribe, type Word } from "./transcribe";
@@ -17,7 +18,7 @@ export type JobStatus = "queued" | "running" | "done" | "error";
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "image" | "video";
   status: JobStatus;
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -346,6 +347,31 @@ export function createRotateJob(inputPath: string, orientation: unknown, workDir
       const r = await runRotatePipeline(inputPath, orientation, workDir, id);
       job.status = "done";
       job.result = { outputId: id, orientation: r.orientation };
+    } catch (err) {
+      job.status = "error";
+      job.error = (err as Error).message;
+      // eslint-disable-next-line no-console
+      console.error("[job]", id, "failed:", err);
+    }
+  })();
+  return job;
+}
+
+/**
+ * Create + run an Audio job: scale the volume, mute, or normalize loudness on the upload. A clip
+ * with no audio passes through untouched. The output is `${jobId}.mp4`. Runs async; poll for status.
+ */
+export function createAudioJob(inputPath: string, mode: unknown, level: unknown, workDir: string): Job {
+  const id = randomUUID();
+  const job: Job = { id, type: "audio", status: "queued", createdAt: Date.now() };
+  jobs.set(id, job);
+  void (async () => {
+    try {
+      job.status = "running";
+      job.step = "audio (volume / mute / normalize)";
+      const r = await runAudioPipeline(inputPath, mode, level, workDir, id);
+      job.status = "done";
+      job.result = { outputId: id, audioMode: r.mode, hadAudio: r.hadAudio };
     } catch (err) {
       job.status = "error";
       job.error = (err as Error).message;

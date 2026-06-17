@@ -20,7 +20,7 @@ export interface TranscriptWord {
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -161,6 +161,12 @@ export class CutroomClient {
   async speed(filePath: string, opts: { factor?: number } = {}): Promise<Job> {
     const fd = await this.fileForm(filePath, { factor: String(opts.factor ?? 2) });
     return this.json(await fetch(`${this.baseUrl}/api/speed`, { method: "POST", headers: this.authHeaders(), body: fd }));
+  }
+
+  /** Audio op on a video: scale the volume (mode "volume" + level), "mute", or "normalize" loudness → job. */
+  async audio(filePath: string, opts: { mode?: "volume" | "mute" | "normalize"; level?: number } = {}): Promise<Job> {
+    const fd = await this.fileForm(filePath, { mode: opts.mode ?? "volume", level: String(opts.level ?? 1) });
+    return this.json(await fetch(`${this.baseUrl}/api/audio`, { method: "POST", headers: this.authHeaders(), body: fd }));
   }
 
   /** Rotate (cw/ccw/180) or flip (flip-h/flip-v) a video → job. */

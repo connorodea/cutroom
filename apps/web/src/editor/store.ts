@@ -30,6 +30,8 @@ export interface EditorState {
   colorOpen: boolean;
   /** Whether the Rotate (orientation / flip) modal is open. */
   rotateOpen: boolean;
+  /** Whether the Audio (volume / mute / normalize) modal is open. */
+  audioOpen: boolean;
 
   /** Output ids of AI-created videos this session, newest-first. */
   createdOutputs: string[];
@@ -67,6 +69,8 @@ export interface EditorState {
   closeColor: () => void;
   openRotate: () => void;
   closeRotate: () => void;
+  openAudio: () => void;
+  closeAudio: () => void;
   /** Record an AI-created output id (newest-first, de-duplicated). */
   addCreatedOutput: (outputId: string) => void;
 
@@ -92,6 +96,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   trimOpen: false,
   colorOpen: false,
   rotateOpen: false,
+  audioOpen: false,
   createdOutputs: [],
   phase: "idle",
   active: -1,
@@ -124,6 +129,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   closeColor: () => set({ colorOpen: false }),
   openRotate: () => set({ rotateOpen: true }),
   closeRotate: () => set({ rotateOpen: false }),
+  openAudio: () => set({ audioOpen: true }),
+  closeAudio: () => set({ audioOpen: false }),
   addCreatedOutput: (outputId) =>
     set((s) => ({ createdOutputs: [outputId, ...s.createdOutputs.filter((id) => id !== outputId)] })),
 

@@ -14,6 +14,7 @@ import {
   createHighlightsJob,
   createImageGenJob,
   createOverlayJob,
+  createAudioJob,
   createColorJob,
   createReframeJob,
   createRotateJob,
@@ -258,6 +259,18 @@ app.post("/api/rotate", async (c) => {
   const inputPath = `${MEDIA_DIR}/rot-${Date.now()}${ext}`;
   await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
   const job = createRotateJob(inputPath, body["orientation"], MEDIA_DIR);
+  return c.json(job, 202);
+});
+
+/** Audio — scale volume / mute / normalize loudness: multipart { file, mode, level }. */
+app.post("/api/audio", async (c) => {
+  const body = await c.req.parseBody();
+  const file = body["file"];
+  if (!(file instanceof File)) return c.json({ error: "missing 'file' (multipart)" }, 400);
+  const ext = extname(file.name || "") || ".mp4";
+  const inputPath = `${MEDIA_DIR}/aud-${Date.now()}${ext}`;
+  await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
+  const job = createAudioJob(inputPath, body["mode"], body["level"], MEDIA_DIR);
   return c.json(job, 202);
 });
 
