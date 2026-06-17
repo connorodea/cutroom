@@ -251,6 +251,21 @@ describe("multipart endpoints", () => {
     expect(fd.get("level")).toBe("1");
   });
 
+  it("splitScreen POSTs the left + right files with the layout", async () => {
+    await client().splitScreen(tmpFile, tmpFile, { layout: "vertical" });
+    const [url, init] = lastCall();
+    expect(url).toBe("http://x/api/split");
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("right")).toBeInstanceOf(File);
+    expect(fd.get("layout")).toBe("vertical");
+  });
+
+  it("splitScreen defaults the layout to horizontal", async () => {
+    await client().splitScreen(tmpFile, tmpFile);
+    expect((lastCall()[1]?.body as FormData).get("layout")).toBe("horizontal");
+  });
+
   it("pip POSTs the main + overlay files with corner/scale", async () => {
     await client().pip(tmpFile, tmpFile, { corner: "tl", scale: 0.25 });
     const [url, init] = lastCall();

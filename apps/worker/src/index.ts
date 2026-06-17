@@ -24,6 +24,7 @@ import {
   createReverseJob,
   createRotateJob,
   createPipJob,
+  createSplitJob,
   createStitchJob,
   createThumbnailJob,
   createWatermarkJob,
@@ -360,6 +361,22 @@ app.post("/api/loop", async (c) => {
   const inputPath = `${MEDIA_DIR}/loop-${Date.now()}${ext}`;
   await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
   const job = createLoopJob(inputPath, body["count"], MEDIA_DIR);
+  return c.json(job, 202);
+});
+
+/** Split-screen — place two clips side-by-side or stacked: multipart { file (left), right, layout }. */
+app.post("/api/split", async (c) => {
+  const body = await c.req.parseBody();
+  const left = body["file"];
+  const right = body["right"];
+  if (!(left instanceof File) || !(right instanceof File)) return c.json({ error: "provide 'file' (left) and 'right' (multipart)" }, 400);
+  const lext = extname(left.name || "") || ".mp4";
+  const rext = extname(right.name || "") || ".mp4";
+  const leftPath = `${MEDIA_DIR}/split-${Date.now()}-l${lext}`;
+  const rightPath = `${MEDIA_DIR}/split-${Date.now()}-r${rext}`;
+  await writeFile(leftPath, Buffer.from(await left.arrayBuffer()));
+  await writeFile(rightPath, Buffer.from(await right.arrayBuffer()));
+  const job = createSplitJob(leftPath, rightPath, body["layout"], MEDIA_DIR);
   return c.json(job, 202);
 });
 

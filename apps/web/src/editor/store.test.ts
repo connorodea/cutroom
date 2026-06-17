@@ -210,6 +210,14 @@ describe("editor store", () => {
     expect(useEditorStore.getState().pipOpen).toBe(false);
   });
 
+  it("opens and closes the Split modal", () => {
+    expect(useEditorStore.getState().splitOpen).toBe(false);
+    useEditorStore.getState().openSplit();
+    expect(useEditorStore.getState().splitOpen).toBe(true);
+    useEditorStore.getState().closeSplit();
+    expect(useEditorStore.getState().splitOpen).toBe(false);
+  });
+
   it("starts with the Overlay modal closed", () => {
     expect(useEditorStore.getState().overlayOpen).toBe(false);
   });

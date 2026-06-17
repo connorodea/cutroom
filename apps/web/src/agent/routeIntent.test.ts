@@ -111,6 +111,18 @@ describe("routeIntent", () => {
     expect(routeIntent("brand it with my handle")).toBe("watermark");
   });
 
+  it("routes picture-in-picture requests to pip", () => {
+    expect(routeIntent("add a picture in picture")).toBe("pip");
+    expect(routeIntent("put my webcam in the corner as a pip")).toBe("pip");
+    expect(routeIntent("make it a picture-in-picture")).toBe("pip");
+  });
+
+  it("routes split-screen requests to split", () => {
+    expect(routeIntent("make a split screen")).toBe("split");
+    expect(routeIntent("put the two clips side by side")).toBe("split");
+    expect(routeIntent("stack the clips on top of each other")).toBe("split");
+  });
+
   it("prefers the specific operation over generic create", () => {
     expect(routeIntent("make a vertical video")).toBe("reframe");
   });

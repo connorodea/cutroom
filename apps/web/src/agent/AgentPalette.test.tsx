@@ -79,6 +79,8 @@ describe("AgentPalette", () => {
     ["grab a thumbnail", "thumbnailOpen"],
     ["stitch these clips together", "stitchOpen"],
     ["add a watermark", "watermarkOpen"],
+    ["add a picture in picture", "pipOpen"],
+    ["put the two clips side by side", "splitOpen"],
   ] as const)("routes '%s' to the matching tool and closes the palette", (prompt, flag) => {
     open();
     render(<AgentPalette />);

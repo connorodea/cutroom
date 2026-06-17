@@ -50,6 +50,8 @@ export interface EditorState {
   watermarkOpen: boolean;
   /** Whether the Picture-in-picture modal is open. */
   pipOpen: boolean;
+  /** Whether the Split-screen modal is open. */
+  splitOpen: boolean;
 
   /** Output ids of AI-created videos this session, newest-first. */
   createdOutputs: string[];
@@ -107,6 +109,8 @@ export interface EditorState {
   closeWatermark: () => void;
   openPip: () => void;
   closePip: () => void;
+  openSplit: () => void;
+  closeSplit: () => void;
   /** Record an AI-created output id (newest-first, de-duplicated). */
   addCreatedOutput: (outputId: string) => void;
 
@@ -142,6 +146,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   stitchOpen: false,
   watermarkOpen: false,
   pipOpen: false,
+  splitOpen: false,
   createdOutputs: [],
   phase: "idle",
   active: -1,
@@ -194,6 +199,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   closeWatermark: () => set({ watermarkOpen: false }),
   openPip: () => set({ pipOpen: true }),
   closePip: () => set({ pipOpen: false }),
+  openSplit: () => set({ splitOpen: true }),
+  closeSplit: () => set({ splitOpen: false }),
   addCreatedOutput: (outputId) =>
     set((s) => ({ createdOutputs: [outputId, ...s.createdOutputs.filter((id) => id !== outputId)] })),
 

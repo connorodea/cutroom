@@ -20,6 +20,7 @@ import {
   submitStitchJob,
   submitWatermarkJob,
   submitPipJob,
+  submitSplitJob,
   submitChainJob,
   submitTranscriptCut,
   submitHighlightsJob,
@@ -327,6 +328,21 @@ describe("multipart submit endpoints", () => {
   it("submitLoopJob throws the server error on failure", async () => {
     fetchMock.mockResolvedValueOnce(res({ error: "loop boom" }, { ok: false, status: 400 }));
     await expect(submitLoopJob(sampleFile())).rejects.toThrow("loop boom");
+  });
+
+  it("submitSplitJob POSTs left + right with the layout", async () => {
+    await submitSplitJob(sampleFile(), sampleFile(), { layout: "vertical" });
+    const [url, init] = lastCall();
+    expect(url).toBe(`${BASE}/api/split`);
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("right")).toBeInstanceOf(File);
+    expect(fd.get("layout")).toBe("vertical");
+  });
+
+  it("submitSplitJob throws the server error on failure", async () => {
+    fetchMock.mockResolvedValueOnce(res({ error: "split boom" }, { ok: false, status: 400 }));
+    await expect(submitSplitJob(sampleFile(), sampleFile())).rejects.toThrow("split boom");
   });
 
   it("submitPipJob POSTs main + overlay with corner/scale", async () => {
