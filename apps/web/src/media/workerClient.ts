@@ -8,7 +8,7 @@ const WORKER_URL =
 
 export interface EditJob {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: {
@@ -60,6 +60,9 @@ export interface EditJob {
     /** For freeze jobs: which frame was held and for how long. */
     freezePosition?: string;
     freezeSeconds?: number;
+    /** For Ken Burns jobs: the pan/zoom direction + clip length. */
+    kbDirection?: string;
+    kbSeconds?: number;
   };
   error?: string;
 }
@@ -180,6 +183,21 @@ export async function submitFreezeJob(file: File, opts: { position?: string; sec
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error((body as { error?: string }).error || `freeze failed (${res.status})`);
+  }
+  return (await res.json()) as EditJob;
+}
+
+/** Ken Burns: animate a still image with a slow pan/zoom: multipart { file (image), direction, seconds, aspect }. */
+export async function submitKenBurnsJob(file: File, opts: { direction?: string; seconds?: number; aspect?: string } = {}): Promise<EditJob> {
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("direction", opts.direction ?? "in");
+  fd.append("seconds", String(opts.seconds ?? 5));
+  fd.append("aspect", opts.aspect ?? "landscape");
+  const res = await fetch(`${WORKER_URL}/api/kenburns`, { method: "POST", body: fd });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error || `ken burns failed (${res.status})`);
   }
   return (await res.json()) as EditJob;
 }

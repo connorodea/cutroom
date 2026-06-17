@@ -20,7 +20,7 @@ export interface TranscriptWord {
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -176,6 +176,12 @@ export class CutroomClient {
   async freeze(filePath: string, opts: { position?: "start" | "end"; seconds?: number } = {}): Promise<Job> {
     const fd = await this.fileForm(filePath, { position: opts.position ?? "end", seconds: String(opts.seconds ?? 2) });
     return this.json(await fetch(`${this.baseUrl}/api/freeze`, { method: "POST", headers: this.authHeaders(), body: fd }));
+  }
+
+  /** Ken Burns: animate a still image with a slow pan/zoom (in/out/left/right), `seconds` 2–15 → job. */
+  async kenBurns(imagePath: string, opts: { direction?: "in" | "out" | "left" | "right"; seconds?: number; aspect?: "landscape" | "portrait" | "square" } = {}): Promise<Job> {
+    const fd = await this.fileForm(imagePath, { direction: opts.direction ?? "in", seconds: String(opts.seconds ?? 5), aspect: opts.aspect ?? "landscape" });
+    return this.json(await fetch(`${this.baseUrl}/api/kenburns`, { method: "POST", headers: this.authHeaders(), body: fd }));
   }
 
   /** Picture-in-picture: composite `overlayPath` into a corner of `mainPath` → job. corner tl/tr/bl/br, scale 0.1–0.5. */

@@ -54,6 +54,8 @@ export interface EditorState {
   splitOpen: boolean;
   /** Whether the Freeze-frame (hold) modal is open. */
   freezeOpen: boolean;
+  /** Whether the Ken Burns (animate a still) modal is open. */
+  kenBurnsOpen: boolean;
 
   /** Output ids of AI-created videos this session, newest-first. */
   createdOutputs: string[];
@@ -115,6 +117,8 @@ export interface EditorState {
   closeSplit: () => void;
   openFreeze: () => void;
   closeFreeze: () => void;
+  openKenBurns: () => void;
+  closeKenBurns: () => void;
   /** Record an AI-created output id (newest-first, de-duplicated). */
   addCreatedOutput: (outputId: string) => void;
 
@@ -152,6 +156,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   pipOpen: false,
   splitOpen: false,
   freezeOpen: false,
+  kenBurnsOpen: false,
   createdOutputs: [],
   phase: "idle",
   active: -1,
@@ -208,6 +213,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   closeSplit: () => set({ splitOpen: false }),
   openFreeze: () => set({ freezeOpen: true }),
   closeFreeze: () => set({ freezeOpen: false }),
+  openKenBurns: () => set({ kenBurnsOpen: true }),
+  closeKenBurns: () => set({ kenBurnsOpen: false }),
   addCreatedOutput: (outputId) =>
     set((s) => ({ createdOutputs: [outputId, ...s.createdOutputs.filter((id) => id !== outputId)] })),
 

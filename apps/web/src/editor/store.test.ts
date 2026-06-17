@@ -226,6 +226,14 @@ describe("editor store", () => {
     expect(useEditorStore.getState().freezeOpen).toBe(false);
   });
 
+  it("opens and closes the Ken Burns modal", () => {
+    expect(useEditorStore.getState().kenBurnsOpen).toBe(false);
+    useEditorStore.getState().openKenBurns();
+    expect(useEditorStore.getState().kenBurnsOpen).toBe(true);
+    useEditorStore.getState().closeKenBurns();
+    expect(useEditorStore.getState().kenBurnsOpen).toBe(false);
+  });
+
   it("starts with the Overlay modal closed", () => {
     expect(useEditorStore.getState().overlayOpen).toBe(false);
   });

@@ -283,6 +283,25 @@ describe("multipart endpoints", () => {
     expect(fd.get("seconds")).toBe("2");
   });
 
+  it("kenBurns POSTs the image with direction/seconds/aspect", async () => {
+    await client().kenBurns(tmpFile, { direction: "right", seconds: 8, aspect: "portrait" });
+    const [url, init] = lastCall();
+    expect(url).toBe("http://x/api/kenburns");
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("direction")).toBe("right");
+    expect(fd.get("seconds")).toBe("8");
+    expect(fd.get("aspect")).toBe("portrait");
+  });
+
+  it("kenBurns defaults to a 5s landscape zoom-in", async () => {
+    await client().kenBurns(tmpFile);
+    const fd = lastCall()[1]?.body as FormData;
+    expect(fd.get("direction")).toBe("in");
+    expect(fd.get("seconds")).toBe("5");
+    expect(fd.get("aspect")).toBe("landscape");
+  });
+
   it("pip POSTs the main + overlay files with corner/scale", async () => {
     await client().pip(tmpFile, tmpFile, { corner: "tl", scale: 0.25 });
     const [url, init] = lastCall();

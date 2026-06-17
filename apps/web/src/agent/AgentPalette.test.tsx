@@ -82,6 +82,7 @@ describe("AgentPalette", () => {
     ["add a picture in picture", "pipOpen"],
     ["put the two clips side by side", "splitOpen"],
     ["add a freeze frame", "freezeOpen"],
+    ["ken burns this photo", "kenBurnsOpen"],
   ] as const)("routes '%s' to the matching tool and closes the palette", (prompt, flag) => {
     open();
     render(<AgentPalette />);

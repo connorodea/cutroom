@@ -22,6 +22,7 @@ import {
   submitPipJob,
   submitSplitJob,
   submitFreezeJob,
+  submitKenBurnsJob,
   submitChainJob,
   submitTranscriptCut,
   submitHighlightsJob,
@@ -366,6 +367,30 @@ describe("multipart submit endpoints", () => {
   it("submitFreezeJob throws the server error on failure", async () => {
     fetchMock.mockResolvedValueOnce(res({ error: "freeze boom" }, { ok: false, status: 400 }));
     await expect(submitFreezeJob(sampleFile())).rejects.toThrow("freeze boom");
+  });
+
+  it("submitKenBurnsJob POSTs the image with direction/seconds/aspect", async () => {
+    await submitKenBurnsJob(sampleFile(), { direction: "right", seconds: 8, aspect: "portrait" });
+    const [url, init] = lastCall();
+    expect(url).toBe(`${BASE}/api/kenburns`);
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("direction")).toBe("right");
+    expect(fd.get("seconds")).toBe("8");
+    expect(fd.get("aspect")).toBe("portrait");
+  });
+
+  it("submitKenBurnsJob defaults to a 5s landscape zoom-in", async () => {
+    await submitKenBurnsJob(sampleFile());
+    const fd = lastCall()[1]?.body as FormData;
+    expect(fd.get("direction")).toBe("in");
+    expect(fd.get("seconds")).toBe("5");
+    expect(fd.get("aspect")).toBe("landscape");
+  });
+
+  it("submitKenBurnsJob throws the server error on failure", async () => {
+    fetchMock.mockResolvedValueOnce(res({ error: "kb boom" }, { ok: false, status: 400 }));
+    await expect(submitKenBurnsJob(sampleFile())).rejects.toThrow("kb boom");
   });
 
   it("submitPipJob POSTs main + overlay with corner/scale", async () => {

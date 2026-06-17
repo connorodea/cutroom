@@ -129,6 +129,12 @@ describe("routeIntent", () => {
     expect(routeIntent("hold the first frame for a few seconds")).toBe("freeze");
   });
 
+  it("routes Ken Burns / animate-a-photo requests to kenburns", () => {
+    expect(routeIntent("ken burns this photo")).toBe("kenburns");
+    expect(routeIntent("animate this photo with a slow zoom")).toBe("kenburns");
+    expect(routeIntent("pan and zoom across the image")).toBe("kenburns");
+  });
+
   it("prefers the specific operation over generic create", () => {
     expect(routeIntent("make a vertical video")).toBe("reframe");
   });

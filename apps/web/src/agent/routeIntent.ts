@@ -2,7 +2,7 @@
 export type IntentTool =
   | "create" | "import" | "reframe" | "highlights" | "captions" | "overlay" | "generate"
   | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop"
-  | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | null;
+  | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | null;
 
 /**
  * Classify a free-text agent request into the editor tool that fulfills it. Heuristic + ordered:
@@ -67,6 +67,9 @@ export function routeIntent(prompt: string): IntentTool {
   }
   if (/\b(freeze[\s-]?frame|freeze\s+(the|it|on)|hold\s+(the\s+)?(first|last|final|opening|ending)?\s*frame)\b/.test(p)) {
     return "freeze";
+  }
+  if (/\b(ken\s?burns|pan\s+and\s+zoom|pan\/zoom|slideshow|animate\s+(the\s+|this\s+|a\s+|my\s+)?(photo|image|picture|still|stills))\b/.test(p)) {
+    return "kenburns";
   }
   if (/\b(stitch|concat(enate)?|join\s+(the\s+)?clips|merge\s+(the\s+)?clips|combine\s+(the\s+)?clips)\b/.test(p)) {
     return "stitch";

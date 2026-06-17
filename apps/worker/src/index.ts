@@ -26,6 +26,7 @@ import {
   createPipJob,
   createSplitJob,
   createFreezeJob,
+  createKenBurnsJob,
   createStitchJob,
   createThumbnailJob,
   createWatermarkJob,
@@ -390,6 +391,18 @@ app.post("/api/freeze", async (c) => {
   const inputPath = `${MEDIA_DIR}/freeze-${Date.now()}${ext}`;
   await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
   const job = createFreezeJob(inputPath, body["position"], body["seconds"], MEDIA_DIR);
+  return c.json(job, 202);
+});
+
+/** Ken Burns — animate a still image with a slow pan/zoom: multipart { file (image), direction, seconds, aspect }. */
+app.post("/api/kenburns", async (c) => {
+  const body = await c.req.parseBody();
+  const file = body["file"];
+  if (!(file instanceof File)) return c.json({ error: "missing 'file' (image, multipart)" }, 400);
+  const ext = extname(file.name || "") || ".png";
+  const imagePath = `${MEDIA_DIR}/kb-${Date.now()}${ext}`;
+  await writeFile(imagePath, Buffer.from(await file.arrayBuffer()));
+  const job = createKenBurnsJob(imagePath, body["direction"], body["seconds"], body["aspect"], MEDIA_DIR);
   return c.json(job, 202);
 });
 
