@@ -1,10 +1,13 @@
 import { bins, clips, filmstrip, keywords, metaFields, selectedClipId } from "@cutroom/core";
 import { Icon } from "../../components/Icon";
+import { useEditorStore } from "../store";
+import { outputUrl } from "../../media/workerClient";
 
 const ACCENT = "#4FD1C5";
 
 /** The Media page — bins · 4-col browser · metadata · source strip. Pixel-faithful to the design. */
 export function MediaPage() {
+  const createdOutputs = useEditorStore((s) => s.createdOutputs);
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
       <div style={{ flex: 1, display: "flex", minHeight: 0 }}>
@@ -46,6 +49,38 @@ export function MediaPage() {
             <span style={{ fontSize: 11.5, color: "#79797F" }}>Sort: Scene</span>
           </div>
           <div style={{ flex: 1, overflow: "auto", padding: 16 }}>
+            {createdOutputs.length > 0 && (
+              <div style={{ marginBottom: 22 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                  <Icon name="wand-2" size={14} color={ACCENT} />
+                  <span style={{ fontSize: 12.5, fontWeight: 600, color: "#F5F5F7" }}>Created with AI</span>
+                  <span style={{ fontSize: 11, color: "#636368", fontFamily: "ui-monospace,'SF Mono',Menlo,monospace" }}>
+                    {createdOutputs.length} {createdOutputs.length === 1 ? "clip" : "clips"}
+                  </span>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14 }}>
+                  {createdOutputs.map((id, i) => (
+                    <div key={id} style={{ borderRadius: 12, overflow: "hidden", border: "1px solid rgba(79,209,197,0.22)", background: "#202022" }}>
+                      <video
+                        data-testid="ai-clip-video"
+                        src={outputUrl(id)}
+                        muted
+                        playsInline
+                        controls
+                        preload="metadata"
+                        style={{ display: "block", width: "100%", height: 92, objectFit: "cover", background: "#000" }}
+                      />
+                      <div style={{ padding: "8px 9px" }}>
+                        <div style={{ fontSize: 11.5, color: "#D6D6DB" }}>AI clip {i + 1}</div>
+                        <div style={{ fontSize: 10, color: "#636368", marginTop: 3, fontFamily: "ui-monospace,'SF Mono',Menlo,monospace" }}>
+                          {id.slice(0, 6)}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 14 }}>
               {clips.map((m) => (
                 <div key={m.id} style={{ borderRadius: 12, overflow: "hidden", border: `1px solid ${m.id === selectedClipId ? ACCENT : "rgba(255,255,255,0.08)"}`, background: "#202022", cursor: "pointer" }}>
