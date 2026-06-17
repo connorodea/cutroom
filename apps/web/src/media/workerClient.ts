@@ -8,7 +8,7 @@ const WORKER_URL =
 
 export interface EditJob {
   id: string;
-  type: "edit" | "create" | "overlay" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: {
@@ -25,8 +25,17 @@ export interface EditJob {
     kind?: "image" | "video";
     /** For generation jobs: the upstream (Higgsfield) source URL. */
     sourceUrl?: string;
+    /** For reframe jobs: the output dimensions + fit mode. */
+    width?: number;
+    height?: number;
+    mode?: "blur" | "crop";
   };
   error?: string;
+}
+
+export interface ReframeOptions {
+  aspect?: "portrait" | "square" | "landscape";
+  mode?: "blur" | "crop";
 }
 
 export interface ImageGenOptions {
@@ -112,6 +121,20 @@ export async function submitOverlayJob(file: File, overlays: OverlayElement[]): 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error((body as { error?: string }).error || `overlay failed (${res.status})`);
+  }
+  return (await res.json()) as EditJob;
+}
+
+/** Reframe a video to a target aspect ratio (blur/crop fit): multipart { file, aspect, mode }. */
+export async function submitReframeJob(file: File, opts: ReframeOptions = {}): Promise<EditJob> {
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("aspect", opts.aspect ?? "portrait");
+  fd.append("mode", opts.mode ?? "blur");
+  const res = await fetch(`${WORKER_URL}/api/reframe`, { method: "POST", body: fd });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error || `reframe failed (${res.status})`);
   }
   return (await res.json()) as EditJob;
 }

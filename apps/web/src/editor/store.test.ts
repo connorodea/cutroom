@@ -74,6 +74,14 @@ describe("editor store", () => {
     expect(useEditorStore.getState().generateOpen).toBe(false);
   });
 
+  it("opens and closes the Reframe modal", () => {
+    expect(useEditorStore.getState().reframeOpen).toBe(false);
+    useEditorStore.getState().openReframe();
+    expect(useEditorStore.getState().reframeOpen).toBe(true);
+    useEditorStore.getState().closeReframe();
+    expect(useEditorStore.getState().reframeOpen).toBe(false);
+  });
+
   it("starts with the Overlay modal closed", () => {
     expect(useEditorStore.getState().overlayOpen).toBe(false);
   });

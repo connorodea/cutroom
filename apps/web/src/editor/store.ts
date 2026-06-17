@@ -16,6 +16,8 @@ export interface EditorState {
   generateOpen: boolean;
   /** Whether the Overlay (graphics compositing) modal is open. */
   overlayOpen: boolean;
+  /** Whether the Reframe (aspect ratio) modal is open. */
+  reframeOpen: boolean;
 
   /** Output ids of AI-created videos this session, newest-first. */
   createdOutputs: string[];
@@ -39,6 +41,8 @@ export interface EditorState {
   closeGenerate: () => void;
   openOverlay: () => void;
   closeOverlay: () => void;
+  openReframe: () => void;
+  closeReframe: () => void;
   /** Record an AI-created output id (newest-first, de-duplicated). */
   addCreatedOutput: (outputId: string) => void;
 
@@ -57,6 +61,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   createOpen: false,
   generateOpen: false,
   overlayOpen: false,
+  reframeOpen: false,
   createdOutputs: [],
   phase: "idle",
   active: -1,
@@ -75,6 +80,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   closeGenerate: () => set({ generateOpen: false }),
   openOverlay: () => set({ overlayOpen: true }),
   closeOverlay: () => set({ overlayOpen: false }),
+  openReframe: () => set({ reframeOpen: true }),
+  closeReframe: () => set({ reframeOpen: false }),
   addCreatedOutput: (outputId) =>
     set((s) => ({ createdOutputs: [outputId, ...s.createdOutputs.filter((id) => id !== outputId)] })),
 

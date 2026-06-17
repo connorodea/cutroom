@@ -6,6 +6,7 @@ import {
   submitEditJob,
   submitOverlayJob,
   submitTranscriptCut,
+  submitReframeJob,
   transcribeVideo,
   getJob,
   pollJob,
@@ -102,6 +103,27 @@ describe("multipart submit endpoints", () => {
     expect(JSON.parse((init?.body as FormData).get("overlays") as string)).toEqual([
       { type: "title", text: "Hi", start: 0, end: 2 },
     ]);
+  });
+
+  it("submitReframeJob POSTs the file with aspect and mode", async () => {
+    await submitReframeJob(sampleFile(), { aspect: "landscape", mode: "crop" });
+    const [url, init] = lastCall();
+    expect(url).toBe(`${BASE}/api/reframe`);
+    const fd = init?.body as FormData;
+    expect(fd.get("aspect")).toBe("landscape");
+    expect(fd.get("mode")).toBe("crop");
+  });
+
+  it("submitReframeJob defaults aspect=portrait mode=blur", async () => {
+    await submitReframeJob(sampleFile());
+    const fd = lastCall()[1]?.body as FormData;
+    expect(fd.get("aspect")).toBe("portrait");
+    expect(fd.get("mode")).toBe("blur");
+  });
+
+  it("submitReframeJob throws the server error on failure", async () => {
+    fetchMock.mockResolvedValueOnce(res({ error: "reframe boom" }, { ok: false, status: 400 }));
+    await expect(submitReframeJob(sampleFile())).rejects.toThrow("reframe boom");
   });
 
   it("submitOverlayJob throws the server error on failure", async () => {
