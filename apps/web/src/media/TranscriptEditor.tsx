@@ -133,7 +133,7 @@ export function TranscriptEditor({ file }: { file: File }) {
             <span
               key={i}
               onClick={() => onWordClick(i)}
-              style={{ cursor: "pointer", padding: "1px 3px", borderRadius: 5, color: cut ? "#636368" : active ? "#0C1012" : "#E7E9ED", background: active ? ACCENT : "transparent", textDecoration: cut ? "line-through" : "none", textDecorationColor: "#E0544E", textDecorationThickness: cut ? 2 : undefined }}
+              style={{ cursor: "pointer", padding: "1px 3px", borderRadius: 5, color: cut ? "#636368" : active ? "#0C1012" : "#E7E9ED", background: active ? ACCENT : "transparent", textDecorationLine: cut ? "line-through" : "none", textDecorationColor: "#E0544E", textDecorationThickness: cut ? 2 : undefined }}
             >
               {w.word}{" "}
             </span>
