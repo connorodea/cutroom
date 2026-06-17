@@ -30,6 +30,9 @@ export function AgentPalette() {
   const openAudio = useEditorStore((s) => s.openAudio);
   const openFade = useEditorStore((s) => s.openFade);
   const openReverse = useEditorStore((s) => s.openReverse);
+  const openCrop = useEditorStore((s) => s.openCrop);
+  const openGif = useEditorStore((s) => s.openGif);
+  const openLoop = useEditorStore((s) => s.openLoop);
   const { run, loading, source } = useAgentRun();
   const [query, setQuery] = useState("");
 
@@ -48,7 +51,7 @@ export function AgentPalette() {
     const tool = routeIntent(q);
     if (tool) {
       closeAgent();
-      ({ create: openCreate, import: openImport, reframe: openReframe, highlights: openHighlights, captions: openCaptions, overlay: openOverlay, generate: openGenerate, speed: openSpeed, trim: openTrim, color: openColor, rotate: openRotate, audio: openAudio, fade: openFade, reverse: openReverse })[tool]();
+      ({ create: openCreate, import: openImport, reframe: openReframe, highlights: openHighlights, captions: openCaptions, overlay: openOverlay, generate: openGenerate, speed: openSpeed, trim: openTrim, color: openColor, rotate: openRotate, audio: openAudio, fade: openFade, reverse: openReverse, crop: openCrop, gif: openGif, loop: openLoop })[tool]();
       return;
     }
     run(q || "Custom workflow");

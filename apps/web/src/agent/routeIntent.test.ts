@@ -79,6 +79,21 @@ describe("routeIntent", () => {
     expect(routeIntent("play it backwards")).toBe("reverse");
   });
 
+  it("routes crop requests to crop", () => {
+    expect(routeIntent("crop this clip")).toBe("crop");
+    expect(routeIntent("zoom in on the center")).toBe("crop");
+  });
+
+  it("routes gif requests to gif", () => {
+    expect(routeIntent("make a gif")).toBe("gif");
+    expect(routeIntent("export this as a gif")).toBe("gif");
+  });
+
+  it("routes loop requests to loop", () => {
+    expect(routeIntent("loop this clip")).toBe("loop");
+    expect(routeIntent("repeat it 3 times")).toBe("loop");
+  });
+
   it("prefers the specific operation over generic create", () => {
     expect(routeIntent("make a vertical video")).toBe("reframe");
   });

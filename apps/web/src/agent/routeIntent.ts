@@ -1,7 +1,7 @@
 /** A tool the ⌘K agent can route a request to, or null when the request isn't a clear single tool. */
 export type IntentTool =
   | "create" | "import" | "reframe" | "highlights" | "captions" | "overlay" | "generate"
-  | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | null;
+  | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | null;
 
 /**
  * Classify a free-text agent request into the editor tool that fulfills it. Heuristic + ordered:
@@ -45,6 +45,15 @@ export function routeIntent(prompt: string): IntentTool {
   }
   if (/\b(mute|louder|quieter|volume|turn\s+(up|down)\s+(the\s+)?(volume|sound|audio)|normalize\s+(the\s+)?(audio|sound|loudness)|audio\s+level)\b/.test(p)) {
     return "audio";
+  }
+  if (/\b(gif|gifs)\b/.test(p)) {
+    return "gif";
+  }
+  if (/\b(crop|punch\s?in|zoom\s+in)\b/.test(p)) {
+    return "crop";
+  }
+  if (/\b(loop|repeat)\b/.test(p)) {
+    return "loop";
   }
   if (/\b(clean\s?up|remove\s+(the\s+)?(silence|filler)|filler\s+words?|dead\s+air|cut\s+(the\s+)?(silence|dead))\b/.test(p)) {
     return "import";

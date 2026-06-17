@@ -73,6 +73,9 @@ describe("AgentPalette", () => {
     ["mute the audio", "audioOpen"],
     ["fade in from black", "fadeOpen"],
     ["make a boomerang", "reverseOpen"],
+    ["crop this clip", "cropOpen"],
+    ["make a gif", "gifOpen"],
+    ["loop this clip", "loopOpen"],
   ] as const)("routes '%s' to the matching tool and closes the palette", (prompt, flag) => {
     open();
     render(<AgentPalette />);
