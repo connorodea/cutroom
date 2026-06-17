@@ -106,6 +106,24 @@ describe("CaptionsModal", () => {
     expect(await screen.findByText(/Captions failed/)).toBeInTheDocument();
   });
 
+  it("defaults to bottom and sends the chosen position when set to top", async () => {
+    open();
+    render(<CaptionsModal />);
+    uploadVideo();
+    // Default selection is bottom.
+    expect(screen.getByRole("button", { name: "bottom" })).toHaveAttribute("aria-pressed", "true");
+    fireEvent.click(screen.getByRole("button", { name: "top" }));
+    expect(screen.getByRole("button", { name: "top" })).toHaveAttribute("aria-pressed", "true");
+    fetchMock
+      .mockResolvedValueOnce(res({ id: "c1", status: "queued" }))
+      .mockResolvedValueOnce(res({ id: "c1", status: "done", result: { outputId: "c1", totalWords: 4, captionsApplied: true } }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /Add captions/ }));
+    });
+    const fd = fetchMock.mock.calls[0][1].body as FormData;
+    expect(fd.get("position")).toBe("top");
+  });
+
   it("changes the file via Change and closes via ✕", () => {
     open();
     render(<CaptionsModal />);

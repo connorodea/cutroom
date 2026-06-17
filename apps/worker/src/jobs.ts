@@ -253,7 +253,7 @@ export function createTranscriptCutJob(
 }
 
 /** Burn word-aligned captions onto an uploaded video (no cutting). Output `${jobId}.mp4`. Async. */
-export function createCaptionsJob(inputPath: string, workDir: string): Job {
+export function createCaptionsJob(inputPath: string, workDir: string, opts: { position?: "bottom" | "top" } = {}): Job {
   const id = randomUUID();
   const job: Job = { id, type: "captions", status: "queued", createdAt: Date.now() };
   jobs.set(id, job);
@@ -261,7 +261,7 @@ export function createCaptionsJob(inputPath: string, workDir: string): Job {
     try {
       job.status = "running";
       job.step = "transcribe + burn captions";
-      const r = await runCaptionsPipeline(inputPath, workDir, id);
+      const r = await runCaptionsPipeline(inputPath, workDir, id, opts);
       job.status = "done";
       job.result = { outputId: id, totalWords: r.totalWords, captionsApplied: r.captionsApplied };
     } catch (err) {

@@ -148,9 +148,10 @@ const assTime = (t: number) => {
 };
 
 /** Build a burned-in caption (.ass) from remapped words, grouped into short cues. */
-export function buildAss(words: Word[], width: number, height: number, wordsPerCue = 4): string {
+export function buildAss(words: Word[], width: number, height: number, wordsPerCue = 4, position: "bottom" | "top" = "bottom"): string {
   const fontSize = Math.max(18, Math.round(height * 0.06));
   const marginV = Math.round(height * 0.08);
+  const alignment = position === "top" ? 8 : 2; // ASS \an: 2 = bottom-center, 8 = top-center
   const header = `[Script Info]
 ScriptType: v4.00+
 PlayResX: ${width}
@@ -159,7 +160,7 @@ WrapStyle: 2
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, OutlineColour, BackColour, Bold, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Cap,DejaVu Sans,${fontSize},&H00FFFFFF,&H00000000,&H64000000,1,3,1,2,60,60,${marginV},1
+Style: Cap,DejaVu Sans,${fontSize},&H00FFFFFF,&H00000000,&H64000000,1,3,1,${alignment},60,60,${marginV},1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text

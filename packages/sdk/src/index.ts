@@ -151,9 +151,9 @@ export class CutroomClient {
     return this.json(await fetch(`${this.baseUrl}/api/jobs`, { method: "POST", headers: this.authHeaders(), body: fd }));
   }
 
-  /** Burn word-aligned captions onto a video (no cutting) → job. */
-  async captions(filePath: string): Promise<Job> {
-    const fd = await this.fileForm(filePath);
+  /** Burn word-aligned captions onto a video (no cutting), at the bottom (default) or top → job. */
+  async captions(filePath: string, opts: { position?: "bottom" | "top" } = {}): Promise<Job> {
+    const fd = await this.fileForm(filePath, { position: opts.position ?? "bottom" });
     return this.json(await fetch(`${this.baseUrl}/api/captions`, { method: "POST", headers: this.authHeaders(), body: fd }));
   }
 

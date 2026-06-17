@@ -85,7 +85,8 @@ app.post("/api/captions", async (c) => {
   const ext = extname(file.name || "") || ".mp4";
   const inputPath = `${MEDIA_DIR}/cap-${Date.now()}${ext}`;
   await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
-  const job = createCaptionsJob(inputPath, MEDIA_DIR);
+  const position = body["position"] === "top" ? "top" : "bottom";
+  const job = createCaptionsJob(inputPath, MEDIA_DIR, { position });
   return c.json(job, 202);
 });
 

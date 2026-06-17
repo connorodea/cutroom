@@ -89,4 +89,12 @@ describe("buildAss", () => {
     const ass = buildAss([w("Hello", 0, 0.5), w("world", 0.5, 1)], 1280, 720, 4);
     expect(ass).toContain(",Hello world");
   });
+
+  it("defaults captions to the bottom (alignment 2)", () => {
+    expect(buildAss([w("hi", 0, 1)], 1280, 720)).toContain(",1,3,1,2,60,60,");
+  });
+
+  it("places captions at the top when position is 'top' (alignment 8)", () => {
+    expect(buildAss([w("hi", 0, 1)], 1280, 720, 4, "top")).toContain(",1,3,1,8,60,60,");
+  });
 });

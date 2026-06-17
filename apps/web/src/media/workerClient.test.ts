@@ -111,11 +111,18 @@ describe("multipart submit endpoints", () => {
     await expect(submitEditJob(sampleFile())).rejects.toThrow(/upload failed \(413\)/);
   });
 
-  it("submitCaptionsJob POSTs the file to /api/captions", async () => {
-    await submitCaptionsJob(sampleFile());
+  it("submitCaptionsJob POSTs the file with the caption position", async () => {
+    await submitCaptionsJob(sampleFile(), { position: "top" });
     const [url, init] = lastCall();
     expect(url).toBe(`${BASE}/api/captions`);
-    expect((init?.body as FormData).get("file")).toBeInstanceOf(File);
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("position")).toBe("top");
+  });
+
+  it("submitCaptionsJob defaults the position to bottom", async () => {
+    await submitCaptionsJob(sampleFile());
+    expect((lastCall()[1]?.body as FormData).get("position")).toBe("bottom");
   });
 
   it("submitCaptionsJob throws the server error on failure", async () => {

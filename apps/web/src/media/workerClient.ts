@@ -114,10 +114,11 @@ export async function submitEditJob(file: File, opts: { captions?: boolean } = {
   return (await res.json()) as EditJob;
 }
 
-/** Burn word-aligned captions onto a video (no cutting): multipart { file }. */
-export async function submitCaptionsJob(file: File): Promise<EditJob> {
+/** Burn word-aligned captions onto a video (no cutting): multipart { file, position }. */
+export async function submitCaptionsJob(file: File, opts: { position?: "bottom" | "top" } = {}): Promise<EditJob> {
   const fd = new FormData();
   fd.append("file", file);
+  fd.append("position", opts.position ?? "bottom");
   const res = await fetch(`${WORKER_URL}/api/captions`, { method: "POST", body: fd });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));

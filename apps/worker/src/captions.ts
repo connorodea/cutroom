@@ -14,7 +14,12 @@ export interface CaptionsResult {
  * Burn word-aligned captions onto a video without cutting anything: extract audio → Whisper →
  * buildAss → ffmpeg subtitles burn-in (best-effort; needs libass, falls back to uncaptioned).
  */
-export async function runCaptionsPipeline(inputPath: string, workDir: string, jobId: string): Promise<CaptionsResult> {
+export async function runCaptionsPipeline(
+  inputPath: string,
+  workDir: string,
+  jobId: string,
+  opts: { position?: "bottom" | "top" } = {},
+): Promise<CaptionsResult> {
   const audioPath = `${workDir}/${jobId}.wav`;
   const dims = await ffprobeDimensions(inputPath);
   await extractAudio(inputPath, audioPath);
@@ -25,7 +30,7 @@ export async function runCaptionsPipeline(inputPath: string, workDir: string, jo
   let captionsApplied = false;
   if (words.length > 0) {
     const assPath = `${workDir}/${jobId}.ass`;
-    await writeFile(assPath, buildAss(words, dims.width, dims.height));
+    await writeFile(assPath, buildAss(words, dims.width, dims.height, 4, opts.position));
     const esc = assPath.replace(/\\/g, "\\\\").replace(/:/g, "\\:").replace(/'/g, "\\'");
     try {
       await run("ffmpeg", [

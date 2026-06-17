@@ -14,6 +14,7 @@ export function CaptionsModal() {
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [position, setPosition] = useState<"bottom" | "top">("bottom");
   const [phase, setPhase] = useState<Phase>("idle");
   const [job, setJob] = useState<EditJob | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -59,7 +60,7 @@ export function CaptionsModal() {
     setPhase("submitting");
     setError(null);
     try {
-      const submitted = await submitCaptionsJob(file);
+      const submitted = await submitCaptionsJob(file, { position });
       setJob(submitted);
       setPhase("running");
       const final = await pollJob(submitted.id, 2500);
@@ -118,6 +119,22 @@ export function CaptionsModal() {
           {file && phase !== "done" && (
             <>
               <video src={previewUrl ?? undefined} controls style={{ width: "100%", borderRadius: 12, background: "#000", maxHeight: 300 }} />
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 12 }}>
+                <span style={{ fontSize: 12, color: "#79797F" }}>Caption position</span>
+                <div style={{ display: "flex", gap: 4, padding: 3, background: "#161618", borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)" }}>
+                  {(["bottom", "top"] as const).map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => setPosition(p)}
+                      aria-pressed={position === p}
+                      disabled={busy}
+                      style={{ textTransform: "capitalize", background: position === p ? ACCENT : "transparent", color: position === p ? "#0C1012" : "#C7C7CC", border: "none", borderRadius: 8, padding: "5px 14px", fontSize: 12, fontWeight: 600, cursor: busy ? "default" : "pointer" }}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 12, flexWrap: "wrap" }}>
                 <span style={{ fontSize: 12, color: "#9A9AA0", flex: 1, minWidth: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{file.name}</span>
                 {busy ? (

@@ -146,12 +146,14 @@ describe("multipart endpoints", () => {
     expect(fd.get("captions")).toBe("false");
   });
 
-  it("captions POSTs the file to /api/captions", async () => {
-    await client().captions(tmpFile);
+  it("captions POSTs the file with the caption position", async () => {
+    await client().captions(tmpFile, { position: "top" });
     const [url, init] = lastCall();
     expect(url).toBe("http://x/api/captions");
     expect(init?.method).toBe("POST");
-    expect((init?.body as FormData).get("file")).toBeInstanceOf(File);
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("position")).toBe("top");
   });
 
   it("transcribe POSTs the file to /api/transcribe", async () => {
