@@ -32,4 +32,17 @@ describe("EditorShell", () => {
     fireEvent.keyDown(window, { key: "k", metaKey: true });
     expect(useEditorStore.getState().agentOpen).toBe(true);
   });
+
+  it("closes the agent palette on Escape", () => {
+    render(<EditorShell />);
+    act(() => useEditorStore.setState({ agentOpen: true }));
+    fireEvent.keyDown(window, { key: "Escape" });
+    expect(useEditorStore.getState().agentOpen).toBe(false);
+  });
+
+  it.each(["media", "cut", "edit", "deliver"] as const)("renders the %s page body", (page) => {
+    act(() => useEditorStore.setState({ page }));
+    render(<EditorShell />);
+    expect(useEditorStore.getState().page).toBe(page);
+  });
 });

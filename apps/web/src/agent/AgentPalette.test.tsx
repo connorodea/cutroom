@@ -44,4 +44,31 @@ describe("AgentPalette", () => {
     expect(useEditorStore.getState().phase).toBe("running");
     expect(useEditorStore.getState().title).toBe("Reel");
   });
+
+  it("renders the run view with the plan's steps", async () => {
+    open();
+    fetchMock.mockResolvedValueOnce(res({ plan: { title: "Reel", steps: baseEditSteps }, source: "agent" }));
+    render(<AgentPalette />);
+    fireEvent.change(screen.getByPlaceholderText(/Tell the agent what to make/), { target: { value: "go" } });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /Run/ }));
+    });
+    expect(screen.getByText(baseEditSteps[0].label)).toBeInTheDocument();
+  });
+
+  it("advances through all steps to Done", async () => {
+    vi.useFakeTimers();
+    open();
+    fetchMock.mockResolvedValueOnce(res({ plan: { title: "P", steps: baseEditSteps }, source: "agent" }));
+    render(<AgentPalette />);
+    fireEvent.change(screen.getByPlaceholderText(/Tell the agent what to make/), { target: { value: "go" } });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /Run/ }));
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(760 * (baseEditSteps.length + 1));
+    });
+    expect(screen.getByText("Done")).toBeInTheDocument();
+    vi.useRealTimers();
+  });
 });

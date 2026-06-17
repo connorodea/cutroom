@@ -37,6 +37,14 @@ describe("GenerateModal", () => {
     expect(screen.getByRole("button", { name: /Generate/ })).toBeEnabled();
   });
 
+  it("switches to video mode and shows the video model options", () => {
+    open();
+    render(<GenerateModal />);
+    fireEvent.click(screen.getByText("Video"));
+    expect(screen.getByText("DoP")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText(/Describe the clip/)).toBeInTheDocument();
+  });
+
   it("submits and shows the result on success", async () => {
     open();
     fetchMock
