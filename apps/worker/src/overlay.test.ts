@@ -81,4 +81,19 @@ describe("magickArgs", () => {
     expect(args.join(" ")).toContain("Connor");
     expect(args.join(" ")).toContain("Founder");
   });
+
+  it("renders a callout bubble at the given position", () => {
+    const args = magickArgs({ type: "callout", text: "look here", x: 0.5, y: 0.3, start: 0, end: 2 }, DIMS, "/tmp/c.png");
+    expect(args).toContain("xc:none");
+    expect(args.join(" ")).toContain("look here");
+    expect(args.join(" ")).toContain("roundrectangle");
+    expect(args[args.length - 1]).toBe("/tmp/c.png");
+  });
+
+  it("renders a corner badge", () => {
+    const args = magickArgs({ type: "badge", text: "NEW", corner: "tr", start: 0, end: 2 }, DIMS, "/tmp/b.png");
+    expect(args.join(" ")).toContain("NEW");
+    expect(args.join(" ")).toContain("roundrectangle");
+    expect(args[args.length - 1]).toBe("/tmp/b.png");
+  });
 });

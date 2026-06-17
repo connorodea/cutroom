@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildReframeFilter, REFRAME_TARGETS } from "./reframe";
+import { buildReframeFilter, REFRAME_TARGETS, normalizeAspect, normalizeMode } from "./reframe";
 
 describe("REFRAME_TARGETS", () => {
   it("maps portrait to 720x1280 (default 9:16)", () => {
@@ -62,5 +62,21 @@ describe("buildReframeFilter — blur mode", () => {
   it("substitutes dimensions for a landscape target (1280x720)", () => {
     const { args } = buildReframeFilter(1280, 720, "blur");
     expect(args[1]).toContain("crop=1280:720");
+  });
+});
+
+describe("normalizeAspect / normalizeMode", () => {
+  it("keeps known aspects and defaults the rest to portrait", () => {
+    expect(normalizeAspect("square")).toBe("square");
+    expect(normalizeAspect("landscape")).toBe("landscape");
+    expect(normalizeAspect("portrait")).toBe("portrait");
+    expect(normalizeAspect("nonsense")).toBe("portrait");
+    expect(normalizeAspect(undefined)).toBe("portrait");
+  });
+
+  it("keeps crop and defaults everything else to blur", () => {
+    expect(normalizeMode("crop")).toBe("crop");
+    expect(normalizeMode("blur")).toBe("blur");
+    expect(normalizeMode("weird")).toBe("blur");
   });
 });

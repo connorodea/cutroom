@@ -182,6 +182,7 @@ export interface OverlayResult {
   applied: number;
 }
 
+/* v8 ignore start -- ImageMagick + ffmpeg subprocess composite; verified by live integration tests on each deploy */
 /**
  * Render each element to a PNG via ImageMagick, then composite them all onto the input
  * video with a single ffmpeg pass. Returns the input untouched (copied) if no elements.
@@ -222,3 +223,4 @@ export async function applyOverlays(
   ]);
   return { outputPath, applied: elements.length };
 }
+/* v8 ignore stop */

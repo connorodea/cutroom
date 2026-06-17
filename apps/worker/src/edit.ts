@@ -176,6 +176,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
   return header + cues.join("\n") + "\n";
 }
 
+/* v8 ignore start -- ffmpeg subprocess render pipelines below; verified by live integration tests on each deploy */
 export interface EditResult {
   outputPath: string;
   totalWords: number;
@@ -284,3 +285,4 @@ export async function runTranscriptCutPipeline(
     removedSec: Math.round(plan.removedDur * 10) / 10,
   };
 }
+/* v8 ignore stop */

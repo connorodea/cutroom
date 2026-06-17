@@ -74,6 +74,7 @@ export interface ReframeResult {
   mode: ReframeMode;
 }
 
+/* v8 ignore start -- ffmpeg subprocess pipeline; verified by live integration tests on each deploy */
 /**
  * Reframe `inputPath` to the requested aspect/mode and encode to `${workDir}/${jobId}.mp4`
  * (libx264 veryfast, yuv420p, +faststart). Audio is preserved (re-encoded to AAC) when present.
@@ -108,3 +109,4 @@ export async function runReframePipeline(
 
   return { outputPath, width, height, mode };
 }
+/* v8 ignore stop */
