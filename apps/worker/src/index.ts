@@ -19,6 +19,7 @@ import {
   createCropJob,
   createFadeJob,
   createGifJob,
+  createLoopJob,
   createReframeJob,
   createReverseJob,
   createRotateJob,
@@ -336,6 +337,18 @@ app.post("/api/crop", async (c) => {
     { preset: body["preset"], x: body["x"], y: body["y"], w: body["w"], h: body["h"] },
     MEDIA_DIR,
   );
+  return c.json(job, 202);
+});
+
+/** Loop — repeat an upload end-to-end N times: multipart { file, count }. */
+app.post("/api/loop", async (c) => {
+  const body = await c.req.parseBody();
+  const file = body["file"];
+  if (!(file instanceof File)) return c.json({ error: "missing 'file' (multipart)" }, 400);
+  const ext = extname(file.name || "") || ".mp4";
+  const inputPath = `${MEDIA_DIR}/loop-${Date.now()}${ext}`;
+  await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
+  const job = createLoopJob(inputPath, body["count"], MEDIA_DIR);
   return c.json(job, 202);
 });
 

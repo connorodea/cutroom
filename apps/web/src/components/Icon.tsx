@@ -1,7 +1,7 @@
 import {
   Activity, ArrowLeft, ArrowUpRight, AudioLines, Captions, Check, ChevronDown,
   CircleCheckBig, Clapperboard, Contrast, CornerDownLeft, Crop, Dot, Film, Folder, Gauge, Layers, Magnet,
-  Maximize2, Monitor, MousePointer2, Palette, Play, Plus, Quote, Redo2, Rewind, RotateCw, Scissors,
+  Maximize2, Monitor, MousePointer2, Palette, Play, Plus, Quote, Redo2, Repeat, Rewind, RotateCw, Scissors,
   Search, SkipBack, SkipForward, SlidersHorizontal, Smartphone, Sparkles, Type,
   Undo2, Upload, Volume2, Wand2, ZoomIn, ZoomOut,
   type LucideIcon,
@@ -14,7 +14,7 @@ const ICONS: Record<string, LucideIcon> = {
   "circle-check-big": CircleCheckBig, clapperboard: Clapperboard, contrast: Contrast, "corner-down-left": CornerDownLeft,
   crop: Crop, dot: Dot, film: Film, folder: Folder, gauge: Gauge, layers: Layers, magnet: Magnet, "maximize-2": Maximize2,
   monitor: Monitor, "mouse-pointer-2": MousePointer2, palette: Palette, play: Play, plus: Plus,
-  quote: Quote, "redo-2": Redo2, rewind: Rewind, "rotate-cw": RotateCw, scissors: Scissors, search: Search, "skip-back": SkipBack,
+  quote: Quote, "redo-2": Redo2, repeat: Repeat, rewind: Rewind, "rotate-cw": RotateCw, scissors: Scissors, search: Search, "skip-back": SkipBack,
   "skip-forward": SkipForward, "sliders-horizontal": SlidersHorizontal, smartphone: Smartphone,
   sparkles: Sparkles, type: Type, "undo-2": Undo2, upload: Upload, "volume-2": Volume2,
   "wand-2": Wand2, "zoom-in": ZoomIn, "zoom-out": ZoomOut,

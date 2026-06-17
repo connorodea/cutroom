@@ -8,7 +8,7 @@ const WORKER_URL =
 
 export interface EditJob {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: {
@@ -53,6 +53,8 @@ export interface EditJob {
     cropH?: number;
     /** For gif jobs: the output extension ("gif") so the UI can render it as an image. */
     ext?: string;
+    /** For loop jobs: how many times the clip was repeated. */
+    count?: number;
   };
   error?: string;
 }
@@ -145,6 +147,19 @@ export async function submitCaptionsJob(file: File, opts: { position?: "bottom" 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error((body as { error?: string }).error || `captions failed (${res.status})`);
+  }
+  return (await res.json()) as EditJob;
+}
+
+/** Repeat a video end-to-end N times: multipart { file, count }. */
+export async function submitLoopJob(file: File, opts: { count?: number } = {}): Promise<EditJob> {
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("count", String(opts.count ?? 2));
+  const res = await fetch(`${WORKER_URL}/api/loop`, { method: "POST", body: fd });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error || `loop failed (${res.status})`);
   }
   return (await res.json()) as EditJob;
 }

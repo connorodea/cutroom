@@ -244,6 +244,21 @@ describe("multipart endpoints", () => {
     expect(fd.get("level")).toBe("1");
   });
 
+  it("loop POSTs the file with the count", async () => {
+    await client().loop(tmpFile, { count: 3 });
+    const [url, init] = lastCall();
+    expect(url).toBe("http://x/api/loop");
+    expect(init?.method).toBe("POST");
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("count")).toBe("3");
+  });
+
+  it("loop defaults the count to 2", async () => {
+    await client().loop(tmpFile);
+    expect((lastCall()[1]?.body as FormData).get("count")).toBe("2");
+  });
+
   it("gif POSTs the file with only the provided options", async () => {
     await client().gif(tmpFile, { width: 320 });
     const [url, init] = lastCall();

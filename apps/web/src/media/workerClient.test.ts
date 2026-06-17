@@ -15,6 +15,7 @@ import {
   submitReverseJob,
   submitCropJob,
   submitGifJob,
+  submitLoopJob,
   submitChainJob,
   submitTranscriptCut,
   submitHighlightsJob,
@@ -303,6 +304,25 @@ describe("multipart submit endpoints", () => {
   it("submitCropJob throws the server error on failure", async () => {
     fetchMock.mockResolvedValueOnce(res({ error: "crop boom" }, { ok: false, status: 400 }));
     await expect(submitCropJob(sampleFile())).rejects.toThrow("crop boom");
+  });
+
+  it("submitLoopJob POSTs the file with the count", async () => {
+    await submitLoopJob(sampleFile(), { count: 3 });
+    const [url, init] = lastCall();
+    expect(url).toBe(`${BASE}/api/loop`);
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("count")).toBe("3");
+  });
+
+  it("submitLoopJob defaults the count to 2", async () => {
+    await submitLoopJob(sampleFile());
+    expect((lastCall()[1]?.body as FormData).get("count")).toBe("2");
+  });
+
+  it("submitLoopJob throws the server error on failure", async () => {
+    fetchMock.mockResolvedValueOnce(res({ error: "loop boom" }, { ok: false, status: 400 }));
+    await expect(submitLoopJob(sampleFile())).rejects.toThrow("loop boom");
   });
 
   it("submitGifJob POSTs the file with the width", async () => {

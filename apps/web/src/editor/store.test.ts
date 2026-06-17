@@ -170,6 +170,14 @@ describe("editor store", () => {
     expect(useEditorStore.getState().gifOpen).toBe(false);
   });
 
+  it("opens and closes the Loop modal", () => {
+    expect(useEditorStore.getState().loopOpen).toBe(false);
+    useEditorStore.getState().openLoop();
+    expect(useEditorStore.getState().loopOpen).toBe(true);
+    useEditorStore.getState().closeLoop();
+    expect(useEditorStore.getState().loopOpen).toBe(false);
+  });
+
   it("starts with the Overlay modal closed", () => {
     expect(useEditorStore.getState().overlayOpen).toBe(false);
   });

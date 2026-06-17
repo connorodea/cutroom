@@ -20,7 +20,7 @@ export interface TranscriptWord {
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -161,6 +161,12 @@ export class CutroomClient {
   async speed(filePath: string, opts: { factor?: number } = {}): Promise<Job> {
     const fd = await this.fileForm(filePath, { factor: String(opts.factor ?? 2) });
     return this.json(await fetch(`${this.baseUrl}/api/speed`, { method: "POST", headers: this.authHeaders(), body: fd }));
+  }
+
+  /** Repeat a video end-to-end `count` times (2–10, default 2) → job. */
+  async loop(filePath: string, opts: { count?: number } = {}): Promise<Job> {
+    const fd = await this.fileForm(filePath, { count: String(opts.count ?? 2) });
+    return this.json(await fetch(`${this.baseUrl}/api/loop`, { method: "POST", headers: this.authHeaders(), body: fd }));
   }
 
   /** Render a video to a looping GIF (fps default 12, width default 480px) → job; output served as a .gif. */

@@ -14,6 +14,7 @@ import { runFadePipeline } from "./fade";
 import { runReversePipeline } from "./reverse";
 import { runCropPipeline, type CropInput } from "./crop";
 import { runGifPipeline, type GifInput } from "./gif";
+import { runLoopPipeline } from "./loop";
 import { generateImage, imageToVideo, downloadTo, type ImageModel, type VideoModel } from "./higgsfield";
 import { extractAudio, ffprobeDimensions, ffprobeDuration } from "./ffmpeg";
 import { transcribe, type Word } from "./transcribe";
@@ -22,7 +23,7 @@ export type JobStatus = "queued" | "running" | "done" | "error";
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "image" | "video";
   status: JobStatus;
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -476,6 +477,31 @@ export function createGifJob(inputPath: string, input: GifInput, workDir: string
       const r = await runGifPipeline(inputPath, input, workDir, id);
       job.status = "done";
       job.result = { outputId: id, fps: r.fps, width: r.width, ext: "gif" };
+    } catch (err) {
+      job.status = "error";
+      job.error = (err as Error).message;
+      // eslint-disable-next-line no-console
+      console.error("[job]", id, "failed:", err);
+    }
+  })();
+  return job;
+}
+
+/**
+ * Create + run a Loop job: repeat the upload end-to-end `count` times. The output is `${jobId}.mp4`.
+ * Runs async; poll the job for status.
+ */
+export function createLoopJob(inputPath: string, count: unknown, workDir: string): Job {
+  const id = randomUUID();
+  const job: Job = { id, type: "loop", status: "queued", createdAt: Date.now() };
+  jobs.set(id, job);
+  void (async () => {
+    try {
+      job.status = "running";
+      job.step = "loop (split + concat)";
+      const r = await runLoopPipeline(inputPath, count, workDir, id);
+      job.status = "done";
+      job.result = { outputId: id, count: r.count, hadAudio: r.hadAudio };
     } catch (err) {
       job.status = "error";
       job.error = (err as Error).message;
