@@ -10,6 +10,8 @@ export interface EditorState {
   agentOpen: boolean;
   /** Whether the real Import & Clean-up modal is open. */
   importOpen: boolean;
+  /** Whether the AI Create modal is open. */
+  createOpen: boolean;
 
   // --- agent run state machine ---
   phase: AgentPhase;
@@ -24,6 +26,8 @@ export interface EditorState {
   toggleAgent: () => void;
   openImport: () => void;
   closeImport: () => void;
+  openCreate: () => void;
+  closeCreate: () => void;
 
   /** Begin a run: enters `running` at step 0 and opens the palette. */
   startRun: (title: string, steps: AgentStep[]) => void;
@@ -37,6 +41,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   page: "color",
   agentOpen: false,
   importOpen: false,
+  createOpen: false,
   phase: "idle",
   active: -1,
   title: "",
@@ -48,6 +53,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   toggleAgent: () => set((s) => ({ agentOpen: !s.agentOpen })),
   openImport: () => set({ importOpen: true }),
   closeImport: () => set({ importOpen: false }),
+  openCreate: () => set({ createOpen: true }),
+  closeCreate: () => set({ createOpen: false }),
 
   startRun: (title, steps) => set({ phase: "running", active: 0, title, steps, agentOpen: true }),
   advance: () =>

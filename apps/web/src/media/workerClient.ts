@@ -6,17 +6,43 @@ const WORKER_URL =
 
 export interface EditJob {
   id: string;
-  type: "edit" | "create";
+  type: "edit" | "create" | "overlay" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: {
     outputId: string;
-    totalWords: number;
-    segments: number;
-    removedSec: number;
+    totalWords?: number;
+    segments?: number;
+    removedSec?: number;
     captionsApplied?: boolean;
+    durationSec?: number;
+    usedStock?: number;
+    usedGenerative?: number;
+    overlaysApplied?: number;
   };
   error?: string;
+}
+
+export interface CreateOptions {
+  prompt: string;
+  aspect?: "landscape" | "portrait";
+  captions?: boolean;
+  autoGraphics?: boolean;
+  source?: "stock" | "generative";
+}
+
+/** Submit an AI Create job: prompt → script → footage → voiceover → captions → graphics. */
+export async function submitCreateJob(opts: CreateOptions): Promise<EditJob> {
+  const res = await fetch(`${WORKER_URL}/api/create`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(opts),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error || `create failed (${res.status})`);
+  }
+  return (await res.json()) as EditJob;
 }
 
 /** Submit a video for the Edit pipeline (cut silences/filler + burn captions). */
