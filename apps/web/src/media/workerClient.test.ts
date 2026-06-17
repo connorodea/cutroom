@@ -245,6 +245,13 @@ describe("getJob + pollJob", () => {
     expect(JSON.parse(init?.body as string)).toEqual({ outputId: "out-1", op: "reframe", aspect: "portrait", mode: "blur" });
   });
 
+  it("submitChainJob chains speed and color ops with their params", async () => {
+    await submitChainJob("out-1", "speed", { factor: 2 });
+    expect(JSON.parse(lastCall()[1]?.body as string)).toEqual({ outputId: "out-1", op: "speed", factor: 2 });
+    await submitChainJob("out-2", "color", { preset: "vivid" });
+    expect(JSON.parse(lastCall()[1]?.body as string)).toEqual({ outputId: "out-2", op: "color", preset: "vivid" });
+  });
+
   it("submitChainJob throws the server error on failure", async () => {
     fetchMock.mockResolvedValueOnce(res({ error: "chain boom" }, { ok: false, status: 404 }));
     await expect(submitChainJob("x", "captions")).rejects.toThrow("chain boom");

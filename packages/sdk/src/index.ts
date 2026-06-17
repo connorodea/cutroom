@@ -256,8 +256,8 @@ export class CutroomClient {
     );
   }
 
-  /** Chain an op onto an existing rendered output by id (no re-upload): "reframe" or "captions". */
-  async chain(outputId: string, op: "reframe" | "captions", opts: { aspect?: ReframeAspect; mode?: ReframeMode } = {}): Promise<Job> {
+  /** Chain an op onto an existing rendered output by id (no re-upload): reframe / captions / speed / color. */
+  async chain(outputId: string, op: "reframe" | "captions" | "speed" | "color", opts: { aspect?: ReframeAspect; mode?: ReframeMode; factor?: number; preset?: string } = {}): Promise<Job> {
     return this.json(
       await fetch(`${this.baseUrl}/api/chain`, {
         method: "POST",

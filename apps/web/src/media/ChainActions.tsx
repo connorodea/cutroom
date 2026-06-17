@@ -14,11 +14,18 @@ export function ChainActions({ outputId }: { outputId: string }) {
   const [chained, setChained] = useState<EditJob | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const runChain = async (op: "reframe" | "captions") => {
+  const optsFor = (op: "reframe" | "captions" | "speed" | "color") => {
+    if (op === "reframe") return { aspect: "portrait", mode: "blur" } as const;
+    if (op === "speed") return { factor: 2 };
+    if (op === "color") return { preset: "vivid" };
+    return {};
+  };
+
+  const runChain = async (op: "reframe" | "captions" | "speed" | "color") => {
     setPhase("running");
     setError(null);
     try {
-      const submitted = await submitChainJob(outputId, op, op === "reframe" ? { aspect: "portrait", mode: "blur" } : {});
+      const submitted = await submitChainJob(outputId, op, optsFor(op));
       const final = await pollJob(submitted.id, 2500);
       if (final.status === "done") {
         setChained(final);
@@ -64,6 +71,12 @@ export function ChainActions({ outputId }: { outputId: string }) {
           </button>
           <button onClick={() => runChain("captions")} style={btn}>
             <Icon name="captions" size={13} color={ACCENT} />Add captions
+          </button>
+          <button onClick={() => runChain("speed")} style={btn}>
+            <Icon name="gauge" size={13} color={ACCENT} />2× speed
+          </button>
+          <button onClick={() => runChain("color")} style={btn}>
+            <Icon name="palette" size={13} color={ACCENT} />Grade
           </button>
         </>
       )}

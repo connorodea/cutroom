@@ -45,6 +45,30 @@ describe("ChainActions", () => {
     expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ outputId: "o1", op: "captions" });
   });
 
+  it("chains a 2× speed-up with a default factor", async () => {
+    fetchMock
+      .mockResolvedValueOnce(res({ id: "s1", type: "speed", status: "queued" }))
+      .mockResolvedValueOnce(res({ id: "s1", type: "speed", status: "done", result: { outputId: "s1" } }));
+    render(<ChainActions outputId="o1" />);
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /2× speed/ }));
+    });
+    expect(screen.getByText("Chained")).toBeInTheDocument();
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ outputId: "o1", op: "speed", factor: 2 });
+  });
+
+  it("chains a Vivid color grade", async () => {
+    fetchMock
+      .mockResolvedValueOnce(res({ id: "g1", type: "color", status: "queued" }))
+      .mockResolvedValueOnce(res({ id: "g1", type: "color", status: "done", result: { outputId: "g1" } }));
+    render(<ChainActions outputId="o1" />);
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /Grade/ }));
+    });
+    expect(screen.getByText("Chained")).toBeInTheDocument();
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ outputId: "o1", op: "color", preset: "vivid" });
+  });
+
   it("shows a working state while the chain is in flight", async () => {
     let resolveSubmit: (v: Response) => void = () => {};
     fetchMock.mockReturnValueOnce(new Promise<Response>((r) => { resolveSubmit = r; }));

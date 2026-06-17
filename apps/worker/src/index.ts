@@ -99,10 +99,13 @@ app.post("/api/captions", async (c) => {
  * op = "reframe" | "captions". Returns a new job to poll.
  */
 app.post("/api/chain", async (c) => {
-  const body = (await c.req.json().catch(() => ({}))) as { outputId?: unknown; op?: unknown; aspect?: unknown; mode?: unknown };
+  const body = (await c.req.json().catch(() => ({}))) as {
+    outputId?: unknown; op?: unknown; aspect?: unknown; mode?: unknown; factor?: unknown;
+    preset?: unknown; brightness?: unknown; contrast?: unknown; saturation?: unknown; gamma?: unknown;
+  };
   const id = typeof body.outputId === "string" ? safeOutputId(body.outputId) : null;
   const op = parseChainOp(body.op);
-  if (!id || !op) return c.json({ error: "provide 'outputId' (string) and 'op' (reframe|captions)" }, 400);
+  if (!id || !op) return c.json({ error: "provide 'outputId' (string) and 'op' (reframe|captions|speed|color)" }, 400);
   const inputPath = `${MEDIA_DIR}/${id}.mp4`;
   try {
     await stat(inputPath);
@@ -113,6 +116,13 @@ app.post("/api/chain", async (c) => {
     const aspect = body.aspect === "square" || body.aspect === "landscape" ? body.aspect : "portrait";
     const mode = body.mode === "crop" ? "crop" : "blur";
     return c.json(createReframeJob(inputPath, { aspect, mode }, MEDIA_DIR), 202);
+  }
+  if (op === "speed") {
+    return c.json(createSpeedJob(inputPath, normalizeSpeed(body.factor), MEDIA_DIR), 202);
+  }
+  if (op === "color") {
+    const { preset, brightness, contrast, saturation, gamma } = body;
+    return c.json(createColorJob(inputPath, { preset, brightness, contrast, saturation, gamma }, MEDIA_DIR), 202);
   }
   return c.json(createCaptionsJob(inputPath, MEDIA_DIR), 202);
 });

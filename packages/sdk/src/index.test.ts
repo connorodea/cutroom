@@ -123,6 +123,13 @@ describe("JSON endpoints", () => {
     expect(JSON.parse(init?.body as string)).toEqual({ outputId: "out-1", op: "reframe", aspect: "portrait", mode: "blur" });
   });
 
+  it("chain supports the speed and color ops", async () => {
+    await client().chain("out-1", "speed", { factor: 2 });
+    expect(JSON.parse(lastCall()[1]?.body as string)).toEqual({ outputId: "out-1", op: "speed", factor: 2 });
+    await client().chain("out-2", "color", { preset: "vivid" });
+    expect(JSON.parse(lastCall()[1]?.body as string)).toEqual({ outputId: "out-2", op: "color", preset: "vivid" });
+  });
+
   it("highlights POSTs the sourceId and clip count", async () => {
     await client().highlights("src-1", { count: 5 });
     const [url, init] = lastCall();

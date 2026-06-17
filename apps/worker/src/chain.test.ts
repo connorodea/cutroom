@@ -22,6 +22,8 @@ describe("parseChainOp", () => {
   it("accepts the supported ops", () => {
     expect(parseChainOp("reframe")).toBe("reframe");
     expect(parseChainOp("captions")).toBe("captions");
+    expect(parseChainOp("speed")).toBe("speed");
+    expect(parseChainOp("color")).toBe("color");
   });
 
   it("returns null for an unknown or non-string op", () => {
