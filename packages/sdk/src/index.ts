@@ -20,11 +20,50 @@ export interface TranscriptWord {
 
 export interface Job {
   id: string;
-  type: "edit" | "create";
+  type: "edit" | "create" | "overlay";
   status: "queued" | "running" | "done" | "error";
   step?: string;
-  result?: { outputId: string; totalWords: number; segments: number; removedSec: number };
+  result?: { outputId: string; [key: string]: unknown };
   error?: string;
+}
+
+/** A script scene: narration line + the stock-footage search query for it. */
+export interface ScriptSegment {
+  text: string;
+  query: string;
+}
+
+/** A graphics overlay element (title / lower third / callout / badge) with a time window. */
+export type OverlaySpec =
+  | { type: "title"; text: string; subtitle?: string; start: number; end: number }
+  | { type: "lower_third"; text: string; subtitle?: string; start: number; end: number }
+  | { type: "callout"; text: string; x: number; y: number; start: number; end: number }
+  | { type: "badge"; text: string; corner?: "tl" | "tr" | "bl" | "br"; start: number; end: number };
+
+/** Permissive overlay shape accepted by the API (validated/normalized server-side). */
+export interface OverlayInput {
+  type: "title" | "lower_third" | "callout" | "badge";
+  text: string;
+  subtitle?: string;
+  x?: number;
+  y?: number;
+  corner?: "tl" | "tr" | "bl" | "br";
+  start: number;
+  end: number;
+}
+
+export interface CreateOptions {
+  /** A topic/idea — the AI writes the script and picks stock footage. */
+  prompt?: string;
+  /** Or supply the script scenes directly (skips AI script-writing). */
+  script?: ScriptSegment[];
+  aspect?: "landscape" | "portrait";
+  /** Burn word-aligned captions (default true). */
+  captions?: boolean;
+  /** Explicit graphics spec; when omitted, the AI designs overlays (unless autoGraphics is false). */
+  overlays?: OverlayInput[];
+  /** Let the AI design on-screen graphics (default true). */
+  autoGraphics?: boolean;
 }
 
 export interface Transcript {
@@ -95,6 +134,26 @@ export class CutroomClient {
         body: JSON.stringify({ sourceId, removedIndices, captions: opts.captions ?? true }),
       }),
     );
+  }
+
+  /**
+   * Create a video from a prompt or script: AI writes narration → Pexels stock footage matched per
+   * scene → TTS voiceover → word-aligned captions → AI-designed graphics overlays → job.
+   */
+  async create(opts: CreateOptions): Promise<Job> {
+    return this.json(
+      await fetch(`${this.baseUrl}/api/create`, {
+        method: "POST",
+        headers: this.authHeaders({ "content-type": "application/json" }),
+        body: JSON.stringify(opts),
+      }),
+    );
+  }
+
+  /** Composite graphics overlays (titles/lower thirds/callouts/badges) onto a video → job. */
+  async overlay(filePath: string, overlays: OverlayInput[]): Promise<Job> {
+    const fd = await this.fileForm(filePath, { overlays: JSON.stringify(overlays) });
+    return this.json(await fetch(`${this.baseUrl}/api/overlay`, { method: "POST", headers: this.authHeaders(), body: fd }));
   }
 
   async getJob(id: string): Promise<Job> {

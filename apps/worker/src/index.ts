@@ -7,7 +7,7 @@ import { mkdir, writeFile, stat } from "node:fs/promises";
 import { createReadStream } from "node:fs";
 import { Readable } from "node:stream";
 import { extname } from "node:path";
-import { createCreateJob, createEditJob, createTranscriptCutJob, getJob, getSource, transcribeSource } from "./jobs";
+import { createCreateJob, createEditJob, createOverlayJob, createTranscriptCutJob, getJob, getSource, transcribeSource } from "./jobs";
 
 const exec = promisify(execFile);
 
@@ -72,6 +72,8 @@ app.post("/api/create", async (c) => {
     script?: unknown;
     aspect?: unknown;
     captions?: unknown;
+    overlays?: unknown;
+    autoGraphics?: unknown;
   };
   const prompt = typeof body.prompt === "string" && body.prompt.trim() ? body.prompt.trim() : undefined;
   const script = Array.isArray(body.script)
@@ -83,7 +85,36 @@ app.post("/api/create", async (c) => {
     return c.json({ error: "provide 'prompt' (string) or 'script' ([{text, query}])" }, 400);
   }
   const aspect = body.aspect === "portrait" ? "portrait" : "landscape";
-  const job = createCreateJob({ prompt, script, aspect, captions: body.captions !== false }, MEDIA_DIR);
+  const overlays = Array.isArray(body.overlays) ? body.overlays : undefined;
+  const job = createCreateJob(
+    { prompt, script, aspect, captions: body.captions !== false, overlays, autoGraphics: body.autoGraphics !== false },
+    MEDIA_DIR,
+  );
+  return c.json(job, 202);
+});
+
+/**
+ * Apply graphics overlays to a video: multipart { file, overlays }.
+ * `overlays` is a JSON-string array of elements: title/lower_third/callout/badge with timing.
+ * Returns the job to poll; output served at /api/media/:id.
+ */
+app.post("/api/overlay", async (c) => {
+  const body = await c.req.parseBody();
+  const file = body["file"];
+  if (!(file instanceof File)) return c.json({ error: "missing 'file' (multipart)" }, 400);
+  let overlays: unknown = [];
+  const spec = body["overlays"];
+  if (typeof spec === "string" && spec.trim()) {
+    try {
+      overlays = JSON.parse(spec);
+    } catch {
+      return c.json({ error: "'overlays' must be a JSON array string" }, 400);
+    }
+  }
+  const ext = extname(file.name || "") || ".mp4";
+  const inputPath = `${MEDIA_DIR}/ov-${Date.now()}${ext}`;
+  await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
+  const job = createOverlayJob(inputPath, overlays, MEDIA_DIR);
   return c.json(job, 202);
 });
 

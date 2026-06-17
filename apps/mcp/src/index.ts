@@ -5,7 +5,8 @@ import { CutroomClient, type Job } from "@cutroom/sdk";
 
 /**
  * Cutroom MCP server — lets any MCP-capable AI agent drive Cutroom:
- * transcribe a video, auto clean it up, edit by transcript, check jobs, download results.
+ * create videos from a prompt (script → stock footage → voiceover → captions → graphics),
+ * transcribe, auto clean-up, transcript-edit, composite graphics overlays, check jobs, download.
  * Built on @cutroom/sdk; auth + base URL via CUTROOM_API_TOKEN / CUTROOM_API_URL.
  */
 
@@ -16,10 +17,19 @@ const server = new McpServer({ name: "cutroom", version: "0.0.0" });
 const jobSummary = (job: Job) => ({
   jobId: job.id,
   status: job.status,
-  ...(job.result
-    ? { outputId: job.result.outputId, outputUrl: client.outputUrl(job.result.outputId), removedSec: job.result.removedSec, words: job.result.totalWords, segments: job.result.segments }
-    : {}),
+  ...(job.result ? { ...job.result, outputUrl: client.outputUrl(job.result.outputId) } : {}),
   ...(job.error ? { error: job.error } : {}),
+});
+
+const overlayElement = z.object({
+  type: z.enum(["title", "lower_third", "callout", "badge"]).describe("Graphic kind."),
+  text: z.string().describe("Primary text (keep short)."),
+  subtitle: z.string().optional().describe("Secondary line (title / lower_third)."),
+  x: z.number().optional().describe("Callout x position, 0–1 screen fraction."),
+  y: z.number().optional().describe("Callout y position, 0–1 screen fraction."),
+  corner: z.enum(["tl", "tr", "bl", "br"]).optional().describe("Badge corner."),
+  start: z.number().describe("Start time in seconds."),
+  end: z.number().describe("End time in seconds."),
 });
 
 const textResult = (data: unknown) => ({
@@ -49,6 +59,47 @@ server.registerTool(
   },
   async ({ filePath, captions }) => {
     const job = await client.cleanUp(filePath, { captions });
+    return textResult(jobSummary(await client.pollJob(job.id)));
+  },
+);
+
+server.registerTool(
+  "cutroom_create",
+  {
+    description:
+      "Generate a video from an idea: the AI writes a narration script, pulls Pexels stock footage matched to each scene, lays a TTS voiceover, burns word-aligned captions, and adds on-screen graphics (title, lower thirds, callouts). Give a `prompt` (the AI writes everything) or a `script` of scenes. Waits for the render and returns the output URL.",
+    inputSchema: {
+      prompt: z.string().optional().describe("A topic/idea — the AI writes the script and picks footage."),
+      script: z
+        .array(z.object({ text: z.string(), query: z.string().describe("Stock-footage search query for this scene.") }))
+        .optional()
+        .describe("Or supply scenes directly: [{text, query}]."),
+      aspect: z.enum(["landscape", "portrait"]).optional().describe("16:9 (default) or 9:16."),
+      captions: z.boolean().optional().describe("Burn word captions (default true)."),
+      overlays: z.array(overlayElement).optional().describe("Explicit graphics; omit to let the AI design them."),
+      autoGraphics: z.boolean().optional().describe("Let the AI design on-screen graphics (default true)."),
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+  },
+  async ({ prompt, script, aspect, captions, overlays, autoGraphics }) => {
+    const job = await client.create({ prompt, script, aspect, captions, overlays, autoGraphics });
+    return textResult(jobSummary(await client.pollJob(job.id)));
+  },
+);
+
+server.registerTool(
+  "cutroom_overlay",
+  {
+    description:
+      "Composite graphics overlays onto an existing video: titles, lower thirds, callouts, and corner badges, each with a time window. Waits for the render and returns the output URL.",
+    inputSchema: {
+      filePath: z.string().describe("Absolute path to a local video file."),
+      overlays: z.array(overlayElement).describe("Graphics elements to burn in."),
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+  },
+  async ({ filePath, overlays }) => {
+    const job = await client.overlay(filePath, overlays);
     return textResult(jobSummary(await client.pollJob(job.id)));
   },
 );

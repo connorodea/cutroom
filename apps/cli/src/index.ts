@@ -1,3 +1,4 @@
+import { readFile } from "node:fs/promises";
 import { CutroomClient, type Job } from "@cutroom/sdk";
 
 const USAGE = `cutroom — AI video editing CLI
@@ -7,12 +8,21 @@ Usage:
   cutroom clean-up <file> [--no-captions] [--out <file>]      auto: cut silences/filler + captions
   cutroom transcribe <file>                                    word-level transcript (+ sourceId)
   cutroom transcript-cut <sourceId> <i,j,k> [--no-captions] [--out <file>]   remove words by index
+  cutroom create "<prompt>" [--portrait] [--no-captions] [--no-graphics] [--overlays <json|@file>] [--out <file>]
+                                                               AI: script → stock footage → voiceover → captions → graphics
+  cutroom overlay <file> <json|@file> [--out <file>]           composite titles/lower-thirds/callouts/badges onto a video
   cutroom status <jobId>
   cutroom download <outputId> <file>
 
 Env:
   CUTROOM_API_URL    Cutroom API base (default: hosted worker)
   CUTROOM_API_TOKEN  API token (sent as Bearer)`;
+
+/** Parse an arg that's either inline JSON or @path-to-json-file. */
+async function readJsonArg(arg: string): Promise<unknown> {
+  const text = arg.startsWith("@") ? await readFile(arg.slice(1), "utf8") : arg;
+  return JSON.parse(text);
+}
 
 const flag = (args: string[], name: string): string | undefined => {
   const i = args.indexOf(`--${name}`);
@@ -63,6 +73,28 @@ async function main(): Promise<void> {
       if (!args[0]) throw new Error("usage: cutroom transcript-cut <sourceId> <i,j,k>");
       const indices = (args[1] || "").split(",").map((s) => Number(s.trim())).filter(Number.isInteger);
       const job = await client.transcriptCut(args[0], indices, { captions: !has(args, "no-captions") });
+      await finish(client, job, flag(args, "out"));
+      break;
+    }
+
+    case "create": {
+      if (!args[0]) throw new Error('usage: cutroom create "<prompt>" [--portrait] [--no-graphics] [--out <file>]');
+      const overlaysArg = flag(args, "overlays");
+      const job = await client.create({
+        prompt: args[0],
+        aspect: has(args, "portrait") ? "portrait" : "landscape",
+        captions: !has(args, "no-captions"),
+        autoGraphics: !has(args, "no-graphics"),
+        overlays: overlaysArg ? ((await readJsonArg(overlaysArg)) as never) : undefined,
+      });
+      await finish(client, job, flag(args, "out"));
+      break;
+    }
+
+    case "overlay": {
+      if (!args[0] || !args[1]) throw new Error("usage: cutroom overlay <file> <json|@file> [--out <file>]");
+      const overlays = (await readJsonArg(args[1])) as never;
+      const job = await client.overlay(args[0], overlays);
       await finish(client, job, flag(args, "out"));
       break;
     }

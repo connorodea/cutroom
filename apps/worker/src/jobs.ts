@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { runEditPipeline, runTranscriptCutPipeline } from "./edit";
-import { runCreatePipeline } from "./create";
-import type { ScriptSegment } from "./script";
+import { runCreatePipeline, type CreateInput } from "./create";
+import { applyOverlays } from "./overlay";
 import { extractAudio, ffprobeDimensions, ffprobeDuration } from "./ffmpeg";
 import { transcribe, type Word } from "./transcribe";
 
@@ -9,7 +9,7 @@ export type JobStatus = "queued" | "running" | "done" | "error";
 
 export interface Job {
   id: string;
-  type: "edit" | "create";
+  type: "edit" | "create" | "overlay";
   status: JobStatus;
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -54,17 +54,14 @@ export function createEditJob(inputPath: string, workDir: string, opts: { captio
  * Create + run a Create job: AI writes a script (or one is supplied) → per-segment TTS voiceover +
  * Pexels stock footage matched to each scene → assembled MP4 with word-aligned captions. Runs async.
  */
-export function createCreateJob(
-  input: { prompt?: string; script?: ScriptSegment[]; aspect?: "landscape" | "portrait"; captions?: boolean },
-  workDir: string,
-): Job {
+export function createCreateJob(input: CreateInput, workDir: string): Job {
   const id = randomUUID();
   const job: Job = { id, type: "create", status: "queued", createdAt: Date.now() };
   jobs.set(id, job);
   void (async () => {
     try {
       job.status = "running";
-      job.step = "script → stock footage → assemble";
+      job.step = "script → stock footage → voiceover → captions → graphics";
       const r = await runCreatePipeline(input, workDir, id);
       job.status = "done";
       job.result = {
@@ -73,7 +70,34 @@ export function createCreateJob(
         durationSec: r.durationSec,
         usedStock: r.usedStock,
         captionsApplied: r.captionsApplied,
+        overlaysApplied: r.overlaysApplied,
       };
+    } catch (err) {
+      job.status = "error";
+      job.error = (err as Error).message;
+      // eslint-disable-next-line no-console
+      console.error("[job]", id, "failed:", err);
+    }
+  })();
+  return job;
+}
+
+/**
+ * Create + run an Overlay job: composite a graphics spec (titles/lower thirds/callouts/badges)
+ * onto an existing video via ImageMagick + ffmpeg. The output is `${jobId}.mp4`. Runs async.
+ */
+export function createOverlayJob(inputPath: string, overlays: unknown, workDir: string): Job {
+  const id = randomUUID();
+  const job: Job = { id, type: "overlay", status: "queued", createdAt: Date.now() };
+  jobs.set(id, job);
+  void (async () => {
+    try {
+      job.status = "running";
+      job.step = "render graphics + composite";
+      const dims = await ffprobeDimensions(inputPath);
+      const r = await applyOverlays(inputPath, overlays, dims, workDir, id);
+      job.status = "done";
+      job.result = { outputId: id, overlaysApplied: r.applied };
     } catch (err) {
       job.status = "error";
       job.error = (err as Error).message;
