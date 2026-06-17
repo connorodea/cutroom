@@ -20,7 +20,7 @@ export interface TranscriptWord {
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -68,6 +68,18 @@ export interface CreateOptions {
   source?: "stock" | "generative";
   /** Higgsfield video model for the generative source. */
   videoModel?: "dop" | "kling" | "seedance";
+}
+
+/** Target aspect for reframe: portrait (9:16), square (1:1), or landscape (16:9). */
+export type ReframeAspect = "portrait" | "square" | "landscape";
+/** Fit mode for reframe: "blur" (fit over blurred background) or "crop" (cover + center-crop). */
+export type ReframeMode = "blur" | "crop";
+
+export interface ReframeOptions {
+  /** Target aspect ratio (default "portrait" — 9:16). */
+  aspect?: ReframeAspect;
+  /** Fit mode (default "blur"). */
+  mode?: ReframeMode;
 }
 
 export interface ImageGenOptions {
@@ -174,6 +186,15 @@ export class CutroomClient {
   async overlay(filePath: string, overlays: OverlayInput[]): Promise<Job> {
     const fd = await this.fileForm(filePath, { overlays: JSON.stringify(overlays) });
     return this.json(await fetch(`${this.baseUrl}/api/overlay`, { method: "POST", headers: this.authHeaders(), body: fd }));
+  }
+
+  /**
+   * Reframe a video to a target aspect ratio (default 9:16 portrait) → job. `mode` "blur" (default)
+   * fits the video over a blurred zoomed background; "crop" covers the frame and center-crops.
+   */
+  async reframe(filePath: string, opts: ReframeOptions = {}): Promise<Job> {
+    const fd = await this.fileForm(filePath, { aspect: opts.aspect ?? "portrait", mode: opts.mode ?? "blur" });
+    return this.json(await fetch(`${this.baseUrl}/api/reframe`, { method: "POST", headers: this.authHeaders(), body: fd }));
   }
 
   /** Generate an image from a prompt via Higgsfield → job (output served at /api/media/:id). */

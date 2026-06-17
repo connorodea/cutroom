@@ -144,6 +144,24 @@ server.registerTool(
 );
 
 server.registerTool(
+  "cutroom_reframe",
+  {
+    description:
+      "Reframe a video to a target aspect ratio — make it vertical 9:16 (portrait, default), square 1:1, or 16:9 (landscape). mode 'blur' (default) fits the video over a blurred zoomed copy of itself (the popular social style); mode 'crop' covers the frame and center-crops the edges. Waits for the render and returns the output URL.",
+    inputSchema: {
+      filePath: z.string().describe("Absolute path to a local video file (mp4/mov)."),
+      aspect: z.enum(["portrait", "square", "landscape"]).optional().describe("Target aspect: portrait 9:16 (default), square 1:1, landscape 16:9."),
+      mode: z.enum(["blur", "crop"]).optional().describe("Fit mode: blur (fit over blurred background, default) or crop (cover + center-crop)."),
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+  },
+  async ({ filePath, aspect, mode }) => {
+    const job = await client.reframe(filePath, { aspect, mode });
+    return textResult(jobSummary(await client.pollJob(job.id)));
+  },
+);
+
+server.registerTool(
   "cutroom_transcribe",
   {
     description: "Transcribe a video to a word-level transcript. Returns a sourceId (for cutroom_transcript_cut) and indexed words.",

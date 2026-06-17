@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { runEditPipeline, runTranscriptCutPipeline } from "./edit";
 import { runCreatePipeline, type CreateInput } from "./create";
 import { applyOverlays } from "./overlay";
+import { runReframePipeline, type ReframeAspect, type ReframeMode } from "./reframe";
 import { generateImage, imageToVideo, downloadTo, type ImageModel, type VideoModel } from "./higgsfield";
 import { extractAudio, ffprobeDimensions, ffprobeDuration } from "./ffmpeg";
 import { transcribe, type Word } from "./transcribe";
@@ -10,7 +11,7 @@ export type JobStatus = "queued" | "running" | "done" | "error";
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "image" | "video";
   status: JobStatus;
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -100,6 +101,36 @@ export function createOverlayJob(inputPath: string, overlays: unknown, workDir: 
       const r = await applyOverlays(inputPath, overlays, dims, workDir, id);
       job.status = "done";
       job.result = { outputId: id, overlaysApplied: r.applied };
+    } catch (err) {
+      job.status = "error";
+      job.error = (err as Error).message;
+      // eslint-disable-next-line no-console
+      console.error("[job]", id, "failed:", err);
+    }
+  })();
+  return job;
+}
+
+/**
+ * Create + run a Reframe job: reshape a video to a target aspect ratio (default 9:16 portrait)
+ * with a "blur" (fit over blurred background, default) or "crop" (cover + center-crop) fit mode.
+ * The output is `${jobId}.mp4`. Runs async; poll the job for status.
+ */
+export function createReframeJob(
+  inputPath: string,
+  opts: { aspect?: ReframeAspect; mode?: ReframeMode },
+  workDir: string,
+): Job {
+  const id = randomUUID();
+  const job: Job = { id, type: "reframe", status: "queued", createdAt: Date.now() };
+  jobs.set(id, job);
+  void (async () => {
+    try {
+      job.status = "running";
+      job.step = "reframe (scale/crop/overlay)";
+      const r = await runReframePipeline(inputPath, opts, workDir, id);
+      job.status = "done";
+      job.result = { outputId: id, width: r.width, height: r.height, mode: r.mode };
     } catch (err) {
       job.status = "error";
       job.error = (err as Error).message;

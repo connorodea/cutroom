@@ -11,6 +11,7 @@ Usage:
   cutroom create "<prompt>" [--portrait] [--no-captions] [--no-graphics] [--generative] [--video-model dop|kling|seedance] [--overlays <json|@file>] [--out <file>]
                                                                AI: script → stock/generative footage → voiceover → captions → graphics
   cutroom overlay <file> <json|@file> [--out <file>]           composite titles/lower-thirds/callouts/badges onto a video
+  cutroom reframe <file> [--aspect portrait|square|landscape] [--mode blur|crop] [--out <file>]   reframe to 9:16 / 1:1 / 16:9
   cutroom generate-image "<prompt>" [--aspect 16:9] [--model soul|reve] [--out <file.png>]   Higgsfield text→image
   cutroom generate-video "<prompt>" [--image-url <url>] [--model dop|kling|seedance] [--aspect 16:9] [--duration <s>] [--out <file.mp4>]
                                                                Higgsfield text→image→video (or image→video with --image-url)
@@ -130,6 +131,18 @@ async function main(): Promise<void> {
       if (!args[0] || !args[1]) throw new Error("usage: cutroom overlay <file> <json|@file> [--out <file>]");
       const overlays = (await readJsonArg(args[1])) as never;
       const job = await client.overlay(args[0], overlays);
+      await finish(client, job, flag(args, "out"));
+      break;
+    }
+
+    case "reframe": {
+      if (!args[0]) throw new Error("usage: cutroom reframe <file> [--aspect portrait|square|landscape] [--mode blur|crop] [--out <file>]");
+      const aspect = flag(args, "aspect");
+      const mode = flag(args, "mode");
+      const job = await client.reframe(args[0], {
+        aspect: aspect === "square" || aspect === "landscape" ? aspect : aspect === "portrait" ? "portrait" : undefined,
+        mode: mode === "crop" ? "crop" : mode === "blur" ? "blur" : undefined,
+      });
       await finish(client, job, flag(args, "out"));
       break;
     }

@@ -12,6 +12,7 @@ import {
   createEditJob,
   createImageGenJob,
   createOverlayJob,
+  createReframeJob,
   createTranscriptCutJob,
   createVideoGenJob,
   getJob,
@@ -129,6 +130,25 @@ app.post("/api/overlay", async (c) => {
   const inputPath = `${MEDIA_DIR}/ov-${Date.now()}${ext}`;
   await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
   const job = createOverlayJob(inputPath, overlays, MEDIA_DIR);
+  return c.json(job, 202);
+});
+
+/**
+ * Reframe a video to a target aspect ratio: multipart { file, aspect?, mode? }.
+ * aspect: "portrait" (9:16, default) | "square" (1:1) | "landscape" (16:9).
+ * mode:   "blur" (fit over a blurred zoomed background, default) | "crop" (cover + center-crop).
+ * Returns the job to poll; output served at /api/media/:id.
+ */
+app.post("/api/reframe", async (c) => {
+  const body = await c.req.parseBody();
+  const file = body["file"];
+  if (!(file instanceof File)) return c.json({ error: "missing 'file' (multipart)" }, 400);
+  const aspect = body["aspect"] === "square" || body["aspect"] === "landscape" ? (body["aspect"] as "square" | "landscape") : "portrait";
+  const mode = body["mode"] === "crop" ? "crop" : "blur";
+  const ext = extname(file.name || "") || ".mp4";
+  const inputPath = `${MEDIA_DIR}/rf-${Date.now()}${ext}`;
+  await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
+  const job = createReframeJob(inputPath, { aspect, mode }, MEDIA_DIR);
   return c.json(job, 202);
 });
 
