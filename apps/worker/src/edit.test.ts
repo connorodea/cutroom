@@ -130,6 +130,18 @@ describe("buildAss", () => {
     expect(ass).toContain("Dialogue: 0,0:00:00.00,");
   });
 
+  it("carries seconds that round up to 60 into the next minute (no invalid SS=60)", () => {
+    // 59.999s rounds to 60.00cs — must become 0:01:00.00, not the invalid 0:00:60.00.
+    const ass = buildAss([w("hi", 59.999, 60.3)], 1280, 720);
+    expect(ass).toContain("Dialogue: 0,0:01:00.00,0:01:00.40,");
+    expect(ass).not.toContain("0:00:60");
+  });
+
+  it("carries a rounded minute into the hour", () => {
+    // 3599.999s -> 1:00:00.00 (not 0:59:60.00 or 0:60:00.00).
+    expect(buildAss([w("x", 3599.999, 3600.2)], 1280, 720)).toContain("Dialogue: 0,1:00:00.00,");
+  });
+
   it("joins a cue's words with spaces", () => {
     const ass = buildAss([w("Hello", 0, 0.5), w("world", 0.5, 1)], 1280, 720, 4);
     expect(ass).toContain(",Hello world");

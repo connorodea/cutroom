@@ -141,9 +141,12 @@ export function planCutsFromRemovedWords(
 }
 
 const assTime = (t: number) => {
-  const h = Math.floor(t / 3600);
-  const m = Math.floor((t % 3600) / 60);
-  const s = t % 60;
+  // Round to centiseconds FIRST, then decompose — otherwise rounding `t % 60` can yield an
+  // invalid "60.00" (e.g. 59.999s) instead of carrying into the next minute/hour.
+  const cs = Math.max(0, Math.round(t * 100));
+  const h = Math.floor(cs / 360000);
+  const m = Math.floor((cs % 360000) / 6000);
+  const s = (cs % 6000) / 100;
   return `${h}:${String(m).padStart(2, "0")}:${s.toFixed(2).padStart(5, "0")}`;
 };
 
