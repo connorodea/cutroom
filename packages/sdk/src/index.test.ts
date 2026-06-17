@@ -141,6 +141,13 @@ describe("JSON endpoints", () => {
     expect(JSON.parse(lastCall()[1]?.body as string)).toEqual({ outputId: "o4", op: "reverse", mode: "boomerang" });
   });
 
+  it("chain supports the crop and gif ops", async () => {
+    await client().chain("o5", "crop", { preset: "center" });
+    expect(JSON.parse(lastCall()[1]?.body as string)).toEqual({ outputId: "o5", op: "crop", preset: "center" });
+    await client().chain("o6", "gif", { width: 480 });
+    expect(JSON.parse(lastCall()[1]?.body as string)).toEqual({ outputId: "o6", op: "gif", width: 480 });
+  });
+
   it("highlights POSTs the sourceId and clip count", async () => {
     await client().highlights("src-1", { count: 5 });
     const [url, init] = lastCall();

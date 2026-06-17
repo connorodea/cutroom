@@ -4,7 +4,7 @@
  * the id to `${MEDIA_DIR}/${id}.mp4` and dispatches to the matching job factory.
  */
 
-export const CHAIN_OPS = ["reframe", "captions", "speed", "color", "rotate", "audio", "fade", "reverse"] as const;
+export const CHAIN_OPS = ["reframe", "captions", "speed", "color", "rotate", "audio", "fade", "reverse", "crop", "gif"] as const;
 export type ChainOp = (typeof CHAIN_OPS)[number];
 
 /** Sanitize an output id to a safe filename stem (defends against path traversal). null if empty. */

@@ -91,6 +91,17 @@ describe("ChainActions", () => {
     expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ outputId: "o1", op: "reverse", mode: "boomerang" });
   });
 
+  it("chains a GIF export of the result", async () => {
+    fetchMock
+      .mockResolvedValueOnce(res({ id: "g1", type: "gif", status: "queued" }))
+      .mockResolvedValueOnce(res({ id: "g1", type: "gif", status: "done", result: { outputId: "g1", ext: "gif" } }));
+    render(<ChainActions outputId="o1" />);
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /^GIF/ }));
+    });
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ outputId: "o1", op: "gif", width: 480 });
+  });
+
   it("shows a working state while the chain is in flight", async () => {
     let resolveSubmit: (v: Response) => void = () => {};
     fetchMock.mockReturnValueOnce(new Promise<Response>((r) => { resolveSubmit = r; }));

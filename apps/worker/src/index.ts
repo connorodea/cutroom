@@ -109,10 +109,11 @@ app.post("/api/chain", async (c) => {
     outputId?: unknown; op?: unknown; aspect?: unknown; mode?: unknown; factor?: unknown;
     preset?: unknown; brightness?: unknown; contrast?: unknown; saturation?: unknown; gamma?: unknown;
     orientation?: unknown; level?: unknown; kind?: unknown; duration?: unknown;
+    x?: unknown; y?: unknown; w?: unknown; h?: unknown; fps?: unknown; width?: unknown;
   };
   const id = typeof body.outputId === "string" ? safeOutputId(body.outputId) : null;
   const op = parseChainOp(body.op);
-  if (!id || !op) return c.json({ error: "provide 'outputId' (string) and 'op' (reframe|captions|speed|color|rotate|audio|fade|reverse)" }, 400);
+  if (!id || !op) return c.json({ error: "provide 'outputId' (string) and 'op' (reframe|captions|speed|color|rotate|audio|fade|reverse|crop|gif)" }, 400);
   const inputPath = `${MEDIA_DIR}/${id}.mp4`;
   try {
     await stat(inputPath);
@@ -142,6 +143,13 @@ app.post("/api/chain", async (c) => {
   }
   if (op === "reverse") {
     return c.json(createReverseJob(inputPath, body.mode, MEDIA_DIR), 202);
+  }
+  if (op === "crop") {
+    const { preset, x, y, w, h } = body;
+    return c.json(createCropJob(inputPath, { preset, x, y, w, h }, MEDIA_DIR), 202);
+  }
+  if (op === "gif") {
+    return c.json(createGifJob(inputPath, { fps: body.fps, width: body.width }, MEDIA_DIR), 202);
   }
   return c.json(createCaptionsJob(inputPath, MEDIA_DIR), 202);
 });

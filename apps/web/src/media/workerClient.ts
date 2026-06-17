@@ -299,8 +299,8 @@ export async function submitReframeJob(file: File, opts: ReframeOptions = {}): P
 /** Chain an op onto an existing output by id (no re-upload): JSON { outputId, op, aspect?, mode? }. */
 export async function submitChainJob(
   outputId: string,
-  op: "reframe" | "captions" | "speed" | "color" | "rotate" | "audio" | "fade" | "reverse",
-  opts: { aspect?: "portrait" | "square" | "landscape"; mode?: string; factor?: number; preset?: string; orientation?: string; level?: number; kind?: string; duration?: number } = {},
+  op: "reframe" | "captions" | "speed" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif",
+  opts: { aspect?: "portrait" | "square" | "landscape"; mode?: string; factor?: number; preset?: string; orientation?: string; level?: number; kind?: string; duration?: number; width?: number } = {},
 ): Promise<EditJob> {
   const res = await fetch(`${WORKER_URL}/api/chain`, {
     method: "POST",

@@ -14,7 +14,7 @@ export function ChainActions({ outputId }: { outputId: string }) {
   const [chained, setChained] = useState<EditJob | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  type ChainOp = "reframe" | "captions" | "speed" | "color" | "fade" | "reverse";
+  type ChainOp = "reframe" | "captions" | "speed" | "color" | "fade" | "reverse" | "gif";
 
   const optsFor = (op: ChainOp) => {
     if (op === "reframe") return { aspect: "portrait", mode: "blur" } as const;
@@ -22,6 +22,7 @@ export function ChainActions({ outputId }: { outputId: string }) {
     if (op === "color") return { preset: "vivid" };
     if (op === "fade") return { kind: "both" };
     if (op === "reverse") return { mode: "boomerang" };
+    if (op === "gif") return { width: 480 };
     return {};
   };
 
@@ -87,6 +88,9 @@ export function ChainActions({ outputId }: { outputId: string }) {
           </button>
           <button onClick={() => runChain("reverse")} style={btn}>
             <Icon name="rewind" size={13} color={ACCENT} />Boomerang
+          </button>
+          <button onClick={() => runChain("gif")} style={btn}>
+            <Icon name="film" size={13} color={ACCENT} />GIF
           </button>
         </>
       )}

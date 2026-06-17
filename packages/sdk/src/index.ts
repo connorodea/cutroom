@@ -296,11 +296,11 @@ export class CutroomClient {
     );
   }
 
-  /** Chain an op onto an existing rendered output by id (no re-upload): reframe / captions / speed / color / rotate / audio / fade / reverse. */
+  /** Chain an op onto an existing rendered output by id (no re-upload): reframe / captions / speed / color / rotate / audio / fade / reverse / crop / gif. */
   async chain(
     outputId: string,
-    op: "reframe" | "captions" | "speed" | "color" | "rotate" | "audio" | "fade" | "reverse",
-    opts: { aspect?: ReframeAspect; mode?: ReframeMode | string; factor?: number; preset?: string; orientation?: string; level?: number; kind?: string; duration?: number } = {},
+    op: "reframe" | "captions" | "speed" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif",
+    opts: { aspect?: ReframeAspect; mode?: ReframeMode | string; factor?: number; preset?: string; orientation?: string; level?: number; kind?: string; duration?: number; x?: number; y?: number; w?: number; h?: number; fps?: number; width?: number } = {},
   ): Promise<Job> {
     return this.json(
       await fetch(`${this.baseUrl}/api/chain`, {

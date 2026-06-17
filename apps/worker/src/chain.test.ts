@@ -28,6 +28,8 @@ describe("parseChainOp", () => {
     expect(parseChainOp("audio")).toBe("audio");
     expect(parseChainOp("fade")).toBe("fade");
     expect(parseChainOp("reverse")).toBe("reverse");
+    expect(parseChainOp("crop")).toBe("crop");
+    expect(parseChainOp("gif")).toBe("gif");
   });
 
   it("returns null for an unknown or non-string op", () => {
