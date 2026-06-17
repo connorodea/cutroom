@@ -33,6 +33,9 @@ export function AgentPalette() {
   const openCrop = useEditorStore((s) => s.openCrop);
   const openGif = useEditorStore((s) => s.openGif);
   const openLoop = useEditorStore((s) => s.openLoop);
+  const openThumbnail = useEditorStore((s) => s.openThumbnail);
+  const openStitch = useEditorStore((s) => s.openStitch);
+  const openWatermark = useEditorStore((s) => s.openWatermark);
   const { run, loading, source } = useAgentRun();
   const [query, setQuery] = useState("");
 
@@ -51,7 +54,7 @@ export function AgentPalette() {
     const tool = routeIntent(q);
     if (tool) {
       closeAgent();
-      ({ create: openCreate, import: openImport, reframe: openReframe, highlights: openHighlights, captions: openCaptions, overlay: openOverlay, generate: openGenerate, speed: openSpeed, trim: openTrim, color: openColor, rotate: openRotate, audio: openAudio, fade: openFade, reverse: openReverse, crop: openCrop, gif: openGif, loop: openLoop })[tool]();
+      ({ create: openCreate, import: openImport, reframe: openReframe, highlights: openHighlights, captions: openCaptions, overlay: openOverlay, generate: openGenerate, speed: openSpeed, trim: openTrim, color: openColor, rotate: openRotate, audio: openAudio, fade: openFade, reverse: openReverse, crop: openCrop, gif: openGif, loop: openLoop, thumbnail: openThumbnail, stitch: openStitch, watermark: openWatermark })[tool]();
       return;
     }
     run(q || "Custom workflow");

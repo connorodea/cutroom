@@ -1,7 +1,8 @@
 /** A tool the ⌘K agent can route a request to, or null when the request isn't a clear single tool. */
 export type IntentTool =
   | "create" | "import" | "reframe" | "highlights" | "captions" | "overlay" | "generate"
-  | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | null;
+  | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop"
+  | "thumbnail" | "stitch" | "watermark" | null;
 
 /**
  * Classify a free-text agent request into the editor tool that fulfills it. Heuristic + ordered:
@@ -54,6 +55,15 @@ export function routeIntent(prompt: string): IntentTool {
   }
   if (/\b(loop|repeat)\b/.test(p)) {
     return "loop";
+  }
+  if (/\b(thumbnail|thumb|poster|screenshot|grab\s+(a\s+)?frame)\b/.test(p)) {
+    return "thumbnail";
+  }
+  if (/\b(stitch|concat(enate)?|join\s+(the\s+)?clips|merge\s+(the\s+)?clips|combine\s+(the\s+)?clips)\b/.test(p)) {
+    return "stitch";
+  }
+  if (/\b(watermark|brand\s+(it|the)|add\s+(my\s+)?(logo|handle|brand))\b/.test(p)) {
+    return "watermark";
   }
   if (/\b(clean\s?up|remove\s+(the\s+)?(silence|filler)|filler\s+words?|dead\s+air|cut\s+(the\s+)?(silence|dead))\b/.test(p)) {
     return "import";

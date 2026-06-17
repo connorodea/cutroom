@@ -94,6 +94,23 @@ describe("routeIntent", () => {
     expect(routeIntent("repeat it 3 times")).toBe("loop");
   });
 
+  it("routes thumbnail/poster requests to thumbnail", () => {
+    expect(routeIntent("grab a thumbnail")).toBe("thumbnail");
+    expect(routeIntent("make a poster frame")).toBe("thumbnail");
+    expect(routeIntent("grab a frame at 3 seconds")).toBe("thumbnail");
+  });
+
+  it("routes stitch/join requests to stitch", () => {
+    expect(routeIntent("stitch these clips together")).toBe("stitch");
+    expect(routeIntent("join the clips")).toBe("stitch");
+    expect(routeIntent("concatenate the videos")).toBe("stitch");
+  });
+
+  it("routes watermark/brand requests to watermark", () => {
+    expect(routeIntent("add a watermark")).toBe("watermark");
+    expect(routeIntent("brand it with my handle")).toBe("watermark");
+  });
+
   it("prefers the specific operation over generic create", () => {
     expect(routeIntent("make a vertical video")).toBe("reframe");
   });

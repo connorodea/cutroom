@@ -76,6 +76,9 @@ describe("AgentPalette", () => {
     ["crop this clip", "cropOpen"],
     ["make a gif", "gifOpen"],
     ["loop this clip", "loopOpen"],
+    ["grab a thumbnail", "thumbnailOpen"],
+    ["stitch these clips together", "stitchOpen"],
+    ["add a watermark", "watermarkOpen"],
   ] as const)("routes '%s' to the matching tool and closes the palette", (prompt, flag) => {
     open();
     render(<AgentPalette />);
