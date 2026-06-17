@@ -12,6 +12,8 @@ export interface EditorState {
   importOpen: boolean;
   /** Whether the AI Create modal is open. */
   createOpen: boolean;
+  /** Whether the Generate (Higgsfield image/video) modal is open. */
+  generateOpen: boolean;
 
   /** Output ids of AI-created videos this session, newest-first. */
   createdOutputs: string[];
@@ -31,6 +33,8 @@ export interface EditorState {
   closeImport: () => void;
   openCreate: () => void;
   closeCreate: () => void;
+  openGenerate: () => void;
+  closeGenerate: () => void;
   /** Record an AI-created output id (newest-first, de-duplicated). */
   addCreatedOutput: (outputId: string) => void;
 
@@ -47,6 +51,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   agentOpen: false,
   importOpen: false,
   createOpen: false,
+  generateOpen: false,
   createdOutputs: [],
   phase: "idle",
   active: -1,
@@ -61,6 +66,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   closeImport: () => set({ importOpen: false }),
   openCreate: () => set({ createOpen: true }),
   closeCreate: () => set({ createOpen: false }),
+  openGenerate: () => set({ generateOpen: true }),
+  closeGenerate: () => set({ generateOpen: false }),
   addCreatedOutput: (outputId) =>
     set((s) => ({ createdOutputs: [outputId, ...s.createdOutputs.filter((id) => id !== outputId)] })),
 

@@ -62,6 +62,18 @@ describe("editor store", () => {
     expect(s.steps).toHaveLength(0);
   });
 
+  it("starts with the Generate modal closed", () => {
+    expect(useEditorStore.getState().generateOpen).toBe(false);
+  });
+
+  it("opens and closes the Generate modal", () => {
+    const { openGenerate, closeGenerate } = useEditorStore.getState();
+    openGenerate();
+    expect(useEditorStore.getState().generateOpen).toBe(true);
+    closeGenerate();
+    expect(useEditorStore.getState().generateOpen).toBe(false);
+  });
+
   it("starts with no AI-created outputs", () => {
     expect(useEditorStore.getState().createdOutputs).toEqual([]);
   });

@@ -19,8 +19,54 @@ export interface EditJob {
     usedStock?: number;
     usedGenerative?: number;
     overlaysApplied?: number;
+    /** For generation jobs: which medium was produced. */
+    kind?: "image" | "video";
+    /** For generation jobs: the upstream (Higgsfield) source URL. */
+    sourceUrl?: string;
   };
   error?: string;
+}
+
+export interface ImageGenOptions {
+  prompt: string;
+  aspect?: "16:9" | "9:16";
+  model?: "soul" | "reve";
+}
+
+export interface VideoGenOptions {
+  prompt: string;
+  imageUrl?: string;
+  model?: "dop" | "kling" | "seedance";
+  aspect?: "16:9" | "9:16";
+  duration?: number;
+}
+
+/** Generate an image from a text prompt (Higgsfield). */
+export async function submitImageGenJob(opts: ImageGenOptions): Promise<EditJob> {
+  const res = await fetch(`${WORKER_URL}/api/generate/image`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(opts),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error || `image generation failed (${res.status})`);
+  }
+  return (await res.json()) as EditJob;
+}
+
+/** Generate a video clip from a text prompt (Higgsfield). */
+export async function submitVideoGenJob(opts: VideoGenOptions): Promise<EditJob> {
+  const res = await fetch(`${WORKER_URL}/api/generate/video`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(opts),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error || `video generation failed (${res.status})`);
+  }
+  return (await res.json()) as EditJob;
 }
 
 export interface CreateOptions {
