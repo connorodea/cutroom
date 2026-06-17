@@ -75,6 +75,23 @@ describe("higgsfield network", () => {
     await expect(pollRequest("r", { intervalMs: 0 })).rejects.toThrow(/without media/);
   });
 
+  it("falls back to an empty body and uses the raw text when the response is not JSON", async () => {
+    fetchMock.mockResolvedValueOnce(res("<<not json>>", { ok: false, status: 502 }));
+    await expect(generateImage("x", "16:9")).rejects.toThrow(/502: <<not json>>/);
+  });
+
+  it("keeps polling after a non-terminal status until media appears", async () => {
+    fetchMock
+      .mockResolvedValueOnce(res({ status: "in_progress" }))
+      .mockResolvedValueOnce(res({ status: "completed", video: { url: "https://x/v.mp4" } }));
+    expect(await pollRequest("r", { intervalMs: 0 })).toBe("https://x/v.mp4");
+  });
+
+  it("times out when the request never reaches a terminal state", async () => {
+    fetchMock.mockResolvedValue(res({ status: "in_progress" }));
+    await expect(pollRequest("r", { intervalMs: 0, timeoutMs: -1 })).rejects.toThrow(/timed out/);
+  });
+
   it("downloadTo writes the fetched bytes to disk", async () => {
     fetchMock.mockResolvedValueOnce(res("VIDEOBYTES"));
     const dest = join(tmpdir(), `hf-${Date.now()}-${Math.random().toString(36).slice(2)}.mp4`);

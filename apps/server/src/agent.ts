@@ -170,5 +170,5 @@ export async function generatePlan(prompt: string, opts: GeneratePlanOptions = {
   );
 
   return Promise.race([run, timeout]);
-  /* v8 ignore stop */
 }
+/* v8 ignore stop */

@@ -70,4 +70,14 @@ describe("TranscriptEditor", () => {
     fireEvent.click(screen.getByRole("button", { name: /Apply/ }));
     expect(await screen.findByText("render failed")).toBeInTheDocument();
   });
+
+  it("shows an error when the apply request itself throws", async () => {
+    fetchMock
+      .mockResolvedValueOnce(res({ sourceId: "s1", duration: 1, words: WORDS }))
+      .mockResolvedValueOnce(res("", { ok: false, status: 500 }));
+    render(<TranscriptEditor file={file()} />);
+    fireEvent.click(await screen.findByText(/hello/));
+    fireEvent.click(screen.getByRole("button", { name: /Apply/ }));
+    expect(await screen.findByText(/apply failed/)).toBeInTheDocument();
+  });
 });

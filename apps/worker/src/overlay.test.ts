@@ -32,6 +32,13 @@ describe("normalizeElements", () => {
     expect(el).toMatchObject({ type: "callout", x: 1, y: 0.5 });
   });
 
+  it("defaults a badge's corner to tr when missing or invalid", () => {
+    const [missing] = normalizeElements([{ type: "badge", text: "NEW", start: 0, end: 2 }]);
+    expect(missing).toMatchObject({ type: "badge", corner: "tr" });
+    const [invalid] = normalizeElements([{ type: "badge", text: "NEW", corner: "middle", start: 0, end: 2 }]);
+    expect(invalid).toMatchObject({ type: "badge", corner: "tr" });
+  });
+
   it("normalizes a lower_third with its subtitle", () => {
     const [el] = normalizeElements([{ type: "lower_third", text: "Name", subtitle: "Role", start: 0, end: 2 }]);
     expect(el).toMatchObject({ type: "lower_third", text: "Name", subtitle: "Role" });

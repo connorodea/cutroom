@@ -45,6 +45,19 @@ describe("AgentPalette", () => {
     expect(useEditorStore.getState().title).toBe("Reel");
   });
 
+  it("shows the scripted badge on fallback and returns to the composer via back", async () => {
+    open();
+    fetchMock.mockResolvedValueOnce(res({ plan: { title: "P", steps: baseEditSteps }, source: "fallback" }));
+    render(<AgentPalette />);
+    fireEvent.change(screen.getByPlaceholderText(/Tell the agent what to make/), { target: { value: "go" } });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /Run/ }));
+    });
+    expect(screen.getByText("scripted")).toBeInTheDocument();
+    fireEvent.click(screen.getAllByRole("button")[0]); // back arrow
+    expect(screen.getByPlaceholderText(/Tell the agent what to make/)).toBeInTheDocument();
+  });
+
   it("renders the run view with the plan's steps", async () => {
     open();
     fetchMock.mockResolvedValueOnce(res({ plan: { title: "Reel", steps: baseEditSteps }, source: "agent" }));

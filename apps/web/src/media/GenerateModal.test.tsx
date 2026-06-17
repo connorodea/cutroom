@@ -45,6 +45,13 @@ describe("GenerateModal", () => {
     expect(screen.getByPlaceholderText(/Describe the clip/)).toBeInTheDocument();
   });
 
+  it("closes via the ✕ button", () => {
+    open();
+    render(<GenerateModal />);
+    fireEvent.click(screen.getByText("✕"));
+    expect(useEditorStore.getState().generateOpen).toBe(false);
+  });
+
   it("switches aspect and video model", () => {
     open();
     render(<GenerateModal />);
@@ -80,6 +87,19 @@ describe("GenerateModal", () => {
       fireEvent.click(screen.getByRole("button", { name: /Generate/ }));
     });
     expect(await screen.findByText("Done")).toBeInTheDocument();
+  });
+
+  it("surfaces a job-error status", async () => {
+    open();
+    fetchMock
+      .mockResolvedValueOnce(res({ id: "g1", type: "image", status: "queued" }))
+      .mockResolvedValueOnce(res({ id: "g1", type: "image", status: "error", error: "boom" }));
+    render(<GenerateModal />);
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "x" } });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /Generate/ }));
+    });
+    expect(await screen.findByText(/Generation failed/)).toBeInTheDocument();
   });
 
   it("surfaces the Higgsfield credits error", async () => {
