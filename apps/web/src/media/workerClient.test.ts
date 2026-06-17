@@ -6,6 +6,7 @@ import {
   submitEditJob,
   submitOverlayJob,
   submitTranscriptCut,
+  submitHighlightsJob,
   submitReframeJob,
   transcribeVideo,
   getJob,
@@ -65,6 +66,18 @@ describe("JSON submit endpoints", () => {
   it("submitVideoGenJob falls back to a generic error when the body has none", async () => {
     fetchMock.mockResolvedValueOnce(res({}, { ok: false, status: 500 }));
     await expect(submitVideoGenJob({ prompt: "x" })).rejects.toThrow(/video generation failed \(500\)/);
+  });
+
+  it("submitHighlightsJob POSTs the sourceId and clip count", async () => {
+    await submitHighlightsJob("src-7", 4);
+    const [url, init] = lastCall();
+    expect(url).toBe(`${BASE}/api/jobs/highlights`);
+    expect(JSON.parse(init?.body as string)).toEqual({ sourceId: "src-7", count: 4 });
+  });
+
+  it("submitHighlightsJob throws the server error on failure", async () => {
+    fetchMock.mockResolvedValueOnce(res({ error: "no highlights" }, { ok: false, status: 400 }));
+    await expect(submitHighlightsJob("src-7")).rejects.toThrow("no highlights");
   });
 
   it("submitTranscriptCut POSTs the sourceId, indices and captions flag", async () => {

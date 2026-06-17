@@ -18,6 +18,8 @@ export interface EditorState {
   overlayOpen: boolean;
   /** Whether the Reframe (aspect ratio) modal is open. */
   reframeOpen: boolean;
+  /** Whether the Highlights (best-moments reel) modal is open. */
+  highlightsOpen: boolean;
 
   /** Output ids of AI-created videos this session, newest-first. */
   createdOutputs: string[];
@@ -43,6 +45,8 @@ export interface EditorState {
   closeOverlay: () => void;
   openReframe: () => void;
   closeReframe: () => void;
+  openHighlights: () => void;
+  closeHighlights: () => void;
   /** Record an AI-created output id (newest-first, de-duplicated). */
   addCreatedOutput: (outputId: string) => void;
 
@@ -62,6 +66,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   generateOpen: false,
   overlayOpen: false,
   reframeOpen: false,
+  highlightsOpen: false,
   createdOutputs: [],
   phase: "idle",
   active: -1,
@@ -82,6 +87,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   closeOverlay: () => set({ overlayOpen: false }),
   openReframe: () => set({ reframeOpen: true }),
   closeReframe: () => set({ reframeOpen: false }),
+  openHighlights: () => set({ highlightsOpen: true }),
+  closeHighlights: () => set({ highlightsOpen: false }),
   addCreatedOutput: (outputId) =>
     set((s) => ({ createdOutputs: [outputId, ...s.createdOutputs.filter((id) => id !== outputId)] })),
 

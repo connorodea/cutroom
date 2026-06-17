@@ -82,6 +82,14 @@ describe("editor store", () => {
     expect(useEditorStore.getState().reframeOpen).toBe(false);
   });
 
+  it("opens and closes the Highlights modal", () => {
+    expect(useEditorStore.getState().highlightsOpen).toBe(false);
+    useEditorStore.getState().openHighlights();
+    expect(useEditorStore.getState().highlightsOpen).toBe(true);
+    useEditorStore.getState().closeHighlights();
+    expect(useEditorStore.getState().highlightsOpen).toBe(false);
+  });
+
   it("starts with the Overlay modal closed", () => {
     expect(useEditorStore.getState().overlayOpen).toBe(false);
   });

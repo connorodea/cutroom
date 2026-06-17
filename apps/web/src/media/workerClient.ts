@@ -8,7 +8,7 @@ const WORKER_URL =
 
 export interface EditJob {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: {
@@ -29,6 +29,8 @@ export interface EditJob {
     width?: number;
     height?: number;
     mode?: "blur" | "crop";
+    /** For highlights jobs: number of clips stitched into the reel. */
+    clips?: number;
   };
   error?: string;
 }
@@ -165,6 +167,20 @@ export async function transcribeVideo(file: File): Promise<{ sourceId: string; d
   const res = await fetch(`${WORKER_URL}/api/transcribe`, { method: "POST", body: fd });
   if (!res.ok) throw new Error(`transcribe failed (${res.status})`);
   return res.json();
+}
+
+/** Build a "best moments" highlight reel from a transcribed source (sourceId from transcribeVideo). */
+export async function submitHighlightsJob(sourceId: string, count?: number): Promise<EditJob> {
+  const res = await fetch(`${WORKER_URL}/api/jobs/highlights`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ sourceId, count }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error || `highlights failed (${res.status})`);
+  }
+  return (await res.json()) as EditJob;
 }
 
 /** Apply transcript edits: remove the given word indices and re-render. */
