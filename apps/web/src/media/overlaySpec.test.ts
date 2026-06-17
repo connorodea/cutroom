@@ -67,6 +67,14 @@ describe("normalizeForSubmit", () => {
     expect(el.end).toBeGreaterThan(el.start);
   });
 
+  it("defaults a non-finite start/end to the 0..3s window", () => {
+    const els: OverlaySpec[] = [
+      { id: "t1", type: "title", text: "Hi", start: NaN, end: NaN },
+    ];
+    const out = normalizeForSubmit(els) as { start: number; end: number }[];
+    expect(out[0]).toMatchObject({ start: 0, end: 3 });
+  });
+
   it("drops elements whose text is empty after trimming", () => {
     const els: OverlaySpec[] = [
       { id: "t1", type: "title", text: "   ", start: 0, end: 3 },

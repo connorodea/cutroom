@@ -53,4 +53,14 @@ describe("findClipUrl", () => {
     fetchMock.mockResolvedValueOnce(res({ videos: [{ video_files: [{ link: "x", file_type: "video/webm", width: 1280 }] }] }));
     expect(await findClipUrl("x")).toBeNull();
   });
+
+  it("treats a missing 'videos' array as no result", async () => {
+    fetchMock.mockResolvedValueOnce(res({}));
+    expect(await findClipUrl("x")).toBeNull();
+  });
+
+  it("skips a video that has no 'video_files' array", async () => {
+    fetchMock.mockResolvedValueOnce(res({ videos: [{}] }));
+    expect(await findClipUrl("x")).toBeNull();
+  });
 });

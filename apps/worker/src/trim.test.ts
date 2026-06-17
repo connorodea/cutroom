@@ -34,6 +34,10 @@ describe("normalizeTrim", () => {
     expect(normalizeTrim(3, 8, 0)).toEqual({ start: 3, end: 8 });
     expect(normalizeTrim(3, undefined, 0)).toEqual({ start: 3, end: 4 });
   });
+
+  it("falls back to start + 1s when end <= start and the duration is unknown", () => {
+    expect(normalizeTrim(5, 2, 0)).toEqual({ start: 5, end: 6 });
+  });
 });
 
 describe("trimArgs", () => {
