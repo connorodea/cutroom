@@ -8,7 +8,7 @@ const WORKER_URL =
 
 export interface EditJob {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: {
@@ -67,6 +67,9 @@ export interface EditJob {
     chromaColor?: string;
     chromaSimilarity?: number;
     chromaBlend?: number;
+    /** For border jobs: the frame thickness (px) + color. */
+    borderThickness?: number;
+    borderColor?: string;
   };
   error?: string;
 }
@@ -187,6 +190,20 @@ export async function submitFreezeJob(file: File, opts: { position?: string; sec
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error((body as { error?: string }).error || `freeze failed (${res.status})`);
+  }
+  return (await res.json()) as EditJob;
+}
+
+/** Border: pad a clip with a solid colored frame: multipart { file, thickness, color }. */
+export async function submitBorderJob(file: File, opts: { thickness?: number; color?: string } = {}): Promise<EditJob> {
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("thickness", String(opts.thickness ?? 24));
+  fd.append("color", opts.color ?? "white");
+  const res = await fetch(`${WORKER_URL}/api/border`, { method: "POST", body: fd });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error || `border failed (${res.status})`);
   }
   return (await res.json()) as EditJob;
 }

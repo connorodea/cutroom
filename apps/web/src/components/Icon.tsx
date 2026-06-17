@@ -2,7 +2,7 @@ import {
   Activity, ArrowLeft, ArrowUpRight, AudioLines, Camera, Captions, Check, ChevronDown,
   CircleCheckBig, Clapperboard, Columns2, Combine, Contrast, CornerDownLeft, Crop, Dot, Film, Folder, Gauge, Layers, Magnet,
   Maximize2, Monitor, MousePointer2, Palette, PictureInPicture2, Play, Plus, Quote, Redo2, Repeat, Rewind, RotateCw, Scissors,
-  Search, SkipBack, SkipForward, SlidersHorizontal, Smartphone, Snowflake, Sparkles, Type,
+  Search, SkipBack, SkipForward, SlidersHorizontal, Smartphone, Snowflake, Sparkles, Square, Type,
   Undo2, Upload, Volume2, Wand2, ZoomIn, ZoomOut,
   type LucideIcon,
 } from "lucide-react";
@@ -16,7 +16,7 @@ const ICONS: Record<string, LucideIcon> = {
   monitor: Monitor, "mouse-pointer-2": MousePointer2, palette: Palette, pip: PictureInPicture2, play: Play, plus: Plus,
   quote: Quote, "redo-2": Redo2, repeat: Repeat, rewind: Rewind, "rotate-cw": RotateCw, scissors: Scissors, search: Search, "skip-back": SkipBack,
   "skip-forward": SkipForward, "sliders-horizontal": SlidersHorizontal, smartphone: Smartphone,
-  snowflake: Snowflake, sparkles: Sparkles, type: Type, "undo-2": Undo2, upload: Upload, "volume-2": Volume2,
+  snowflake: Snowflake, sparkles: Sparkles, square: Square, type: Type, "undo-2": Undo2, upload: Upload, "volume-2": Volume2,
   "wand-2": Wand2, "zoom-in": ZoomIn, "zoom-out": ZoomOut,
 };
 

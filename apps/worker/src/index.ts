@@ -28,6 +28,7 @@ import {
   createFreezeJob,
   createKenBurnsJob,
   createChromaKeyJob,
+  createBorderJob,
   createStitchJob,
   createThumbnailJob,
   createWatermarkJob,
@@ -420,6 +421,18 @@ app.post("/api/chromakey", async (c) => {
   await writeFile(subjectPath, Buffer.from(await subject.arrayBuffer()));
   await writeFile(backgroundPath, Buffer.from(await background.arrayBuffer()));
   const job = createChromaKeyJob(subjectPath, backgroundPath, body["color"], body["similarity"], body["blend"], MEDIA_DIR);
+  return c.json(job, 202);
+});
+
+/** Border — pad a clip with a solid colored frame: multipart { file, thickness, color }. */
+app.post("/api/border", async (c) => {
+  const body = await c.req.parseBody();
+  const file = body["file"];
+  if (!(file instanceof File)) return c.json({ error: "missing 'file' (multipart)" }, 400);
+  const ext = extname(file.name || "") || ".mp4";
+  const inputPath = `${MEDIA_DIR}/border-${Date.now()}${ext}`;
+  await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
+  const job = createBorderJob(inputPath, body["thickness"], body["color"], MEDIA_DIR);
   return c.json(job, 202);
 });
 

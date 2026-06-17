@@ -2,7 +2,7 @@
 export type IntentTool =
   | "create" | "import" | "reframe" | "highlights" | "captions" | "overlay" | "generate"
   | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop"
-  | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | null;
+  | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | null;
 
 /**
  * Classify a free-text agent request into the editor tool that fulfills it. Heuristic + ordered:
@@ -73,6 +73,9 @@ export function routeIntent(prompt: string): IntentTool {
   }
   if (/\b(chroma\s?key|green\s?screen|blue\s?screen|key\s+out|replace\s+the\s+(green|blue)\s+(background|screen))\b/.test(p)) {
     return "chromakey";
+  }
+  if (/\b(border|matte|add\s+a\s+(\w+\s+)?(border|frame)|frame\s+(the\s+|this\s+)?(video|clip|it)|put\s+a\s+(border|frame|matte))\b/.test(p)) {
+    return "border";
   }
   if (/\b(stitch|concat(enate)?|join\s+(the\s+)?clips|merge\s+(the\s+)?clips|combine\s+(the\s+)?clips)\b/.test(p)) {
     return "stitch";

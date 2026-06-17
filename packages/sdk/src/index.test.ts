@@ -283,6 +283,23 @@ describe("multipart endpoints", () => {
     expect(fd.get("seconds")).toBe("2");
   });
 
+  it("border POSTs the file with thickness + color", async () => {
+    await client().border(tmpFile, { thickness: 40, color: "black" });
+    const [url, init] = lastCall();
+    expect(url).toBe("http://x/api/border");
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("thickness")).toBe("40");
+    expect(fd.get("color")).toBe("black");
+  });
+
+  it("border defaults to a 24px white frame", async () => {
+    await client().border(tmpFile);
+    const fd = lastCall()[1]?.body as FormData;
+    expect(fd.get("thickness")).toBe("24");
+    expect(fd.get("color")).toBe("white");
+  });
+
   it("kenBurns POSTs the image with direction/seconds/aspect", async () => {
     await client().kenBurns(tmpFile, { direction: "right", seconds: 8, aspect: "portrait" });
     const [url, init] = lastCall();

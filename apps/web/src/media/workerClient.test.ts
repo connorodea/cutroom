@@ -24,6 +24,7 @@ import {
   submitFreezeJob,
   submitKenBurnsJob,
   submitChromaKeyJob,
+  submitBorderJob,
   submitChainJob,
   submitTranscriptCut,
   submitHighlightsJob,
@@ -417,6 +418,28 @@ describe("multipart submit endpoints", () => {
   it("submitChromaKeyJob throws the server error on failure", async () => {
     fetchMock.mockResolvedValueOnce(res({ error: "ck boom" }, { ok: false, status: 400 }));
     await expect(submitChromaKeyJob(sampleFile(), sampleFile())).rejects.toThrow("ck boom");
+  });
+
+  it("submitBorderJob POSTs the file with thickness + color", async () => {
+    await submitBorderJob(sampleFile(), { thickness: 40, color: "black" });
+    const [url, init] = lastCall();
+    expect(url).toBe(`${BASE}/api/border`);
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("thickness")).toBe("40");
+    expect(fd.get("color")).toBe("black");
+  });
+
+  it("submitBorderJob defaults to a 24px white frame", async () => {
+    await submitBorderJob(sampleFile());
+    const fd = lastCall()[1]?.body as FormData;
+    expect(fd.get("thickness")).toBe("24");
+    expect(fd.get("color")).toBe("white");
+  });
+
+  it("submitBorderJob throws the server error on failure", async () => {
+    fetchMock.mockResolvedValueOnce(res({ error: "border boom" }, { ok: false, status: 400 }));
+    await expect(submitBorderJob(sampleFile())).rejects.toThrow("border boom");
   });
 
   it("submitPipJob POSTs main + overlay with corner/scale", async () => {

@@ -141,6 +141,12 @@ describe("routeIntent", () => {
     expect(routeIntent("replace the green background")).toBe("chromakey");
   });
 
+  it("routes border / matte requests to border", () => {
+    expect(routeIntent("add a white border")).toBe("border");
+    expect(routeIntent("frame the video")).toBe("border");
+    expect(routeIntent("put a matte around it")).toBe("border");
+  });
+
   it("prefers the specific operation over generic create", () => {
     expect(routeIntent("make a vertical video")).toBe("reframe");
   });

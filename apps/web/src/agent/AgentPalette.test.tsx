@@ -84,6 +84,7 @@ describe("AgentPalette", () => {
     ["add a freeze frame", "freezeOpen"],
     ["ken burns this photo", "kenBurnsOpen"],
     ["key out the green screen", "chromaKeyOpen"],
+    ["add a white border", "borderOpen"],
   ] as const)("routes '%s' to the matching tool and closes the palette", (prompt, flag) => {
     open();
     render(<AgentPalette />);

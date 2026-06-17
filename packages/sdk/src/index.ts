@@ -20,7 +20,7 @@ export interface TranscriptWord {
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -170,6 +170,12 @@ export class CutroomClient {
     fd.append("right", new File([await readFile(rightPath)], basename(rightPath)));
     fd.append("layout", opts.layout ?? "horizontal");
     return this.json(await fetch(`${this.baseUrl}/api/split`, { method: "POST", headers: this.authHeaders(), body: fd }));
+  }
+
+  /** Border: pad a clip with a solid colored frame (white/black/0xRRGGBB), `thickness` 2–200px → job. */
+  async border(filePath: string, opts: { thickness?: number; color?: "white" | "black" | string } = {}): Promise<Job> {
+    const fd = await this.fileForm(filePath, { thickness: String(opts.thickness ?? 24), color: opts.color ?? "white" });
+    return this.json(await fetch(`${this.baseUrl}/api/border`, { method: "POST", headers: this.authHeaders(), body: fd }));
   }
 
   /** Freeze-frame: hold the first ("start") or last ("end", default) frame still for `seconds` (0.5–10) → job. */

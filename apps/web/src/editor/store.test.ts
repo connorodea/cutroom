@@ -242,6 +242,14 @@ describe("editor store", () => {
     expect(useEditorStore.getState().chromaKeyOpen).toBe(false);
   });
 
+  it("opens and closes the Border modal", () => {
+    expect(useEditorStore.getState().borderOpen).toBe(false);
+    useEditorStore.getState().openBorder();
+    expect(useEditorStore.getState().borderOpen).toBe(true);
+    useEditorStore.getState().closeBorder();
+    expect(useEditorStore.getState().borderOpen).toBe(false);
+  });
+
   it("starts with the Overlay modal closed", () => {
     expect(useEditorStore.getState().overlayOpen).toBe(false);
   });
