@@ -153,6 +153,24 @@ export async function submitReframeJob(file: File, opts: ReframeOptions = {}): P
   return (await res.json()) as EditJob;
 }
 
+/** Chain an op onto an existing output by id (no re-upload): JSON { outputId, op, aspect?, mode? }. */
+export async function submitChainJob(
+  outputId: string,
+  op: "reframe" | "captions",
+  opts: { aspect?: "portrait" | "square" | "landscape"; mode?: "blur" | "crop" } = {},
+): Promise<EditJob> {
+  const res = await fetch(`${WORKER_URL}/api/chain`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ outputId, op, ...opts }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error || `chain failed (${res.status})`);
+  }
+  return (await res.json()) as EditJob;
+}
+
 export async function getJob(id: string): Promise<EditJob> {
   const res = await fetch(`${WORKER_URL}/api/jobs/${id}`);
   if (!res.ok) throw new Error(`job ${id} (${res.status})`);

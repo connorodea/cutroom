@@ -6,6 +6,7 @@ import {
   submitEditJob,
   submitOverlayJob,
   submitCaptionsJob,
+  submitChainJob,
   submitTranscriptCut,
   submitHighlightsJob,
   submitReframeJob,
@@ -167,6 +168,18 @@ describe("multipart submit endpoints", () => {
 });
 
 describe("getJob + pollJob", () => {
+  it("submitChainJob POSTs the outputId, op and options", async () => {
+    await submitChainJob("out-1", "reframe", { aspect: "portrait", mode: "blur" });
+    const [url, init] = lastCall();
+    expect(url).toBe(`${BASE}/api/chain`);
+    expect(JSON.parse(init?.body as string)).toEqual({ outputId: "out-1", op: "reframe", aspect: "portrait", mode: "blur" });
+  });
+
+  it("submitChainJob throws the server error on failure", async () => {
+    fetchMock.mockResolvedValueOnce(res({ error: "chain boom" }, { ok: false, status: 404 }));
+    await expect(submitChainJob("x", "captions")).rejects.toThrow("chain boom");
+  });
+
   it("getJob GETs /api/jobs/:id", async () => {
     fetchMock.mockResolvedValueOnce(res({ id: "g1", status: "done" }));
     const job = await getJob("g1");

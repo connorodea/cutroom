@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { useEditorStore } from "../editor/store";
 import { Icon } from "../components/Icon";
+import { ChainActions } from "./ChainActions";
 import { outputUrl, pollJob, submitReframeJob, type EditJob, type ReframeOptions } from "./workerClient";
 
 const ACCENT = "#4FD1C5";
@@ -203,6 +204,7 @@ export function ReframeModal() {
                   <Icon name="upload" size={14} />Download
                 </a>
               </div>
+              <ChainActions outputId={result.outputId} />
             </>
           )}
 
