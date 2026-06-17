@@ -67,4 +67,27 @@ describe("OverlayModal", () => {
     });
     expect(await screen.findByText("Done")).toBeInTheDocument();
   });
+
+  it("renders and updates the x/y inputs for a callout", () => {
+    open();
+    render(<OverlayModal />);
+    uploadVideo();
+    fireEvent.click(screen.getByRole("button", { name: /Add graphic/ }));
+    fireEvent.click(screen.getByText("Callout"));
+    const numbers = screen.getAllByRole("spinbutton"); // x, y, start, end
+    expect(numbers.length).toBeGreaterThanOrEqual(4);
+    fireEvent.change(numbers[0], { target: { value: "0.7" } });
+    expect(numbers[0]).toHaveValue(0.7);
+  });
+
+  it("renders and updates the corner select for a badge", () => {
+    open();
+    render(<OverlayModal />);
+    uploadVideo();
+    fireEvent.click(screen.getByRole("button", { name: /Add graphic/ }));
+    fireEvent.click(screen.getByText("Badge"));
+    const select = screen.getByRole("combobox");
+    fireEvent.change(select, { target: { value: "bl" } });
+    expect(select).toHaveValue("bl");
+  });
 });

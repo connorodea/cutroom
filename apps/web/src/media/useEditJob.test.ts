@@ -46,6 +46,16 @@ describe("useEditJob", () => {
     vi.useRealTimers();
   });
 
+  it("enters the error phase when the job finishes with an error status", async () => {
+    fetchMock.mockResolvedValueOnce(res({ id: "j", status: "error", error: "render failed" }));
+    const { result } = renderHook(() => useEditJob());
+    await act(async () => {
+      await result.current.run(file());
+    });
+    expect(result.current.phase).toBe("error");
+    expect(result.current.error).toBe("render failed");
+  });
+
   it("enters the error phase when the upload fails", async () => {
     fetchMock.mockResolvedValueOnce(res("", { ok: false, status: 413 }));
     const { result } = renderHook(() => useEditJob());

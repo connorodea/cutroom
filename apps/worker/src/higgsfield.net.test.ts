@@ -65,6 +65,16 @@ describe("higgsfield network", () => {
     await expect(generateImage("x", "16:9")).rejects.toThrow(/403: not_enough_credits/);
   });
 
+  it("throws when the submit response carries no request_id", async () => {
+    fetchMock.mockResolvedValueOnce(res({ status: "queued" })); // ok, but no request_id
+    await expect(generateImage("x", "16:9")).rejects.toThrow(/no request_id/);
+  });
+
+  it("throws when a completed request returns no media", async () => {
+    fetchMock.mockResolvedValueOnce(res({ status: "completed" })); // terminal, no images/video
+    await expect(pollRequest("r", { intervalMs: 0 })).rejects.toThrow(/without media/);
+  });
+
   it("downloadTo writes the fetched bytes to disk", async () => {
     fetchMock.mockResolvedValueOnce(res("VIDEOBYTES"));
     const dest = join(tmpdir(), `hf-${Date.now()}-${Math.random().toString(36).slice(2)}.mp4`);

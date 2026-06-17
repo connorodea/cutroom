@@ -104,6 +104,11 @@ describe("multipart submit endpoints", () => {
     ]);
   });
 
+  it("submitOverlayJob throws the server error on failure", async () => {
+    fetchMock.mockResolvedValueOnce(res({ error: "overlay boom" }, { ok: false, status: 400 }));
+    await expect(submitOverlayJob(sampleFile(), [])).rejects.toThrow("overlay boom");
+  });
+
   it("transcribeVideo POSTs the file and returns the transcript", async () => {
     fetchMock.mockResolvedValueOnce(res({ sourceId: "s1", duration: 3, words: [{ word: "hi", start: 0, end: 1 }] }));
     const t = await transcribeVideo(sampleFile());
