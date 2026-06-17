@@ -300,6 +300,23 @@ describe("multipart endpoints", () => {
     expect(fd.get("color")).toBe("white");
   });
 
+  it("censor POSTs the file with region + strength", async () => {
+    await client().censor(tmpFile, { region: "top", strength: 30 });
+    const [url, init] = lastCall();
+    expect(url).toBe("http://x/api/censor");
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("region")).toBe("top");
+    expect(fd.get("strength")).toBe("30");
+  });
+
+  it("censor defaults to the center at strength 20", async () => {
+    await client().censor(tmpFile);
+    const fd = lastCall()[1]?.body as FormData;
+    expect(fd.get("region")).toBe("center");
+    expect(fd.get("strength")).toBe("20");
+  });
+
   it("kenBurns POSTs the image with direction/seconds/aspect", async () => {
     await client().kenBurns(tmpFile, { direction: "right", seconds: 8, aspect: "portrait" });
     const [url, init] = lastCall();

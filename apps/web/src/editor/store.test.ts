@@ -250,6 +250,14 @@ describe("editor store", () => {
     expect(useEditorStore.getState().borderOpen).toBe(false);
   });
 
+  it("opens and closes the Censor modal", () => {
+    expect(useEditorStore.getState().censorOpen).toBe(false);
+    useEditorStore.getState().openCensor();
+    expect(useEditorStore.getState().censorOpen).toBe(true);
+    useEditorStore.getState().closeCensor();
+    expect(useEditorStore.getState().censorOpen).toBe(false);
+  });
+
   it("starts with the Overlay modal closed", () => {
     expect(useEditorStore.getState().overlayOpen).toBe(false);
   });

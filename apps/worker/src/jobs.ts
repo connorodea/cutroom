@@ -24,6 +24,7 @@ import { runFreezePipeline } from "./freeze";
 import { runKenBurnsPipeline } from "./kenburns";
 import { runChromaKeyPipeline } from "./chromakey";
 import { runBorderPipeline } from "./border";
+import { runCensorPipeline } from "./censor";
 import { generateImage, imageToVideo, downloadTo, type ImageModel, type VideoModel } from "./higgsfield";
 import { extractAudio, ffprobeDimensions, ffprobeDuration } from "./ffmpeg";
 import { transcribe, type Word } from "./transcribe";
@@ -32,7 +33,7 @@ export type JobStatus = "queued" | "running" | "done" | "error";
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "image" | "video";
   status: JobStatus;
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -736,6 +737,31 @@ export function createBorderJob(inputPath: string, thickness: unknown, color: un
       const r = await runBorderPipeline(inputPath, thickness, color, workDir, id);
       job.status = "done";
       job.result = { outputId: id, borderThickness: r.thickness, borderColor: r.color, width: r.width, height: r.height };
+    } catch (err) {
+      job.status = "error";
+      job.error = (err as Error).message;
+      // eslint-disable-next-line no-console
+      console.error("[job]", id, "failed:", err);
+    }
+  })();
+  return job;
+}
+
+/**
+ * Create + run a Censor job: blur a named region of the frame (face / plate / logo). The output is
+ * `${jobId}.mp4`. Runs async; poll the job for status.
+ */
+export function createCensorJob(inputPath: string, region: unknown, strength: unknown, workDir: string): Job {
+  const id = randomUUID();
+  const job: Job = { id, type: "censor", status: "queued", createdAt: Date.now() };
+  jobs.set(id, job);
+  void (async () => {
+    try {
+      job.status = "running";
+      job.step = "blur region";
+      const r = await runCensorPipeline(inputPath, region, strength, workDir, id);
+      job.status = "done";
+      job.result = { outputId: id, censorRegion: r.region, censorStrength: r.strength };
     } catch (err) {
       job.status = "error";
       job.error = (err as Error).message;

@@ -147,6 +147,12 @@ describe("routeIntent", () => {
     expect(routeIntent("put a matte around it")).toBe("border");
   });
 
+  it("routes censor / blur-out requests to censor", () => {
+    expect(routeIntent("blur out the license plate")).toBe("censor");
+    expect(routeIntent("censor the face")).toBe("censor");
+    expect(routeIntent("pixelate the logo")).toBe("censor");
+  });
+
   it("prefers the specific operation over generic create", () => {
     expect(routeIntent("make a vertical video")).toBe("reframe");
   });

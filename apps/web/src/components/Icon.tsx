@@ -1,6 +1,6 @@
 import {
   Activity, ArrowLeft, ArrowUpRight, AudioLines, Camera, Captions, Check, ChevronDown,
-  CircleCheckBig, Clapperboard, Columns2, Combine, Contrast, CornerDownLeft, Crop, Dot, Film, Folder, Gauge, Layers, Magnet,
+  CircleCheckBig, Clapperboard, Columns2, Combine, Contrast, CornerDownLeft, Crop, Dot, EyeOff, Film, Folder, Gauge, Layers, Magnet,
   Maximize2, Monitor, MousePointer2, Palette, PictureInPicture2, Play, Plus, Quote, Redo2, Repeat, Rewind, RotateCw, Scissors,
   Search, SkipBack, SkipForward, SlidersHorizontal, Smartphone, Snowflake, Sparkles, Square, Type,
   Undo2, Upload, Volume2, Wand2, ZoomIn, ZoomOut,
@@ -12,7 +12,7 @@ const ICONS: Record<string, LucideIcon> = {
   activity: Activity, "arrow-left": ArrowLeft, "arrow-up-right": ArrowUpRight,
   "audio-lines": AudioLines, camera: Camera, captions: Captions, check: Check, "chevron-down": ChevronDown,
   "circle-check-big": CircleCheckBig, clapperboard: Clapperboard, "columns-2": Columns2, combine: Combine, contrast: Contrast, "corner-down-left": CornerDownLeft,
-  crop: Crop, dot: Dot, film: Film, folder: Folder, gauge: Gauge, layers: Layers, magnet: Magnet, "maximize-2": Maximize2,
+  crop: Crop, dot: Dot, "eye-off": EyeOff, film: Film, folder: Folder, gauge: Gauge, layers: Layers, magnet: Magnet, "maximize-2": Maximize2,
   monitor: Monitor, "mouse-pointer-2": MousePointer2, palette: Palette, pip: PictureInPicture2, play: Play, plus: Plus,
   quote: Quote, "redo-2": Redo2, repeat: Repeat, rewind: Rewind, "rotate-cw": RotateCw, scissors: Scissors, search: Search, "skip-back": SkipBack,
   "skip-forward": SkipForward, "sliders-horizontal": SlidersHorizontal, smartphone: Smartphone,

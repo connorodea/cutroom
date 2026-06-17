@@ -85,6 +85,7 @@ describe("AgentPalette", () => {
     ["ken burns this photo", "kenBurnsOpen"],
     ["key out the green screen", "chromaKeyOpen"],
     ["add a white border", "borderOpen"],
+    ["blur out the license plate", "censorOpen"],
   ] as const)("routes '%s' to the matching tool and closes the palette", (prompt, flag) => {
     open();
     render(<AgentPalette />);

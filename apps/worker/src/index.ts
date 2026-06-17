@@ -29,6 +29,7 @@ import {
   createKenBurnsJob,
   createChromaKeyJob,
   createBorderJob,
+  createCensorJob,
   createStitchJob,
   createThumbnailJob,
   createWatermarkJob,
@@ -433,6 +434,18 @@ app.post("/api/border", async (c) => {
   const inputPath = `${MEDIA_DIR}/border-${Date.now()}${ext}`;
   await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
   const job = createBorderJob(inputPath, body["thickness"], body["color"], MEDIA_DIR);
+  return c.json(job, 202);
+});
+
+/** Censor — blur a named region of the frame (face/plate/logo): multipart { file, region, strength }. */
+app.post("/api/censor", async (c) => {
+  const body = await c.req.parseBody();
+  const file = body["file"];
+  if (!(file instanceof File)) return c.json({ error: "missing 'file' (multipart)" }, 400);
+  const ext = extname(file.name || "") || ".mp4";
+  const inputPath = `${MEDIA_DIR}/censor-${Date.now()}${ext}`;
+  await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
+  const job = createCensorJob(inputPath, body["region"], body["strength"], MEDIA_DIR);
   return c.json(job, 202);
 });
 

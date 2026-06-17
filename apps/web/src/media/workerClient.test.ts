@@ -25,6 +25,7 @@ import {
   submitKenBurnsJob,
   submitChromaKeyJob,
   submitBorderJob,
+  submitCensorJob,
   submitChainJob,
   submitTranscriptCut,
   submitHighlightsJob,
@@ -440,6 +441,28 @@ describe("multipart submit endpoints", () => {
   it("submitBorderJob throws the server error on failure", async () => {
     fetchMock.mockResolvedValueOnce(res({ error: "border boom" }, { ok: false, status: 400 }));
     await expect(submitBorderJob(sampleFile())).rejects.toThrow("border boom");
+  });
+
+  it("submitCensorJob POSTs the file with region + strength", async () => {
+    await submitCensorJob(sampleFile(), { region: "top", strength: 30 });
+    const [url, init] = lastCall();
+    expect(url).toBe(`${BASE}/api/censor`);
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("region")).toBe("top");
+    expect(fd.get("strength")).toBe("30");
+  });
+
+  it("submitCensorJob defaults to the center at strength 20", async () => {
+    await submitCensorJob(sampleFile());
+    const fd = lastCall()[1]?.body as FormData;
+    expect(fd.get("region")).toBe("center");
+    expect(fd.get("strength")).toBe("20");
+  });
+
+  it("submitCensorJob throws the server error on failure", async () => {
+    fetchMock.mockResolvedValueOnce(res({ error: "censor boom" }, { ok: false, status: 400 }));
+    await expect(submitCensorJob(sampleFile())).rejects.toThrow("censor boom");
   });
 
   it("submitPipJob POSTs main + overlay with corner/scale", async () => {

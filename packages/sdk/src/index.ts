@@ -20,7 +20,7 @@ export interface TranscriptWord {
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -176,6 +176,12 @@ export class CutroomClient {
   async border(filePath: string, opts: { thickness?: number; color?: "white" | "black" | string } = {}): Promise<Job> {
     const fd = await this.fileForm(filePath, { thickness: String(opts.thickness ?? 24), color: opts.color ?? "white" });
     return this.json(await fetch(`${this.baseUrl}/api/border`, { method: "POST", headers: this.authHeaders(), body: fd }));
+  }
+
+  /** Censor: blur a named region (center/top/bottom/left/right) of the frame, `strength` 2–50 → job. */
+  async censor(filePath: string, opts: { region?: "center" | "top" | "bottom" | "left" | "right"; strength?: number } = {}): Promise<Job> {
+    const fd = await this.fileForm(filePath, { region: opts.region ?? "center", strength: String(opts.strength ?? 20) });
+    return this.json(await fetch(`${this.baseUrl}/api/censor`, { method: "POST", headers: this.authHeaders(), body: fd }));
   }
 
   /** Freeze-frame: hold the first ("start") or last ("end", default) frame still for `seconds` (0.5–10) → job. */

@@ -60,6 +60,8 @@ export interface EditorState {
   chromaKeyOpen: boolean;
   /** Whether the Border (matte frame) modal is open. */
   borderOpen: boolean;
+  /** Whether the Censor (blur region) modal is open. */
+  censorOpen: boolean;
 
   /** Output ids of AI-created videos this session, newest-first. */
   createdOutputs: string[];
@@ -127,6 +129,8 @@ export interface EditorState {
   closeChromaKey: () => void;
   openBorder: () => void;
   closeBorder: () => void;
+  openCensor: () => void;
+  closeCensor: () => void;
   /** Record an AI-created output id (newest-first, de-duplicated). */
   addCreatedOutput: (outputId: string) => void;
 
@@ -167,6 +171,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   kenBurnsOpen: false,
   chromaKeyOpen: false,
   borderOpen: false,
+  censorOpen: false,
   createdOutputs: [],
   phase: "idle",
   active: -1,
@@ -229,6 +234,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   closeChromaKey: () => set({ chromaKeyOpen: false }),
   openBorder: () => set({ borderOpen: true }),
   closeBorder: () => set({ borderOpen: false }),
+  openCensor: () => set({ censorOpen: true }),
+  closeCensor: () => set({ censorOpen: false }),
   addCreatedOutput: (outputId) =>
     set((s) => ({ createdOutputs: [outputId, ...s.createdOutputs.filter((id) => id !== outputId)] })),
 
