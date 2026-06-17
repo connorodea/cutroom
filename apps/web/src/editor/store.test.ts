@@ -114,6 +114,14 @@ describe("editor store", () => {
     expect(useEditorStore.getState().trimOpen).toBe(false);
   });
 
+  it("opens and closes the Color modal", () => {
+    expect(useEditorStore.getState().colorOpen).toBe(false);
+    useEditorStore.getState().openColor();
+    expect(useEditorStore.getState().colorOpen).toBe(true);
+    useEditorStore.getState().closeColor();
+    expect(useEditorStore.getState().colorOpen).toBe(false);
+  });
+
   it("starts with the Overlay modal closed", () => {
     expect(useEditorStore.getState().overlayOpen).toBe(false);
   });

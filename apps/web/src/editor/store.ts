@@ -26,6 +26,8 @@ export interface EditorState {
   speedOpen: boolean;
   /** Whether the Trim (in/out window) modal is open. */
   trimOpen: boolean;
+  /** Whether the Color (grade / looks) modal is open. */
+  colorOpen: boolean;
 
   /** Output ids of AI-created videos this session, newest-first. */
   createdOutputs: string[];
@@ -59,6 +61,8 @@ export interface EditorState {
   closeSpeed: () => void;
   openTrim: () => void;
   closeTrim: () => void;
+  openColor: () => void;
+  closeColor: () => void;
   /** Record an AI-created output id (newest-first, de-duplicated). */
   addCreatedOutput: (outputId: string) => void;
 
@@ -82,6 +86,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   captionsOpen: false,
   speedOpen: false,
   trimOpen: false,
+  colorOpen: false,
   createdOutputs: [],
   phase: "idle",
   active: -1,
@@ -110,6 +115,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   closeSpeed: () => set({ speedOpen: false }),
   openTrim: () => set({ trimOpen: true }),
   closeTrim: () => set({ trimOpen: false }),
+  openColor: () => set({ colorOpen: true }),
+  closeColor: () => set({ colorOpen: false }),
   addCreatedOutput: (outputId) =>
     set((s) => ({ createdOutputs: [outputId, ...s.createdOutputs.filter((id) => id !== outputId)] })),
 

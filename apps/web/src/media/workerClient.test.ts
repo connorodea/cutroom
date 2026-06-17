@@ -8,6 +8,7 @@ import {
   submitCaptionsJob,
   submitSpeedJob,
   submitTrimJob,
+  submitColorJob,
   submitChainJob,
   submitTranscriptCut,
   submitHighlightsJob,
@@ -171,6 +172,25 @@ describe("multipart submit endpoints", () => {
   it("submitTrimJob throws the server error on failure", async () => {
     fetchMock.mockResolvedValueOnce(res({ error: "trim boom" }, { ok: false, status: 400 }));
     await expect(submitTrimJob(sampleFile())).rejects.toThrow("trim boom");
+  });
+
+  it("submitColorJob POSTs the file with the preset", async () => {
+    await submitColorJob(sampleFile(), { preset: "cinematic" });
+    const [url, init] = lastCall();
+    expect(url).toBe(`${BASE}/api/color`);
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("preset")).toBe("cinematic");
+  });
+
+  it("submitColorJob defaults the preset to none", async () => {
+    await submitColorJob(sampleFile());
+    expect((lastCall()[1]?.body as FormData).get("preset")).toBe("none");
+  });
+
+  it("submitColorJob throws the server error on failure", async () => {
+    fetchMock.mockResolvedValueOnce(res({ error: "color boom" }, { ok: false, status: 400 }));
+    await expect(submitColorJob(sampleFile())).rejects.toThrow("color boom");
   });
 
   it("submitOverlayJob POSTs the file plus a JSON overlays field", async () => {

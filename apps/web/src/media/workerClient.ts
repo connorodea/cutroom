@@ -8,7 +8,7 @@ const WORKER_URL =
 
 export interface EditJob {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: {
@@ -37,6 +37,9 @@ export interface EditJob {
     /** For trim jobs: the kept window (seconds). */
     start?: number;
     end?: number;
+    /** For color jobs: the applied saturation + contrast. */
+    saturation?: number;
+    contrast?: number;
   };
   error?: string;
 }
@@ -129,6 +132,19 @@ export async function submitCaptionsJob(file: File, opts: { position?: "bottom" 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error((body as { error?: string }).error || `captions failed (${res.status})`);
+  }
+  return (await res.json()) as EditJob;
+}
+
+/** Color-grade a video with a named look: multipart { file, preset }. */
+export async function submitColorJob(file: File, opts: { preset?: string } = {}): Promise<EditJob> {
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("preset", opts.preset ?? "none");
+  const res = await fetch(`${WORKER_URL}/api/color`, { method: "POST", body: fd });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error || `color failed (${res.status})`);
   }
   return (await res.json()) as EditJob;
 }

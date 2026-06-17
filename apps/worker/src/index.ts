@@ -14,6 +14,7 @@ import {
   createHighlightsJob,
   createImageGenJob,
   createOverlayJob,
+  createColorJob,
   createReframeJob,
   createSpeedJob,
   createTrimJob,
@@ -218,6 +219,22 @@ app.post("/api/trim", async (c) => {
   const inputPath = `${MEDIA_DIR}/tr-${Date.now()}${ext}`;
   await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
   const job = createTrimJob(inputPath, body["start"], body["end"], MEDIA_DIR);
+  return c.json(job, 202);
+});
+
+/** Color grade — apply a named look or custom adjustments: multipart { file, preset, brightness, … }. */
+app.post("/api/color", async (c) => {
+  const body = await c.req.parseBody();
+  const file = body["file"];
+  if (!(file instanceof File)) return c.json({ error: "missing 'file' (multipart)" }, 400);
+  const ext = extname(file.name || "") || ".mp4";
+  const inputPath = `${MEDIA_DIR}/col-${Date.now()}${ext}`;
+  await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
+  const job = createColorJob(
+    inputPath,
+    { preset: body["preset"], brightness: body["brightness"], contrast: body["contrast"], saturation: body["saturation"], gamma: body["gamma"] },
+    MEDIA_DIR,
+  );
   return c.json(job, 202);
 });
 

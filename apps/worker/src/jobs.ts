@@ -7,6 +7,7 @@ import { planHighlights, runHighlightsPipeline, type HighlightOptions } from "./
 import { runCaptionsPipeline } from "./captions";
 import { runSpeedPipeline } from "./speed";
 import { runTrimPipeline } from "./trim";
+import { runColorPipeline, type ColorInput } from "./color";
 import { generateImage, imageToVideo, downloadTo, type ImageModel, type VideoModel } from "./higgsfield";
 import { extractAudio, ffprobeDimensions, ffprobeDuration } from "./ffmpeg";
 import { transcribe, type Word } from "./transcribe";
@@ -15,7 +16,7 @@ export type JobStatus = "queued" | "running" | "done" | "error";
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "image" | "video";
   status: JobStatus;
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -294,6 +295,31 @@ export function createTrimJob(inputPath: string, rawStart: unknown, rawEnd: unkn
       const r = await runTrimPipeline(inputPath, rawStart, rawEnd, workDir, id);
       job.status = "done";
       job.result = { outputId: id, start: r.start, end: r.end, durationSec: r.durationSec };
+    } catch (err) {
+      job.status = "error";
+      job.error = (err as Error).message;
+      // eslint-disable-next-line no-console
+      console.error("[job]", id, "failed:", err);
+    }
+  })();
+  return job;
+}
+
+/**
+ * Create + run a Color job: apply a named look (or custom brightness/contrast/saturation/gamma)
+ * to the upload via ffmpeg `eq`. The output is `${jobId}.mp4`. Runs async; poll the job for status.
+ */
+export function createColorJob(inputPath: string, input: ColorInput, workDir: string): Job {
+  const id = randomUUID();
+  const job: Job = { id, type: "color", status: "queued", createdAt: Date.now() };
+  jobs.set(id, job);
+  void (async () => {
+    try {
+      job.status = "running";
+      job.step = "color grade (eq)";
+      const r = await runColorPipeline(inputPath, input, workDir, id);
+      job.status = "done";
+      job.result = { outputId: id, saturation: r.adjust.saturation, contrast: r.adjust.contrast };
     } catch (err) {
       job.status = "error";
       job.error = (err as Error).message;

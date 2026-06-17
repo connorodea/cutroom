@@ -171,6 +171,18 @@ describe("multipart endpoints", () => {
     expect((lastCall()[1]?.body as FormData).get("factor")).toBe("2");
   });
 
+  it("color POSTs the file with the preset and only the provided overrides", async () => {
+    await client().color(tmpFile, { preset: "vivid", saturation: 1.4 });
+    const [url, init] = lastCall();
+    expect(url).toBe("http://x/api/color");
+    expect(init?.method).toBe("POST");
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("preset")).toBe("vivid");
+    expect(fd.get("saturation")).toBe("1.4");
+    expect(fd.get("brightness")).toBeNull();
+  });
+
   it("trim POSTs the file with the start/end window", async () => {
     await client().trim(tmpFile, { start: 5, end: 12 });
     const [url, init] = lastCall();
