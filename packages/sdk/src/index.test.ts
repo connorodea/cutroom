@@ -156,6 +156,21 @@ describe("multipart endpoints", () => {
     expect(fd.get("position")).toBe("top");
   });
 
+  it("speed POSTs the file with the factor", async () => {
+    await client().speed(tmpFile, { factor: 4 });
+    const [url, init] = lastCall();
+    expect(url).toBe("http://x/api/speed");
+    expect(init?.method).toBe("POST");
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("factor")).toBe("4");
+  });
+
+  it("speed defaults the factor to 2", async () => {
+    await client().speed(tmpFile);
+    expect((lastCall()[1]?.body as FormData).get("factor")).toBe("2");
+  });
+
   it("transcribe POSTs the file to /api/transcribe", async () => {
     await client().transcribe(tmpFile);
     const [url, init] = lastCall();

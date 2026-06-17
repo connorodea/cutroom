@@ -15,6 +15,7 @@ import {
   createImageGenJob,
   createOverlayJob,
   createReframeJob,
+  createSpeedJob,
   createTranscriptCutJob,
   createVideoGenJob,
   getJob,
@@ -23,6 +24,7 @@ import {
 } from "./jobs";
 import { parseTokens, isAuthorized } from "./auth";
 import { safeOutputId, parseChainOp } from "./chain";
+import { normalizeSpeed } from "./speed";
 
 const exec = promisify(execFile);
 
@@ -190,6 +192,19 @@ app.post("/api/reframe", async (c) => {
   const inputPath = `${MEDIA_DIR}/rf-${Date.now()}${ext}`;
   await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
   const job = createReframeJob(inputPath, { aspect, mode }, MEDIA_DIR);
+  return c.json(job, 202);
+});
+
+/** Speed change — retime an upload (>1 timelapse, <1 slow-motion): multipart { file, factor }. */
+app.post("/api/speed", async (c) => {
+  const body = await c.req.parseBody();
+  const file = body["file"];
+  if (!(file instanceof File)) return c.json({ error: "missing 'file' (multipart)" }, 400);
+  const factor = normalizeSpeed(body["factor"]);
+  const ext = extname(file.name || "") || ".mp4";
+  const inputPath = `${MEDIA_DIR}/sp-${Date.now()}${ext}`;
+  await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
+  const job = createSpeedJob(inputPath, factor, MEDIA_DIR);
   return c.json(job, 202);
 });
 

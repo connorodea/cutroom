@@ -5,6 +5,7 @@ import { applyOverlays } from "./overlay";
 import { runReframePipeline, type ReframeAspect, type ReframeMode } from "./reframe";
 import { planHighlights, runHighlightsPipeline, type HighlightOptions } from "./highlights";
 import { runCaptionsPipeline } from "./captions";
+import { runSpeedPipeline } from "./speed";
 import { generateImage, imageToVideo, downloadTo, type ImageModel, type VideoModel } from "./higgsfield";
 import { extractAudio, ffprobeDimensions, ffprobeDuration } from "./ffmpeg";
 import { transcribe, type Word } from "./transcribe";
@@ -13,7 +14,7 @@ export type JobStatus = "queued" | "running" | "done" | "error";
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "image" | "video";
   status: JobStatus;
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -242,6 +243,31 @@ export function createTranscriptCutJob(
       const r = await runTranscriptCutPipeline(source.inputPath, source.words, removedIndices, source.duration, source.dims, workDir, id, opts);
       job.status = "done";
       job.result = { outputId: id, totalWords: r.totalWords, segments: r.segments, removedSec: r.removedSec };
+    } catch (err) {
+      job.status = "error";
+      job.error = (err as Error).message;
+      // eslint-disable-next-line no-console
+      console.error("[job]", id, "failed:", err);
+    }
+  })();
+  return job;
+}
+
+/**
+ * Create + run a Speed job: retime a video by a factor (>1 timelapse, <1 slow-motion), retiming
+ * audio in lock-step when present. The output is `${jobId}.mp4`. Runs async; poll for status.
+ */
+export function createSpeedJob(inputPath: string, factor: number, workDir: string): Job {
+  const id = randomUUID();
+  const job: Job = { id, type: "speed", status: "queued", createdAt: Date.now() };
+  jobs.set(id, job);
+  void (async () => {
+    try {
+      job.status = "running";
+      job.step = "retime (setpts + atempo)";
+      const r = await runSpeedPipeline(inputPath, factor, workDir, id);
+      job.status = "done";
+      job.result = { outputId: id, factor: r.factor, hadAudio: r.hadAudio };
     } catch (err) {
       job.status = "error";
       job.error = (err as Error).message;

@@ -35,6 +35,20 @@ export async function ffprobeDimensions(input: string): Promise<{ width: number;
   return { width: 1280, height: 720 };
 }
 
+/** Whether the file has at least one audio stream. */
+export async function ffprobeHasAudio(input: string): Promise<boolean> {
+  try {
+    const out = await run("ffprobe", [
+      "-v", "error", "-select_streams", "a",
+      "-show_entries", "stream=index",
+      "-of", "csv=p=0", input,
+    ]);
+    return out.trim().length > 0;
+  } catch {
+    return false;
+  }
+}
+
 /** Extract 16kHz mono WAV (Whisper's preferred input). */
 export async function extractAudio(input: string, output: string): Promise<void> {
   await run("ffmpeg", ["-y", "-i", input, "-vn", "-ac", "1", "-ar", "16000", "-f", "wav", output]);

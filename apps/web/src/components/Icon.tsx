@@ -1,6 +1,6 @@
 import {
   Activity, ArrowLeft, ArrowUpRight, AudioLines, Captions, Check, ChevronDown,
-  CircleCheckBig, Clapperboard, CornerDownLeft, Crop, Dot, Film, Folder, Layers, Magnet,
+  CircleCheckBig, Clapperboard, CornerDownLeft, Crop, Dot, Film, Folder, Gauge, Layers, Magnet,
   Maximize2, Monitor, MousePointer2, Palette, Play, Plus, Quote, Redo2, Scissors,
   Search, SkipBack, SkipForward, SlidersHorizontal, Smartphone, Sparkles, Type,
   Undo2, Upload, Volume2, Wand2, ZoomIn, ZoomOut,
@@ -12,7 +12,7 @@ const ICONS: Record<string, LucideIcon> = {
   activity: Activity, "arrow-left": ArrowLeft, "arrow-up-right": ArrowUpRight,
   "audio-lines": AudioLines, captions: Captions, check: Check, "chevron-down": ChevronDown,
   "circle-check-big": CircleCheckBig, clapperboard: Clapperboard, "corner-down-left": CornerDownLeft,
-  crop: Crop, dot: Dot, film: Film, folder: Folder, layers: Layers, magnet: Magnet, "maximize-2": Maximize2,
+  crop: Crop, dot: Dot, film: Film, folder: Folder, gauge: Gauge, layers: Layers, magnet: Magnet, "maximize-2": Maximize2,
   monitor: Monitor, "mouse-pointer-2": MousePointer2, palette: Palette, play: Play, plus: Plus,
   quote: Quote, "redo-2": Redo2, scissors: Scissors, search: Search, "skip-back": SkipBack,
   "skip-forward": SkipForward, "sliders-horizontal": SlidersHorizontal, smartphone: Smartphone,

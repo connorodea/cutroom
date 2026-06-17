@@ -6,6 +6,7 @@ import {
   submitEditJob,
   submitOverlayJob,
   submitCaptionsJob,
+  submitSpeedJob,
   submitChainJob,
   submitTranscriptCut,
   submitHighlightsJob,
@@ -128,6 +129,25 @@ describe("multipart submit endpoints", () => {
   it("submitCaptionsJob throws the server error on failure", async () => {
     fetchMock.mockResolvedValueOnce(res({ error: "captions boom" }, { ok: false, status: 400 }));
     await expect(submitCaptionsJob(sampleFile())).rejects.toThrow("captions boom");
+  });
+
+  it("submitSpeedJob POSTs the file with the speed factor", async () => {
+    await submitSpeedJob(sampleFile(), { factor: 4 });
+    const [url, init] = lastCall();
+    expect(url).toBe(`${BASE}/api/speed`);
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("factor")).toBe("4");
+  });
+
+  it("submitSpeedJob defaults the factor to 2", async () => {
+    await submitSpeedJob(sampleFile());
+    expect((lastCall()[1]?.body as FormData).get("factor")).toBe("2");
+  });
+
+  it("submitSpeedJob throws the server error on failure", async () => {
+    fetchMock.mockResolvedValueOnce(res({ error: "speed boom" }, { ok: false, status: 400 }));
+    await expect(submitSpeedJob(sampleFile())).rejects.toThrow("speed boom");
   });
 
   it("submitOverlayJob POSTs the file plus a JSON overlays field", async () => {

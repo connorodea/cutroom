@@ -98,6 +98,14 @@ describe("editor store", () => {
     expect(useEditorStore.getState().captionsOpen).toBe(false);
   });
 
+  it("opens and closes the Speed modal", () => {
+    expect(useEditorStore.getState().speedOpen).toBe(false);
+    useEditorStore.getState().openSpeed();
+    expect(useEditorStore.getState().speedOpen).toBe(true);
+    useEditorStore.getState().closeSpeed();
+    expect(useEditorStore.getState().speedOpen).toBe(false);
+  });
+
   it("starts with the Overlay modal closed", () => {
     expect(useEditorStore.getState().overlayOpen).toBe(false);
   });

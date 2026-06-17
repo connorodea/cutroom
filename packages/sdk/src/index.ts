@@ -20,7 +20,7 @@ export interface TranscriptWord {
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -155,6 +155,12 @@ export class CutroomClient {
   async captions(filePath: string, opts: { position?: "bottom" | "top" } = {}): Promise<Job> {
     const fd = await this.fileForm(filePath, { position: opts.position ?? "bottom" });
     return this.json(await fetch(`${this.baseUrl}/api/captions`, { method: "POST", headers: this.authHeaders(), body: fd }));
+  }
+
+  /** Retime a video by a speed factor (>1 timelapse, <1 slow-motion), retiming audio too → job. */
+  async speed(filePath: string, opts: { factor?: number } = {}): Promise<Job> {
+    const fd = await this.fileForm(filePath, { factor: String(opts.factor ?? 2) });
+    return this.json(await fetch(`${this.baseUrl}/api/speed`, { method: "POST", headers: this.authHeaders(), body: fd }));
   }
 
   /** Transcribe a video → word-level transcript + sourceId (for transcript edits). */

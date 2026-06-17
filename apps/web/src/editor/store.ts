@@ -22,6 +22,8 @@ export interface EditorState {
   highlightsOpen: boolean;
   /** Whether the Captions (burn-in) modal is open. */
   captionsOpen: boolean;
+  /** Whether the Speed (slow-mo / timelapse) modal is open. */
+  speedOpen: boolean;
 
   /** Output ids of AI-created videos this session, newest-first. */
   createdOutputs: string[];
@@ -51,6 +53,8 @@ export interface EditorState {
   closeHighlights: () => void;
   openCaptions: () => void;
   closeCaptions: () => void;
+  openSpeed: () => void;
+  closeSpeed: () => void;
   /** Record an AI-created output id (newest-first, de-duplicated). */
   addCreatedOutput: (outputId: string) => void;
 
@@ -72,6 +76,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   reframeOpen: false,
   highlightsOpen: false,
   captionsOpen: false,
+  speedOpen: false,
   createdOutputs: [],
   phase: "idle",
   active: -1,
@@ -96,6 +101,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   closeHighlights: () => set({ highlightsOpen: false }),
   openCaptions: () => set({ captionsOpen: true }),
   closeCaptions: () => set({ captionsOpen: false }),
+  openSpeed: () => set({ speedOpen: true }),
+  closeSpeed: () => set({ speedOpen: false }),
   addCreatedOutput: (outputId) =>
     set((s) => ({ createdOutputs: [outputId, ...s.createdOutputs.filter((id) => id !== outputId)] })),
 
