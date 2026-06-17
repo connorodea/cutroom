@@ -18,6 +18,7 @@ import { runLoopPipeline } from "./loop";
 import { runThumbnailPipeline } from "./thumbnail";
 import { runStitchPipeline } from "./stitch";
 import { runWatermarkPipeline } from "./watermark";
+import { runPipPipeline } from "./pip";
 import { generateImage, imageToVideo, downloadTo, type ImageModel, type VideoModel } from "./higgsfield";
 import { extractAudio, ffprobeDimensions, ffprobeDuration } from "./ffmpeg";
 import { transcribe, type Word } from "./transcribe";
@@ -26,7 +27,7 @@ export type JobStatus = "queued" | "running" | "done" | "error";
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "image" | "video";
   status: JobStatus;
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -580,6 +581,31 @@ export function createWatermarkJob(inputPath: string, text: string, corner: unkn
       const r = await runWatermarkPipeline(inputPath, text, corner, opacity, workDir, id);
       job.status = "done";
       job.result = { outputId: id, corner: r.corner, opacity: r.opacity };
+    } catch (err) {
+      job.status = "error";
+      job.error = (err as Error).message;
+      // eslint-disable-next-line no-console
+      console.error("[job]", id, "failed:", err);
+    }
+  })();
+  return job;
+}
+
+/**
+ * Create + run a Picture-in-picture job: composite an overlay clip into a corner of the main clip.
+ * The output is `${jobId}.mp4`. Runs async; poll the job for status.
+ */
+export function createPipJob(mainPath: string, overlayPath: string, corner: unknown, scale: unknown, workDir: string): Job {
+  const id = randomUUID();
+  const job: Job = { id, type: "pip", status: "queued", createdAt: Date.now() };
+  jobs.set(id, job);
+  void (async () => {
+    try {
+      job.status = "running";
+      job.step = "scale + composite picture-in-picture";
+      const r = await runPipPipeline(mainPath, overlayPath, corner, scale, workDir, id);
+      job.status = "done";
+      job.result = { outputId: id, corner: r.corner, scale: r.scale };
     } catch (err) {
       job.status = "error";
       job.error = (err as Error).message;

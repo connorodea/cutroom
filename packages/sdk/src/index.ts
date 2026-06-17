@@ -20,7 +20,7 @@ export interface TranscriptWord {
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -161,6 +161,16 @@ export class CutroomClient {
   async speed(filePath: string, opts: { factor?: number } = {}): Promise<Job> {
     const fd = await this.fileForm(filePath, { factor: String(opts.factor ?? 2) });
     return this.json(await fetch(`${this.baseUrl}/api/speed`, { method: "POST", headers: this.authHeaders(), body: fd }));
+  }
+
+  /** Picture-in-picture: composite `overlayPath` into a corner of `mainPath` → job. corner tl/tr/bl/br, scale 0.1–0.5. */
+  async pip(mainPath: string, overlayPath: string, opts: { corner?: "tl" | "tr" | "bl" | "br"; scale?: number } = {}): Promise<Job> {
+    const fd = new FormData();
+    fd.append("file", new File([await readFile(mainPath)], basename(mainPath)));
+    fd.append("overlay", new File([await readFile(overlayPath)], basename(overlayPath)));
+    fd.append("corner", opts.corner ?? "br");
+    fd.append("scale", String(opts.scale ?? 0.3));
+    return this.json(await fetch(`${this.baseUrl}/api/pip`, { method: "POST", headers: this.authHeaders(), body: fd }));
   }
 
   /** Burn a persistent corner watermark (text) into a video → job. corner tl/tr/bl/br, opacity 0.1–1. */

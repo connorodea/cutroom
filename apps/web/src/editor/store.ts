@@ -48,6 +48,8 @@ export interface EditorState {
   stitchOpen: boolean;
   /** Whether the Watermark (brand text) modal is open. */
   watermarkOpen: boolean;
+  /** Whether the Picture-in-picture modal is open. */
+  pipOpen: boolean;
 
   /** Output ids of AI-created videos this session, newest-first. */
   createdOutputs: string[];
@@ -103,6 +105,8 @@ export interface EditorState {
   closeStitch: () => void;
   openWatermark: () => void;
   closeWatermark: () => void;
+  openPip: () => void;
+  closePip: () => void;
   /** Record an AI-created output id (newest-first, de-duplicated). */
   addCreatedOutput: (outputId: string) => void;
 
@@ -137,6 +141,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   thumbnailOpen: false,
   stitchOpen: false,
   watermarkOpen: false,
+  pipOpen: false,
   createdOutputs: [],
   phase: "idle",
   active: -1,
@@ -187,6 +192,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   closeStitch: () => set({ stitchOpen: false }),
   openWatermark: () => set({ watermarkOpen: true }),
   closeWatermark: () => set({ watermarkOpen: false }),
+  openPip: () => set({ pipOpen: true }),
+  closePip: () => set({ pipOpen: false }),
   addCreatedOutput: (outputId) =>
     set((s) => ({ createdOutputs: [outputId, ...s.createdOutputs.filter((id) => id !== outputId)] })),
 

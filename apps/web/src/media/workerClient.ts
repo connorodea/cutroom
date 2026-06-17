@@ -8,7 +8,7 @@ const WORKER_URL =
 
 export interface EditJob {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: {
@@ -149,6 +149,21 @@ export async function submitCaptionsJob(file: File, opts: { position?: "bottom" 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error((body as { error?: string }).error || `captions failed (${res.status})`);
+  }
+  return (await res.json()) as EditJob;
+}
+
+/** Picture-in-picture: composite an overlay clip into a corner of the main clip: multipart { file, overlay, corner, scale }. */
+export async function submitPipJob(main: File, overlay: File, opts: { corner?: string; scale?: number } = {}): Promise<EditJob> {
+  const fd = new FormData();
+  fd.append("file", main);
+  fd.append("overlay", overlay);
+  fd.append("corner", opts.corner ?? "br");
+  fd.append("scale", String(opts.scale ?? 0.3));
+  const res = await fetch(`${WORKER_URL}/api/pip`, { method: "POST", body: fd });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error || `pip failed (${res.status})`);
   }
   return (await res.json()) as EditJob;
 }

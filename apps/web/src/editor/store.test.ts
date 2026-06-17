@@ -202,6 +202,14 @@ describe("editor store", () => {
     expect(useEditorStore.getState().watermarkOpen).toBe(false);
   });
 
+  it("opens and closes the Pip modal", () => {
+    expect(useEditorStore.getState().pipOpen).toBe(false);
+    useEditorStore.getState().openPip();
+    expect(useEditorStore.getState().pipOpen).toBe(true);
+    useEditorStore.getState().closePip();
+    expect(useEditorStore.getState().pipOpen).toBe(false);
+  });
+
   it("starts with the Overlay modal closed", () => {
     expect(useEditorStore.getState().overlayOpen).toBe(false);
   });

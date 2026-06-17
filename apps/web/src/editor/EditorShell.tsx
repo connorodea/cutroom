@@ -24,6 +24,7 @@ import { LoopModal } from "../media/LoopModal";
 import { ThumbnailModal } from "../media/ThumbnailModal";
 import { StitchModal } from "../media/StitchModal";
 import { WatermarkModal } from "../media/WatermarkModal";
+import { PipModal } from "../media/PipModal";
 import { ColorPage } from "./pages/ColorPage";
 import { CutPage } from "./pages/CutPage";
 import { DeliverPage } from "./pages/DeliverPage";
@@ -78,6 +79,7 @@ export function EditorShell() {
   const openThumbnail = useEditorStore((s) => s.openThumbnail);
   const openStitch = useEditorStore((s) => s.openStitch);
   const openWatermark = useEditorStore((s) => s.openWatermark);
+  const openPip = useEditorStore((s) => s.openPip);
   const toggleAgent = useEditorStore((s) => s.toggleAgent);
   const closeAgent = useEditorStore((s) => s.closeAgent);
   const agentOpen = useEditorStore((s) => s.agentOpen);
@@ -210,6 +212,9 @@ export function EditorShell() {
           <button onClick={openWatermark} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
             <Icon name="type" size={14} color={ACCENT} />Watermark
           </button>
+          <button onClick={openPip} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
+            <Icon name="pip" size={14} color={ACCENT} />PiP
+          </button>
           <button style={{ display: "flex", alignItems: "center", gap: 7, background: ACCENT, color: "#0C1012", border: "none", borderRadius: 10, padding: "8px 16px", fontSize: 12.5, fontWeight: 600, cursor: "pointer" }}>
             <Icon name="upload" size={14} />Render
           </button>
@@ -238,6 +243,7 @@ export function EditorShell() {
       <ThumbnailModal />
       <StitchModal />
       <WatermarkModal />
+      <PipModal />
     </div>
   );
 }

@@ -23,6 +23,7 @@ import {
   createReframeJob,
   createReverseJob,
   createRotateJob,
+  createPipJob,
   createStitchJob,
   createThumbnailJob,
   createWatermarkJob,
@@ -359,6 +360,22 @@ app.post("/api/loop", async (c) => {
   const inputPath = `${MEDIA_DIR}/loop-${Date.now()}${ext}`;
   await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
   const job = createLoopJob(inputPath, body["count"], MEDIA_DIR);
+  return c.json(job, 202);
+});
+
+/** Picture-in-picture — composite an overlay clip into a corner of the main clip: multipart { file (main), overlay, corner, scale }. */
+app.post("/api/pip", async (c) => {
+  const body = await c.req.parseBody();
+  const main = body["file"];
+  const overlay = body["overlay"];
+  if (!(main instanceof File) || !(overlay instanceof File)) return c.json({ error: "provide 'file' (main) and 'overlay' (multipart)" }, 400);
+  const mext = extname(main.name || "") || ".mp4";
+  const oext = extname(overlay.name || "") || ".mp4";
+  const mainPath = `${MEDIA_DIR}/pip-${Date.now()}-m${mext}`;
+  const overlayPath = `${MEDIA_DIR}/pip-${Date.now()}-o${oext}`;
+  await writeFile(mainPath, Buffer.from(await main.arrayBuffer()));
+  await writeFile(overlayPath, Buffer.from(await overlay.arrayBuffer()));
+  const job = createPipJob(mainPath, overlayPath, body["corner"], body["scale"], MEDIA_DIR);
   return c.json(job, 202);
 });
 

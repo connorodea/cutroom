@@ -251,6 +251,24 @@ describe("multipart endpoints", () => {
     expect(fd.get("level")).toBe("1");
   });
 
+  it("pip POSTs the main + overlay files with corner/scale", async () => {
+    await client().pip(tmpFile, tmpFile, { corner: "tl", scale: 0.25 });
+    const [url, init] = lastCall();
+    expect(url).toBe("http://x/api/pip");
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("overlay")).toBeInstanceOf(File);
+    expect(fd.get("corner")).toBe("tl");
+    expect(fd.get("scale")).toBe("0.25");
+  });
+
+  it("pip defaults corner to br and scale to 0.3", async () => {
+    await client().pip(tmpFile, tmpFile);
+    const fd = lastCall()[1]?.body as FormData;
+    expect(fd.get("corner")).toBe("br");
+    expect(fd.get("scale")).toBe("0.3");
+  });
+
   it("watermark POSTs the file with text/corner/opacity", async () => {
     await client().watermark(tmpFile, "@cutroom", { corner: "tl", opacity: 0.4 });
     const [url, init] = lastCall();

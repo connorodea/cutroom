@@ -19,6 +19,7 @@ import {
   submitThumbnailJob,
   submitStitchJob,
   submitWatermarkJob,
+  submitPipJob,
   submitChainJob,
   submitTranscriptCut,
   submitHighlightsJob,
@@ -326,6 +327,22 @@ describe("multipart submit endpoints", () => {
   it("submitLoopJob throws the server error on failure", async () => {
     fetchMock.mockResolvedValueOnce(res({ error: "loop boom" }, { ok: false, status: 400 }));
     await expect(submitLoopJob(sampleFile())).rejects.toThrow("loop boom");
+  });
+
+  it("submitPipJob POSTs main + overlay with corner/scale", async () => {
+    await submitPipJob(sampleFile(), sampleFile(), { corner: "tl", scale: 0.25 });
+    const [url, init] = lastCall();
+    expect(url).toBe(`${BASE}/api/pip`);
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("overlay")).toBeInstanceOf(File);
+    expect(fd.get("corner")).toBe("tl");
+    expect(fd.get("scale")).toBe("0.25");
+  });
+
+  it("submitPipJob throws the server error on failure", async () => {
+    fetchMock.mockResolvedValueOnce(res({ error: "pip boom" }, { ok: false, status: 400 }));
+    await expect(submitPipJob(sampleFile(), sampleFile())).rejects.toThrow("pip boom");
   });
 
   it("submitWatermarkJob POSTs the file with text/corner/opacity", async () => {
