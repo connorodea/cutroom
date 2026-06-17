@@ -130,6 +130,17 @@ describe("JSON endpoints", () => {
     expect(JSON.parse(lastCall()[1]?.body as string)).toEqual({ outputId: "out-2", op: "color", preset: "vivid" });
   });
 
+  it("chain supports the rotate / audio / fade / reverse ops", async () => {
+    await client().chain("o1", "rotate", { orientation: "cw" });
+    expect(JSON.parse(lastCall()[1]?.body as string)).toEqual({ outputId: "o1", op: "rotate", orientation: "cw" });
+    await client().chain("o2", "audio", { mode: "mute" });
+    expect(JSON.parse(lastCall()[1]?.body as string)).toEqual({ outputId: "o2", op: "audio", mode: "mute" });
+    await client().chain("o3", "fade", { kind: "both", duration: 0.5 });
+    expect(JSON.parse(lastCall()[1]?.body as string)).toEqual({ outputId: "o3", op: "fade", kind: "both", duration: 0.5 });
+    await client().chain("o4", "reverse", { mode: "boomerang" });
+    expect(JSON.parse(lastCall()[1]?.body as string)).toEqual({ outputId: "o4", op: "reverse", mode: "boomerang" });
+  });
+
   it("highlights POSTs the sourceId and clip count", async () => {
     await client().highlights("src-1", { count: 5 });
     const [url, init] = lastCall();

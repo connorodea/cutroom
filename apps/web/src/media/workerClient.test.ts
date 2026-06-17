@@ -338,6 +338,13 @@ describe("getJob + pollJob", () => {
     expect(JSON.parse(lastCall()[1]?.body as string)).toEqual({ outputId: "out-2", op: "color", preset: "vivid" });
   });
 
+  it("submitChainJob chains fade and reverse ops with their params", async () => {
+    await submitChainJob("out-1", "fade", { kind: "both" });
+    expect(JSON.parse(lastCall()[1]?.body as string)).toEqual({ outputId: "out-1", op: "fade", kind: "both" });
+    await submitChainJob("out-2", "reverse", { mode: "boomerang" });
+    expect(JSON.parse(lastCall()[1]?.body as string)).toEqual({ outputId: "out-2", op: "reverse", mode: "boomerang" });
+  });
+
   it("submitChainJob throws the server error on failure", async () => {
     fetchMock.mockResolvedValueOnce(res({ error: "chain boom" }, { ok: false, status: 404 }));
     await expect(submitChainJob("x", "captions")).rejects.toThrow("chain boom");

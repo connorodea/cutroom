@@ -106,10 +106,11 @@ app.post("/api/chain", async (c) => {
   const body = (await c.req.json().catch(() => ({}))) as {
     outputId?: unknown; op?: unknown; aspect?: unknown; mode?: unknown; factor?: unknown;
     preset?: unknown; brightness?: unknown; contrast?: unknown; saturation?: unknown; gamma?: unknown;
+    orientation?: unknown; level?: unknown; kind?: unknown; duration?: unknown;
   };
   const id = typeof body.outputId === "string" ? safeOutputId(body.outputId) : null;
   const op = parseChainOp(body.op);
-  if (!id || !op) return c.json({ error: "provide 'outputId' (string) and 'op' (reframe|captions|speed|color)" }, 400);
+  if (!id || !op) return c.json({ error: "provide 'outputId' (string) and 'op' (reframe|captions|speed|color|rotate|audio|fade|reverse)" }, 400);
   const inputPath = `${MEDIA_DIR}/${id}.mp4`;
   try {
     await stat(inputPath);
@@ -127,6 +128,18 @@ app.post("/api/chain", async (c) => {
   if (op === "color") {
     const { preset, brightness, contrast, saturation, gamma } = body;
     return c.json(createColorJob(inputPath, { preset, brightness, contrast, saturation, gamma }, MEDIA_DIR), 202);
+  }
+  if (op === "rotate") {
+    return c.json(createRotateJob(inputPath, body.orientation, MEDIA_DIR), 202);
+  }
+  if (op === "audio") {
+    return c.json(createAudioJob(inputPath, body.mode, body.level, MEDIA_DIR), 202);
+  }
+  if (op === "fade") {
+    return c.json(createFadeJob(inputPath, body.kind, body.duration, MEDIA_DIR), 202);
+  }
+  if (op === "reverse") {
+    return c.json(createReverseJob(inputPath, body.mode, MEDIA_DIR), 202);
   }
   return c.json(createCaptionsJob(inputPath, MEDIA_DIR), 202);
 });

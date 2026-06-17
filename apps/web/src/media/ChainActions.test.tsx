@@ -69,6 +69,28 @@ describe("ChainActions", () => {
     expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ outputId: "o1", op: "color", preset: "vivid" });
   });
 
+  it("chains a both-ends fade", async () => {
+    fetchMock
+      .mockResolvedValueOnce(res({ id: "f1", type: "fade", status: "queued" }))
+      .mockResolvedValueOnce(res({ id: "f1", type: "fade", status: "done", result: { outputId: "f1" } }));
+    render(<ChainActions outputId="o1" />);
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /Fade ends/ }));
+    });
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ outputId: "o1", op: "fade", kind: "both" });
+  });
+
+  it("chains a boomerang", async () => {
+    fetchMock
+      .mockResolvedValueOnce(res({ id: "b1", type: "reverse", status: "queued" }))
+      .mockResolvedValueOnce(res({ id: "b1", type: "reverse", status: "done", result: { outputId: "b1" } }));
+    render(<ChainActions outputId="o1" />);
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /Boomerang/ }));
+    });
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body)).toEqual({ outputId: "o1", op: "reverse", mode: "boomerang" });
+  });
+
   it("shows a working state while the chain is in flight", async () => {
     let resolveSubmit: (v: Response) => void = () => {};
     fetchMock.mockReturnValueOnce(new Promise<Response>((r) => { resolveSubmit = r; }));

@@ -14,14 +14,18 @@ export function ChainActions({ outputId }: { outputId: string }) {
   const [chained, setChained] = useState<EditJob | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const optsFor = (op: "reframe" | "captions" | "speed" | "color") => {
+  type ChainOp = "reframe" | "captions" | "speed" | "color" | "fade" | "reverse";
+
+  const optsFor = (op: ChainOp) => {
     if (op === "reframe") return { aspect: "portrait", mode: "blur" } as const;
     if (op === "speed") return { factor: 2 };
     if (op === "color") return { preset: "vivid" };
+    if (op === "fade") return { kind: "both" };
+    if (op === "reverse") return { mode: "boomerang" };
     return {};
   };
 
-  const runChain = async (op: "reframe" | "captions" | "speed" | "color") => {
+  const runChain = async (op: ChainOp) => {
     setPhase("running");
     setError(null);
     try {
@@ -77,6 +81,12 @@ export function ChainActions({ outputId }: { outputId: string }) {
           </button>
           <button onClick={() => runChain("color")} style={btn}>
             <Icon name="palette" size={13} color={ACCENT} />Grade
+          </button>
+          <button onClick={() => runChain("fade")} style={btn}>
+            <Icon name="contrast" size={13} color={ACCENT} />Fade ends
+          </button>
+          <button onClick={() => runChain("reverse")} style={btn}>
+            <Icon name="rewind" size={13} color={ACCENT} />Boomerang
           </button>
         </>
       )}

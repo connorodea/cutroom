@@ -24,6 +24,10 @@ describe("parseChainOp", () => {
     expect(parseChainOp("captions")).toBe("captions");
     expect(parseChainOp("speed")).toBe("speed");
     expect(parseChainOp("color")).toBe("color");
+    expect(parseChainOp("rotate")).toBe("rotate");
+    expect(parseChainOp("audio")).toBe("audio");
+    expect(parseChainOp("fade")).toBe("fade");
+    expect(parseChainOp("reverse")).toBe("reverse");
   });
 
   it("returns null for an unknown or non-string op", () => {
