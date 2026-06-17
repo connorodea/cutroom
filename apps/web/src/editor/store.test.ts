@@ -282,6 +282,14 @@ describe("editor store", () => {
     expect(useEditorStore.getState().waveformOpen).toBe(false);
   });
 
+  it("opens and closes the Letterbox modal", () => {
+    expect(useEditorStore.getState().letterboxOpen).toBe(false);
+    useEditorStore.getState().openLetterbox();
+    expect(useEditorStore.getState().letterboxOpen).toBe(true);
+    useEditorStore.getState().closeLetterbox();
+    expect(useEditorStore.getState().letterboxOpen).toBe(false);
+  });
+
   it("starts with the Overlay modal closed", () => {
     expect(useEditorStore.getState().overlayOpen).toBe(false);
   });

@@ -20,7 +20,7 @@ export interface TranscriptWord {
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "grid" | "waveform" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "grid" | "waveform" | "letterbox" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -170,6 +170,12 @@ export class CutroomClient {
     fd.append("right", new File([await readFile(rightPath)], basename(rightPath)));
     fd.append("layout", opts.layout ?? "horizontal");
     return this.json(await fetch(`${this.baseUrl}/api/split`, { method: "POST", headers: this.authHeaders(), body: fd }));
+  }
+
+  /** Letterbox: overlay cinematic black bars at a target aspect (cinema 2.39 / wide 2.0 / classic 1.85) → job. */
+  async letterbox(filePath: string, opts: { preset?: "cinema" | "wide" | "classic" } = {}): Promise<Job> {
+    const fd = await this.fileForm(filePath, { preset: opts.preset ?? "cinema" });
+    return this.json(await fetch(`${this.baseUrl}/api/letterbox`, { method: "POST", headers: this.authHeaders(), body: fd }));
   }
 
   /** Border: pad a clip with a solid colored frame (white/black/0xRRGGBB), `thickness` 2–200px → job. */

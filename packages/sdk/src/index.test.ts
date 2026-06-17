@@ -283,6 +283,20 @@ describe("multipart endpoints", () => {
     expect(fd.get("seconds")).toBe("2");
   });
 
+  it("letterbox POSTs the file with the preset", async () => {
+    await client().letterbox(tmpFile, { preset: "wide" });
+    const [url, init] = lastCall();
+    expect(url).toBe("http://x/api/letterbox");
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("preset")).toBe("wide");
+  });
+
+  it("letterbox defaults to the cinema preset", async () => {
+    await client().letterbox(tmpFile);
+    expect((lastCall()[1]?.body as FormData).get("preset")).toBe("cinema");
+  });
+
   it("border POSTs the file with thickness + color", async () => {
     await client().border(tmpFile, { thickness: 40, color: "black" });
     const [url, init] = lastCall();

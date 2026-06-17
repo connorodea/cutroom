@@ -33,6 +33,7 @@ import {
   createMusicJob,
   createGridJob,
   createWaveformJob,
+  createLetterboxJob,
   createStitchJob,
   createThumbnailJob,
   createWatermarkJob,
@@ -494,6 +495,18 @@ app.post("/api/waveform", async (c) => {
   const audioPath = `${MEDIA_DIR}/wave-${Date.now()}${ext}`;
   await writeFile(audioPath, Buffer.from(await file.arrayBuffer()));
   const job = createWaveformJob(audioPath, body["mode"], body["color"], body["aspect"], MEDIA_DIR);
+  return c.json(job, 202);
+});
+
+/** Letterbox — overlay cinematic black bars at a target aspect: multipart { file, preset }. */
+app.post("/api/letterbox", async (c) => {
+  const body = await c.req.parseBody();
+  const file = body["file"];
+  if (!(file instanceof File)) return c.json({ error: "missing 'file' (multipart)" }, 400);
+  const ext = extname(file.name || "") || ".mp4";
+  const inputPath = `${MEDIA_DIR}/lb-${Date.now()}${ext}`;
+  await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
+  const job = createLetterboxJob(inputPath, body["preset"], MEDIA_DIR);
   return c.json(job, 202);
 });
 

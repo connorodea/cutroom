@@ -8,7 +8,7 @@ const WORKER_URL =
 
 export interface EditJob {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "grid" | "waveform" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "grid" | "waveform" | "letterbox" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: {
@@ -80,6 +80,9 @@ export interface EditJob {
     /** For waveform jobs: the render mode + color. */
     waveMode?: string;
     waveColor?: string;
+    /** For letterbox jobs: the cinematic preset + bar height (px). */
+    letterboxPreset?: string;
+    barHeight?: number;
   };
   error?: string;
 }
@@ -255,6 +258,19 @@ export async function submitCensorJob(file: File, opts: { region?: string; stren
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error((body as { error?: string }).error || `censor failed (${res.status})`);
+  }
+  return (await res.json()) as EditJob;
+}
+
+/** Letterbox: overlay cinematic black bars at a target aspect: multipart { file, preset }. */
+export async function submitLetterboxJob(file: File, opts: { preset?: string } = {}): Promise<EditJob> {
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("preset", opts.preset ?? "cinema");
+  const res = await fetch(`${WORKER_URL}/api/letterbox`, { method: "POST", body: fd });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error || `letterbox failed (${res.status})`);
   }
   return (await res.json()) as EditJob;
 }

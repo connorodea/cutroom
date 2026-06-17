@@ -171,6 +171,12 @@ describe("routeIntent", () => {
     expect(routeIntent("visualize the audio")).toBe("waveform");
   });
 
+  it("routes letterbox / cinema-bars requests to letterbox", () => {
+    expect(routeIntent("add letterbox bars")).toBe("letterbox");
+    expect(routeIntent("letterbox it to cinemascope")).toBe("letterbox");
+    expect(routeIntent("add black bars top and bottom")).toBe("letterbox");
+  });
+
   it("prefers the specific operation over generic create", () => {
     expect(routeIntent("make a vertical video")).toBe("reframe");
   });

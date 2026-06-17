@@ -29,6 +29,7 @@ import {
   submitMusicJob,
   submitGridJob,
   submitWaveformJob,
+  submitLetterboxJob,
   submitChainJob,
   submitTranscriptCut,
   submitHighlightsJob,
@@ -524,6 +525,25 @@ describe("multipart submit endpoints", () => {
   it("submitWaveformJob throws the server error on failure", async () => {
     fetchMock.mockResolvedValueOnce(res({ error: "wave boom" }, { ok: false, status: 400 }));
     await expect(submitWaveformJob(sampleFile())).rejects.toThrow("wave boom");
+  });
+
+  it("submitLetterboxJob POSTs the file with the preset", async () => {
+    await submitLetterboxJob(sampleFile(), { preset: "wide" });
+    const [url, init] = lastCall();
+    expect(url).toBe(`${BASE}/api/letterbox`);
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("preset")).toBe("wide");
+  });
+
+  it("submitLetterboxJob defaults to the cinema preset", async () => {
+    await submitLetterboxJob(sampleFile());
+    expect((lastCall()[1]?.body as FormData).get("preset")).toBe("cinema");
+  });
+
+  it("submitLetterboxJob throws the server error on failure", async () => {
+    fetchMock.mockResolvedValueOnce(res({ error: "lb boom" }, { ok: false, status: 400 }));
+    await expect(submitLetterboxJob(sampleFile())).rejects.toThrow("lb boom");
   });
 
   it("submitPipJob POSTs main + overlay with corner/scale", async () => {

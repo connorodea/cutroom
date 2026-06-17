@@ -68,6 +68,8 @@ export interface EditorState {
   gridOpen: boolean;
   /** Whether the Waveform (audiogram) modal is open. */
   waveformOpen: boolean;
+  /** Whether the Letterbox (cinematic bars) modal is open. */
+  letterboxOpen: boolean;
 
   /** Output ids of AI-created videos this session, newest-first. */
   createdOutputs: string[];
@@ -143,6 +145,8 @@ export interface EditorState {
   closeGrid: () => void;
   openWaveform: () => void;
   closeWaveform: () => void;
+  openLetterbox: () => void;
+  closeLetterbox: () => void;
   /** Record an AI-created output id (newest-first, de-duplicated). */
   addCreatedOutput: (outputId: string) => void;
 
@@ -187,6 +191,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   musicOpen: false,
   gridOpen: false,
   waveformOpen: false,
+  letterboxOpen: false,
   createdOutputs: [],
   phase: "idle",
   active: -1,
@@ -257,6 +262,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   closeGrid: () => set({ gridOpen: false }),
   openWaveform: () => set({ waveformOpen: true }),
   closeWaveform: () => set({ waveformOpen: false }),
+  openLetterbox: () => set({ letterboxOpen: true }),
+  closeLetterbox: () => set({ letterboxOpen: false }),
   addCreatedOutput: (outputId) =>
     set((s) => ({ createdOutputs: [outputId, ...s.createdOutputs.filter((id) => id !== outputId)] })),
 
