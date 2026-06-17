@@ -20,7 +20,7 @@ export interface TranscriptWord {
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -170,6 +170,12 @@ export class CutroomClient {
     fd.append("right", new File([await readFile(rightPath)], basename(rightPath)));
     fd.append("layout", opts.layout ?? "horizontal");
     return this.json(await fetch(`${this.baseUrl}/api/split`, { method: "POST", headers: this.authHeaders(), body: fd }));
+  }
+
+  /** Freeze-frame: hold the first ("start") or last ("end", default) frame still for `seconds` (0.5–10) → job. */
+  async freeze(filePath: string, opts: { position?: "start" | "end"; seconds?: number } = {}): Promise<Job> {
+    const fd = await this.fileForm(filePath, { position: opts.position ?? "end", seconds: String(opts.seconds ?? 2) });
+    return this.json(await fetch(`${this.baseUrl}/api/freeze`, { method: "POST", headers: this.authHeaders(), body: fd }));
   }
 
   /** Picture-in-picture: composite `overlayPath` into a corner of `mainPath` → job. corner tl/tr/bl/br, scale 0.1–0.5. */

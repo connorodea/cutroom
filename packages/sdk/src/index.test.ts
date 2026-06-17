@@ -266,6 +266,23 @@ describe("multipart endpoints", () => {
     expect((lastCall()[1]?.body as FormData).get("layout")).toBe("horizontal");
   });
 
+  it("freeze POSTs the file with position + seconds", async () => {
+    await client().freeze(tmpFile, { position: "start", seconds: 3 });
+    const [url, init] = lastCall();
+    expect(url).toBe("http://x/api/freeze");
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("position")).toBe("start");
+    expect(fd.get("seconds")).toBe("3");
+  });
+
+  it("freeze defaults to holding the end for 2s", async () => {
+    await client().freeze(tmpFile);
+    const fd = lastCall()[1]?.body as FormData;
+    expect(fd.get("position")).toBe("end");
+    expect(fd.get("seconds")).toBe("2");
+  });
+
   it("pip POSTs the main + overlay files with corner/scale", async () => {
     await client().pip(tmpFile, tmpFile, { corner: "tl", scale: 0.25 });
     const [url, init] = lastCall();

@@ -218,6 +218,14 @@ describe("editor store", () => {
     expect(useEditorStore.getState().splitOpen).toBe(false);
   });
 
+  it("opens and closes the Freeze modal", () => {
+    expect(useEditorStore.getState().freezeOpen).toBe(false);
+    useEditorStore.getState().openFreeze();
+    expect(useEditorStore.getState().freezeOpen).toBe(true);
+    useEditorStore.getState().closeFreeze();
+    expect(useEditorStore.getState().freezeOpen).toBe(false);
+  });
+
   it("starts with the Overlay modal closed", () => {
     expect(useEditorStore.getState().overlayOpen).toBe(false);
   });

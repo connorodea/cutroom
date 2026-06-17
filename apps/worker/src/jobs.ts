@@ -20,6 +20,7 @@ import { runStitchPipeline } from "./stitch";
 import { runWatermarkPipeline } from "./watermark";
 import { runPipPipeline } from "./pip";
 import { runSplitPipeline } from "./splitscreen";
+import { runFreezePipeline } from "./freeze";
 import { generateImage, imageToVideo, downloadTo, type ImageModel, type VideoModel } from "./higgsfield";
 import { extractAudio, ffprobeDimensions, ffprobeDuration } from "./ffmpeg";
 import { transcribe, type Word } from "./transcribe";
@@ -28,7 +29,7 @@ export type JobStatus = "queued" | "running" | "done" | "error";
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "image" | "video";
   status: JobStatus;
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -632,6 +633,31 @@ export function createSplitJob(leftPath: string, rightPath: string, layout: unkn
       const r = await runSplitPipeline(leftPath, rightPath, layout, workDir, id);
       job.status = "done";
       job.result = { outputId: id, layout: r.layout };
+    } catch (err) {
+      job.status = "error";
+      job.error = (err as Error).message;
+      // eslint-disable-next-line no-console
+      console.error("[job]", id, "failed:", err);
+    }
+  })();
+  return job;
+}
+
+/**
+ * Create + run a Freeze-frame job: hold the first or last frame still for `seconds`. The output is
+ * `${jobId}.mp4`. Runs async; poll the job for status.
+ */
+export function createFreezeJob(inputPath: string, position: unknown, seconds: unknown, workDir: string): Job {
+  const id = randomUUID();
+  const job: Job = { id, type: "freeze", status: "queued", createdAt: Date.now() };
+  jobs.set(id, job);
+  void (async () => {
+    try {
+      job.status = "running";
+      job.step = "hold frame";
+      const r = await runFreezePipeline(inputPath, position, seconds, workDir, id);
+      job.status = "done";
+      job.result = { outputId: id, freezePosition: r.position, freezeSeconds: r.seconds };
     } catch (err) {
       job.status = "error";
       job.error = (err as Error).message;

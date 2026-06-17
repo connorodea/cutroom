@@ -25,6 +25,7 @@ import {
   createRotateJob,
   createPipJob,
   createSplitJob,
+  createFreezeJob,
   createStitchJob,
   createThumbnailJob,
   createWatermarkJob,
@@ -377,6 +378,18 @@ app.post("/api/split", async (c) => {
   await writeFile(leftPath, Buffer.from(await left.arrayBuffer()));
   await writeFile(rightPath, Buffer.from(await right.arrayBuffer()));
   const job = createSplitJob(leftPath, rightPath, body["layout"], MEDIA_DIR);
+  return c.json(job, 202);
+});
+
+/** Freeze-frame — hold the first or last frame still for a few seconds: multipart { file, position, seconds }. */
+app.post("/api/freeze", async (c) => {
+  const body = await c.req.parseBody();
+  const file = body["file"];
+  if (!(file instanceof File)) return c.json({ error: "missing 'file' (multipart)" }, 400);
+  const ext = extname(file.name || "") || ".mp4";
+  const inputPath = `${MEDIA_DIR}/freeze-${Date.now()}${ext}`;
+  await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
+  const job = createFreezeJob(inputPath, body["position"], body["seconds"], MEDIA_DIR);
   return c.json(job, 202);
 });
 

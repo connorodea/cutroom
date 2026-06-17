@@ -123,6 +123,12 @@ describe("routeIntent", () => {
     expect(routeIntent("stack the clips on top of each other")).toBe("split");
   });
 
+  it("routes freeze-frame requests to freeze", () => {
+    expect(routeIntent("add a freeze frame")).toBe("freeze");
+    expect(routeIntent("freeze the last frame")).toBe("freeze");
+    expect(routeIntent("hold the first frame for a few seconds")).toBe("freeze");
+  });
+
   it("prefers the specific operation over generic create", () => {
     expect(routeIntent("make a vertical video")).toBe("reframe");
   });

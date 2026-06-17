@@ -52,6 +52,8 @@ export interface EditorState {
   pipOpen: boolean;
   /** Whether the Split-screen modal is open. */
   splitOpen: boolean;
+  /** Whether the Freeze-frame (hold) modal is open. */
+  freezeOpen: boolean;
 
   /** Output ids of AI-created videos this session, newest-first. */
   createdOutputs: string[];
@@ -111,6 +113,8 @@ export interface EditorState {
   closePip: () => void;
   openSplit: () => void;
   closeSplit: () => void;
+  openFreeze: () => void;
+  closeFreeze: () => void;
   /** Record an AI-created output id (newest-first, de-duplicated). */
   addCreatedOutput: (outputId: string) => void;
 
@@ -147,6 +151,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   watermarkOpen: false,
   pipOpen: false,
   splitOpen: false,
+  freezeOpen: false,
   createdOutputs: [],
   phase: "idle",
   active: -1,
@@ -201,6 +206,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   closePip: () => set({ pipOpen: false }),
   openSplit: () => set({ splitOpen: true }),
   closeSplit: () => set({ splitOpen: false }),
+  openFreeze: () => set({ freezeOpen: true }),
+  closeFreeze: () => set({ freezeOpen: false }),
   addCreatedOutput: (outputId) =>
     set((s) => ({ createdOutputs: [outputId, ...s.createdOutputs.filter((id) => id !== outputId)] })),
 

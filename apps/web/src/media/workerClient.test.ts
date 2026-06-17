@@ -21,6 +21,7 @@ import {
   submitWatermarkJob,
   submitPipJob,
   submitSplitJob,
+  submitFreezeJob,
   submitChainJob,
   submitTranscriptCut,
   submitHighlightsJob,
@@ -343,6 +344,28 @@ describe("multipart submit endpoints", () => {
   it("submitSplitJob throws the server error on failure", async () => {
     fetchMock.mockResolvedValueOnce(res({ error: "split boom" }, { ok: false, status: 400 }));
     await expect(submitSplitJob(sampleFile(), sampleFile())).rejects.toThrow("split boom");
+  });
+
+  it("submitFreezeJob POSTs the file with position + seconds", async () => {
+    await submitFreezeJob(sampleFile(), { position: "start", seconds: 3 });
+    const [url, init] = lastCall();
+    expect(url).toBe(`${BASE}/api/freeze`);
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("position")).toBe("start");
+    expect(fd.get("seconds")).toBe("3");
+  });
+
+  it("submitFreezeJob defaults to holding the end for 2s", async () => {
+    await submitFreezeJob(sampleFile());
+    const fd = lastCall()[1]?.body as FormData;
+    expect(fd.get("position")).toBe("end");
+    expect(fd.get("seconds")).toBe("2");
+  });
+
+  it("submitFreezeJob throws the server error on failure", async () => {
+    fetchMock.mockResolvedValueOnce(res({ error: "freeze boom" }, { ok: false, status: 400 }));
+    await expect(submitFreezeJob(sampleFile())).rejects.toThrow("freeze boom");
   });
 
   it("submitPipJob POSTs main + overlay with corner/scale", async () => {

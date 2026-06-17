@@ -81,6 +81,7 @@ describe("AgentPalette", () => {
     ["add a watermark", "watermarkOpen"],
     ["add a picture in picture", "pipOpen"],
     ["put the two clips side by side", "splitOpen"],
+    ["add a freeze frame", "freezeOpen"],
   ] as const)("routes '%s' to the matching tool and closes the palette", (prompt, flag) => {
     open();
     render(<AgentPalette />);
