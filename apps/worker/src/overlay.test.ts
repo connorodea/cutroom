@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { normalizeElements, overlayFilterComplex, magickArgs } from "./overlay";
+import { normalizeElements, overlayFilterComplex, magickArgs, animationFor } from "./overlay";
 
 const DIMS = { width: 1280, height: 720 };
 
@@ -50,25 +50,64 @@ describe("normalizeElements", () => {
   });
 });
 
+describe("animationFor", () => {
+  it("slides a title down from above over 0.35s", () => {
+    expect(animationFor({ type: "title", text: "Hi", start: 0, end: 2.5 })).toEqual({
+      dur: 0.35,
+      slide: { axis: "y", from: "-0.06*H" },
+    });
+  });
+
+  it("wipes a lower third in from the left", () => {
+    expect(animationFor({ type: "lower_third", text: "B", start: 3, end: 7 })).toEqual({
+      dur: 0.35,
+      slide: { axis: "x", from: "-0.06*W" },
+    });
+  });
+
+  it("holds callouts and badges in place (no slide)", () => {
+    expect(animationFor({ type: "callout", text: "x", x: 0.5, y: 0.5, start: 0, end: 4 }).slide).toBeNull();
+    expect(animationFor({ type: "badge", text: "NEW", corner: "tr", start: 0, end: 4 }).slide).toBeNull();
+  });
+
+  it("clamps the slide to half the element's duration for short cues", () => {
+    expect(animationFor({ type: "badge", text: "NEW", corner: "tr", start: 0, end: 0.4 }).dur).toBe(0.2);
+  });
+});
+
 describe("overlayFilterComplex", () => {
   it("returns an empty filter mapping straight to 0:v when there are no elements", () => {
     expect(overlayFilterComplex([])).toEqual({ filter: "", outLabel: "0:v" });
   });
 
-  it("builds a single timed overlay at 0:0", () => {
+  it("slides a title down into place (y animated, x pinned)", () => {
     const { filter, outLabel } = overlayFilterComplex([{ type: "title", text: "Hi", start: 0, end: 2.5 }]);
-    expect(filter).toBe("[0:v][1:v]overlay=0:0:enable='between(t,0.00,2.50)'[ov1]");
+    expect(filter).toBe(
+      "[0:v][1:v]overlay=0:'-0.06*H*max(max(0,1-(t-0.00)/0.35),max(0,(t-2.15)/0.35))':enable='between(t,0.00,2.50)'[ov1]",
+    );
     expect(outLabel).toBe("ov1");
   });
 
-  it("chains multiple overlays in order", () => {
+  it("slides a lower third in from the left (x animated, y pinned)", () => {
+    const { filter } = overlayFilterComplex([{ type: "lower_third", text: "B", start: 3, end: 7 }]);
+    expect(filter).toBe(
+      "[0:v][1:v]overlay='-0.06*W*max(max(0,1-(t-3.00)/0.35),max(0,(t-6.65)/0.35))':0:enable='between(t,3.00,7.00)'[ov1]",
+    );
+  });
+
+  it("holds a badge in place with no slide (overlay stays at 0:0)", () => {
+    const { filter } = overlayFilterComplex([{ type: "badge", text: "NEW", corner: "tr", start: 1, end: 3 }]);
+    expect(filter).toBe("[0:v][1:v]overlay=0:0:enable='between(t,1.00,3.00)'[ov1]");
+  });
+
+  it("chains multiple animated overlays in order", () => {
     const { filter, outLabel } = overlayFilterComplex([
       { type: "title", text: "A", start: 0, end: 2 },
       { type: "lower_third", text: "B", start: 3, end: 7 },
     ]);
     expect(filter).toBe(
-      "[0:v][1:v]overlay=0:0:enable='between(t,0.00,2.00)'[ov1];" +
-        "[ov1][2:v]overlay=0:0:enable='between(t,3.00,7.00)'[ov2]",
+      "[0:v][1:v]overlay=0:'-0.06*H*max(max(0,1-(t-0.00)/0.35),max(0,(t-1.65)/0.35))':enable='between(t,0.00,2.00)'[ov1];" +
+        "[ov1][2:v]overlay='-0.06*W*max(max(0,1-(t-3.00)/0.35),max(0,(t-6.65)/0.35))':0:enable='between(t,3.00,7.00)'[ov2]",
     );
     expect(outLabel).toBe("ov2");
   });

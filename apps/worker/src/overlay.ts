@@ -56,17 +56,55 @@ export function normalizeElements(raw: unknown): OverlayElement[] {
   return out;
 }
 
+/** Default entrance/exit slide length (seconds), clamped to half the cue for short cues. */
+const SLIDE = 0.35;
+
+export interface OverlayAnimation {
+  /** Entrance and exit slide duration in seconds. */
+  dur: number;
+  /** Slide vector: the overlay starts/ends offset by `from` (an ffmpeg expr) and rests at 0. */
+  slide: { axis: "x" | "y"; from: string } | null;
+}
+
 /**
- * Build the ffmpeg filter_complex chain that composites each element's PNG (inputs 1..N)
- * onto the base video (input 0) for its time window. Returns the chain + the label to map.
+ * The animated-graphics tier: pick an entrance/exit animation per element type. Titles drop in
+ * from above (y), lower thirds wipe in from the left (x); callouts and badges hold their position.
+ * Offsets are fractions of the frame (ffmpeg's `W`/`H`) so they're resolution-free. The animation
+ * is driven entirely by the overlay filter's `x`/`y` expressions, which are evaluated against the
+ * BASE video's timestamp `t` — a still PNG has no timeline of its own, so a `fade`/`geq` alpha
+ * ramp would bake in a single frame's value; position expressions are the safe, correct mechanism.
+ */
+export function animationFor(el: OverlayElement): OverlayAnimation {
+  const dur = Math.min(SLIDE, (el.end - el.start) / 2);
+  if (el.type === "title") return { dur, slide: { axis: "y", from: "-0.06*H" } };
+  if (el.type === "lower_third") return { dur, slide: { axis: "x", from: "-0.06*W" } };
+  return { dur, slide: null };
+}
+
+/**
+ * Build the ffmpeg filter_complex chain that composites each element's PNG (inputs 1..N) onto the
+ * base video (input 0) for its time window — with an animated slide-in / slide-out. The overlay
+ * position eases from the element's off-rest offset to 0 over the first `dur` seconds, holds at
+ * rest, then eases back out over the final `dur` seconds. Returns the chain + the label to map.
+ * Single-quoted expressions keep their commas from splitting the filtergraph.
  */
 export function overlayFilterComplex(elements: OverlayElement[]): { filter: string; outLabel: string } {
   if (elements.length === 0) return { filter: "", outLabel: "0:v" };
   const parts: string[] = [];
   let prev = "0:v";
   elements.forEach((el, i) => {
-    const out = `ov${i + 1}`;
-    parts.push(`[${prev}][${i + 1}:v]overlay=0:0:enable='between(t,${el.start.toFixed(2)},${el.end.toFixed(2)})'[${out}]`);
+    const idx = i + 1;
+    const { dur, slide } = animationFor(el);
+    const s = el.start.toFixed(2);
+    const e = el.end.toFixed(2);
+    const d = dur.toFixed(2);
+    const exit = (el.end - dur).toFixed(2);
+    // Ramp = `from` at the start (entrance) and end (exit), easing to 0 (rest) in between.
+    const ramp = (from: string) => `'${from}*max(max(0,1-(t-${s})/${d}),max(0,(t-${exit})/${d}))'`;
+    const x = slide?.axis === "x" ? ramp(slide.from) : "0";
+    const y = slide?.axis === "y" ? ramp(slide.from) : "0";
+    const out = `ov${idx}`;
+    parts.push(`[${prev}][${idx}:v]overlay=${x}:${y}:enable='between(t,${s},${e})'[${out}]`);
     prev = out;
   });
   return { filter: parts.join(";"), outLabel: prev };
