@@ -1,5 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { runEditPipeline, runTranscriptCutPipeline } from "./edit";
+import { runCreatePipeline } from "./create";
+import type { ScriptSegment } from "./script";
 import { extractAudio, ffprobeDimensions, ffprobeDuration } from "./ffmpeg";
 import { transcribe, type Word } from "./transcribe";
 
@@ -10,7 +12,7 @@ export interface Job {
   type: "edit" | "create";
   status: JobStatus;
   step?: string;
-  result?: { outputId: string; totalWords: number; segments: number; removedSec: number };
+  result?: { outputId: string; [key: string]: unknown };
   error?: string;
   createdAt: number;
 }
@@ -45,6 +47,40 @@ export function createEditJob(inputPath: string, workDir: string, opts: { captio
     }
   })();
 
+  return job;
+}
+
+/**
+ * Create + run a Create job: AI writes a script (or one is supplied) → per-segment TTS voiceover +
+ * Pexels stock footage matched to each scene → assembled MP4 with word-aligned captions. Runs async.
+ */
+export function createCreateJob(
+  input: { prompt?: string; script?: ScriptSegment[]; aspect?: "landscape" | "portrait"; captions?: boolean },
+  workDir: string,
+): Job {
+  const id = randomUUID();
+  const job: Job = { id, type: "create", status: "queued", createdAt: Date.now() };
+  jobs.set(id, job);
+  void (async () => {
+    try {
+      job.status = "running";
+      job.step = "script → stock footage → assemble";
+      const r = await runCreatePipeline(input, workDir, id);
+      job.status = "done";
+      job.result = {
+        outputId: id,
+        segments: r.segments,
+        durationSec: r.durationSec,
+        usedStock: r.usedStock,
+        captionsApplied: r.captionsApplied,
+      };
+    } catch (err) {
+      job.status = "error";
+      job.error = (err as Error).message;
+      // eslint-disable-next-line no-console
+      console.error("[job]", id, "failed:", err);
+    }
+  })();
   return job;
 }
 

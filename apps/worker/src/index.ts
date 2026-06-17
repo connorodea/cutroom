@@ -7,14 +7,14 @@ import { mkdir, writeFile, stat } from "node:fs/promises";
 import { createReadStream } from "node:fs";
 import { Readable } from "node:stream";
 import { extname } from "node:path";
-import { createEditJob, createTranscriptCutJob, getJob, getSource, transcribeSource } from "./jobs";
+import { createCreateJob, createEditJob, createTranscriptCutJob, getJob, getSource, transcribeSource } from "./jobs";
 
 const exec = promisify(execFile);
 
 /**
  * Cutroom media worker (Railway). Compute for both pipelines:
  *  - Edit:   upload → Whisper → cut silences/filler + burn captions + loudnorm → MP4
- *  - Create: script/idea → generated clips + TTS + captions → assembled MP4 (next)
+ *  - Create: prompt/script → AI script → Pexels stock + TTS voiceover + captions → assembled MP4
  */
 
 const MEDIA_DIR = process.env.MEDIA_DIR ?? "/tmp/cutroom-media";
@@ -58,6 +58,32 @@ app.post("/api/jobs", async (c) => {
   await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
 
   const job = createEditJob(inputPath, MEDIA_DIR, { captions });
+  return c.json(job, 202);
+});
+
+/**
+ * Submit a Create job: JSON { prompt? , script?, aspect?, captions? }.
+ * The AI writes a script from `prompt` (or uses the supplied `script`), pulls Pexels stock footage
+ * matched to each scene, lays an OpenAI TTS voiceover, and burns word-aligned captions. Poll the job.
+ */
+app.post("/api/create", async (c) => {
+  const body = (await c.req.json().catch(() => ({}))) as {
+    prompt?: unknown;
+    script?: unknown;
+    aspect?: unknown;
+    captions?: unknown;
+  };
+  const prompt = typeof body.prompt === "string" && body.prompt.trim() ? body.prompt.trim() : undefined;
+  const script = Array.isArray(body.script)
+    ? body.script
+        .map((s) => ({ text: String((s as { text?: unknown }).text ?? "").trim(), query: String((s as { query?: unknown }).query ?? "").trim() }))
+        .filter((s) => s.text.length > 0)
+    : undefined;
+  if (!prompt && !(script && script.length)) {
+    return c.json({ error: "provide 'prompt' (string) or 'script' ([{text, query}])" }, 400);
+  }
+  const aspect = body.aspect === "portrait" ? "portrait" : "landscape";
+  const job = createCreateJob({ prompt, script, aspect, captions: body.captions !== false }, MEDIA_DIR);
   return c.json(job, 202);
 });
 
