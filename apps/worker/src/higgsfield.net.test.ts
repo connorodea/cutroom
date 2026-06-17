@@ -99,4 +99,17 @@ describe("higgsfield network", () => {
     expect(await readFile(dest, "utf8")).toBe("VIDEOBYTES");
     await rm(dest, { force: true });
   });
+
+  it("downloadTo throws when the source responds non-ok", async () => {
+    fetchMock.mockResolvedValueOnce(res("nope", { ok: false, status: 404 }));
+    await expect(downloadTo("https://x/missing.mp4", "/tmp/never-written.mp4")).rejects.toThrow(/download .* failed \(404\)/);
+  });
+
+  it("throws a clear 'not configured' error when the API keys are unset", async () => {
+    vi.stubEnv("HIGGSFIELD_API_KEY_ID", "");
+    vi.stubEnv("HIGGSFIELD_API_KEY_SECRET", "");
+    await expect(generateImage("a cat", "16:9")).rejects.toThrow(/Higgsfield not configured/);
+    // The request never went out — the misconfig is caught before any fetch.
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
 });

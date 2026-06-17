@@ -49,8 +49,19 @@ describe("extractMediaUrl", () => {
   it("reads nested results[].url", () => {
     expect(extractMediaUrl({ results: [{ url: "https://x/r.mp4" }] })).toBe("https://x/r.mp4");
   });
+  it("reads a bare string url (video as a plain string, image url as a string in an array)", () => {
+    expect(extractMediaUrl({ video: "https://x/v.mp4" })).toBe("https://x/v.mp4");
+    expect(extractMediaUrl({ images: ["https://x/a.png"] })).toBe("https://x/a.png");
+  });
+  it("ignores non-array list fields and falls back to a string `output`", () => {
+    expect(extractMediaUrl({ images: "not-an-array", output: "https://x/o.mp4" })).toBe("https://x/o.mp4");
+  });
   it("returns null when no media present", () => {
     expect(extractMediaUrl({ status: "in_progress" })).toBeNull();
+  });
+  it("returns null for a null / non-object payload", () => {
+    expect(extractMediaUrl(null)).toBeNull();
+    expect(extractMediaUrl("oops")).toBeNull();
   });
 });
 
