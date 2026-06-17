@@ -1,5 +1,7 @@
 /** Client for the Cutroom media worker (Railway) — real upload/edit/playback. */
 
+import type { OverlayElement } from "./overlaySpec";
+
 const WORKER_URL =
   (import.meta.env.VITE_WORKER_URL as string | undefined) ||
   "https://cutroom-worker-production-74b1.up.railway.app";
@@ -98,6 +100,19 @@ export async function submitEditJob(file: File, opts: { captions?: boolean } = {
   fd.append("captions", String(opts.captions ?? true));
   const res = await fetch(`${WORKER_URL}/api/jobs`, { method: "POST", body: fd });
   if (!res.ok) throw new Error(`upload failed (${res.status})`);
+  return (await res.json()) as EditJob;
+}
+
+/** Composite on-screen graphics onto a video: multipart { file, overlays: JSON string }. */
+export async function submitOverlayJob(file: File, overlays: OverlayElement[]): Promise<EditJob> {
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("overlays", JSON.stringify(overlays));
+  const res = await fetch(`${WORKER_URL}/api/overlay`, { method: "POST", body: fd });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error || `overlay failed (${res.status})`);
+  }
   return (await res.json()) as EditJob;
 }
 

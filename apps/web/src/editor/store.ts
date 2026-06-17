@@ -14,6 +14,8 @@ export interface EditorState {
   createOpen: boolean;
   /** Whether the Generate (Higgsfield image/video) modal is open. */
   generateOpen: boolean;
+  /** Whether the Overlay (graphics compositing) modal is open. */
+  overlayOpen: boolean;
 
   /** Output ids of AI-created videos this session, newest-first. */
   createdOutputs: string[];
@@ -35,6 +37,8 @@ export interface EditorState {
   closeCreate: () => void;
   openGenerate: () => void;
   closeGenerate: () => void;
+  openOverlay: () => void;
+  closeOverlay: () => void;
   /** Record an AI-created output id (newest-first, de-duplicated). */
   addCreatedOutput: (outputId: string) => void;
 
@@ -52,6 +56,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   importOpen: false,
   createOpen: false,
   generateOpen: false,
+  overlayOpen: false,
   createdOutputs: [],
   phase: "idle",
   active: -1,
@@ -68,6 +73,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   closeCreate: () => set({ createOpen: false }),
   openGenerate: () => set({ generateOpen: true }),
   closeGenerate: () => set({ generateOpen: false }),
+  openOverlay: () => set({ overlayOpen: true }),
+  closeOverlay: () => set({ overlayOpen: false }),
   addCreatedOutput: (outputId) =>
     set((s) => ({ createdOutputs: [outputId, ...s.createdOutputs.filter((id) => id !== outputId)] })),
 

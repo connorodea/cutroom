@@ -74,6 +74,18 @@ describe("editor store", () => {
     expect(useEditorStore.getState().generateOpen).toBe(false);
   });
 
+  it("starts with the Overlay modal closed", () => {
+    expect(useEditorStore.getState().overlayOpen).toBe(false);
+  });
+
+  it("opens and closes the Overlay modal", () => {
+    const { openOverlay, closeOverlay } = useEditorStore.getState();
+    openOverlay();
+    expect(useEditorStore.getState().overlayOpen).toBe(true);
+    closeOverlay();
+    expect(useEditorStore.getState().overlayOpen).toBe(false);
+  });
+
   it("starts with no AI-created outputs", () => {
     expect(useEditorStore.getState().createdOutputs).toEqual([]);
   });
