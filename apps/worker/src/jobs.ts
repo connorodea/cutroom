@@ -4,6 +4,7 @@ import { runCreatePipeline, type CreateInput } from "./create";
 import { applyOverlays } from "./overlay";
 import { runReframePipeline, type ReframeAspect, type ReframeMode } from "./reframe";
 import { planHighlights, runHighlightsPipeline, type HighlightOptions } from "./highlights";
+import { runCaptionsPipeline } from "./captions";
 import { generateImage, imageToVideo, downloadTo, type ImageModel, type VideoModel } from "./higgsfield";
 import { extractAudio, ffprobeDimensions, ffprobeDuration } from "./ffmpeg";
 import { transcribe, type Word } from "./transcribe";
@@ -12,7 +13,7 @@ export type JobStatus = "queued" | "running" | "done" | "error";
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "image" | "video";
   status: JobStatus;
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -241,6 +242,28 @@ export function createTranscriptCutJob(
       const r = await runTranscriptCutPipeline(source.inputPath, source.words, removedIndices, source.duration, source.dims, workDir, id, opts);
       job.status = "done";
       job.result = { outputId: id, totalWords: r.totalWords, segments: r.segments, removedSec: r.removedSec };
+    } catch (err) {
+      job.status = "error";
+      job.error = (err as Error).message;
+      // eslint-disable-next-line no-console
+      console.error("[job]", id, "failed:", err);
+    }
+  })();
+  return job;
+}
+
+/** Burn word-aligned captions onto an uploaded video (no cutting). Output `${jobId}.mp4`. Async. */
+export function createCaptionsJob(inputPath: string, workDir: string): Job {
+  const id = randomUUID();
+  const job: Job = { id, type: "captions", status: "queued", createdAt: Date.now() };
+  jobs.set(id, job);
+  void (async () => {
+    try {
+      job.status = "running";
+      job.step = "transcribe + burn captions";
+      const r = await runCaptionsPipeline(inputPath, workDir, id);
+      job.status = "done";
+      job.result = { outputId: id, totalWords: r.totalWords, captionsApplied: r.captionsApplied };
     } catch (err) {
       job.status = "error";
       job.error = (err as Error).message;

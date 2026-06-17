@@ -8,6 +8,7 @@ Usage:
   cutroom clean-up <file> [--no-captions] [--out <file>]      auto: cut silences/filler + captions
   cutroom transcribe <file>                                    word-level transcript (+ sourceId)
   cutroom transcript-cut <sourceId> <i,j,k> [--no-captions] [--out <file>]   remove words by index
+  cutroom captions <file> [--out <file>]                       burn word-aligned captions onto a video
   cutroom highlights <sourceId> [--count N] [--out <file>]    best-moments reel from a transcribed source
   cutroom create "<prompt>" [--portrait] [--no-captions] [--no-graphics] [--generative] [--video-model dop|kling|seedance] [--overlays <json|@file>] [--out <file>]
                                                                AI: script → stock/generative footage → voiceover → captions → graphics
@@ -145,6 +146,12 @@ async function main(): Promise<void> {
         mode: mode === "crop" ? "crop" : mode === "blur" ? "blur" : undefined,
       });
       await finish(client, job, flag(args, "out"));
+      break;
+    }
+
+    case "captions": {
+      if (!args[0]) throw new Error("usage: cutroom captions <file> [--out <file>]");
+      await finish(client, await client.captions(args[0]), flag(args, "out"));
       break;
     }
 

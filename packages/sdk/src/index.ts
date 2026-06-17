@@ -20,7 +20,7 @@ export interface TranscriptWord {
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -149,6 +149,12 @@ export class CutroomClient {
   async cleanUp(filePath: string, opts: { captions?: boolean } = {}): Promise<Job> {
     const fd = await this.fileForm(filePath, { captions: String(opts.captions ?? true) });
     return this.json(await fetch(`${this.baseUrl}/api/jobs`, { method: "POST", headers: this.authHeaders(), body: fd }));
+  }
+
+  /** Burn word-aligned captions onto a video (no cutting) → job. */
+  async captions(filePath: string): Promise<Job> {
+    const fd = await this.fileForm(filePath);
+    return this.json(await fetch(`${this.baseUrl}/api/captions`, { method: "POST", headers: this.authHeaders(), body: fd }));
   }
 
   /** Transcribe a video → word-level transcript + sourceId (for transcript edits). */

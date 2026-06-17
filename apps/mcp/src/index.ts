@@ -192,6 +192,20 @@ server.registerTool(
 );
 
 server.registerTool(
+  "cutroom_captions",
+  {
+    description:
+      "Burn word-aligned captions onto a video without cutting anything (transcribe → caption burn-in). Waits for the render and returns the output URL.",
+    inputSchema: { filePath: z.string().describe("Absolute path to a local video file (mp4/mov).") },
+    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+  },
+  async ({ filePath }) => {
+    const job = await client.captions(filePath);
+    return textResult(jobSummary(await client.pollJob(job.id)));
+  },
+);
+
+server.registerTool(
   "cutroom_highlights",
   {
     description:

@@ -8,6 +8,7 @@ import { createReadStream } from "node:fs";
 import { Readable } from "node:stream";
 import { extname } from "node:path";
 import {
+  createCaptionsJob,
   createCreateJob,
   createEditJob,
   createHighlightsJob,
@@ -72,6 +73,18 @@ app.post("/api/jobs", async (c) => {
   await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
 
   const job = createEditJob(inputPath, MEDIA_DIR, { captions });
+  return c.json(job, 202);
+});
+
+/** Burn captions onto a video without cutting: multipart { file }. Returns the job to poll. */
+app.post("/api/captions", async (c) => {
+  const body = await c.req.parseBody();
+  const file = body["file"];
+  if (!(file instanceof File)) return c.json({ error: "missing 'file' (multipart)" }, 400);
+  const ext = extname(file.name || "") || ".mp4";
+  const inputPath = `${MEDIA_DIR}/cap-${Date.now()}${ext}`;
+  await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
+  const job = createCaptionsJob(inputPath, MEDIA_DIR);
   return c.json(job, 202);
 });
 
