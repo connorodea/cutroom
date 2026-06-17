@@ -70,6 +70,9 @@ describe("AgentPalette", () => {
     ["trim the clip", "trimOpen"],
     ["make it black and white", "colorOpen"],
     ["rotate this clip", "rotateOpen"],
+    ["mute the audio", "audioOpen"],
+    ["fade in from black", "fadeOpen"],
+    ["make a boomerang", "reverseOpen"],
   ] as const)("routes '%s' to the matching tool and closes the palette", (prompt, flag) => {
     open();
     render(<AgentPalette />);

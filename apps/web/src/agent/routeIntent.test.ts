@@ -62,6 +62,23 @@ describe("routeIntent", () => {
     expect(routeIntent("flip it horizontally")).toBe("rotate");
   });
 
+  it("routes audio requests to audio", () => {
+    expect(routeIntent("mute the audio")).toBe("audio");
+    expect(routeIntent("make it louder")).toBe("audio");
+    expect(routeIntent("normalize the loudness")).toBe("audio");
+  });
+
+  it("routes fade requests to fade", () => {
+    expect(routeIntent("fade in from black")).toBe("fade");
+    expect(routeIntent("add a fade out")).toBe("fade");
+  });
+
+  it("routes reverse and boomerang requests to reverse", () => {
+    expect(routeIntent("reverse this clip")).toBe("reverse");
+    expect(routeIntent("make a boomerang")).toBe("reverse");
+    expect(routeIntent("play it backwards")).toBe("reverse");
+  });
+
   it("prefers the specific operation over generic create", () => {
     expect(routeIntent("make a vertical video")).toBe("reframe");
   });
