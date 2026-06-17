@@ -1,6 +1,6 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { baseEditSteps } from "@cutroom/core";
-import { extractPlan } from "./agent";
+import { agentKeyPresent, extractPlan, generatePlan } from "./agent";
 
 describe("extractPlan", () => {
   it("parses and validates a clean JSON plan", () => {
@@ -34,5 +34,33 @@ describe("extractPlan", () => {
 
   it("exposes a canonical 7-step base pipeline for the fallback", () => {
     expect(baseEditSteps).toHaveLength(7);
+  });
+});
+
+describe("agentKeyPresent", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("reflects whether ANTHROPIC_API_KEY is configured", () => {
+    vi.stubEnv("ANTHROPIC_API_KEY", "sk-test");
+    expect(agentKeyPresent()).toBe(true);
+    vi.stubEnv("ANTHROPIC_API_KEY", "");
+    expect(agentKeyPresent()).toBe(false);
+  });
+});
+
+describe("generatePlan (keyless fallback)", () => {
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("degrades to the base pipeline when no API key is configured", async () => {
+    vi.stubEnv("ANTHROPIC_API_KEY", "");
+    const r = await generatePlan("trim my video");
+    expect(r.source).toBe("fallback");
+    expect(r.plan.title).toBe("trim my video");
+    expect(r.plan.steps).toEqual(baseEditSteps);
+  });
+
+  it("uses 'Custom workflow' as the fallback title for a blank prompt", async () => {
+    vi.stubEnv("ANTHROPIC_API_KEY", "");
+    expect((await generatePlan("   ")).plan.title).toBe("Custom workflow");
   });
 });

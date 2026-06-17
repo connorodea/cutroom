@@ -30,6 +30,7 @@ export function agentKeyPresent(): boolean {
   return Boolean(process.env.ANTHROPIC_API_KEY);
 }
 
+/* v8 ignore start -- Anthropic managed-agent network I/O (client/env/session); verified by live integration on deploy */
 // Lazy, fail-soft client. The Anthropic constructor throws when no key resolves, so we guard
 // it — a keyless server still boots and serves fallback plans instead of crashing.
 let client: Anthropic | null = null;
@@ -64,6 +65,7 @@ function ensureEnvironmentId(c: Anthropic): Promise<string> {
   }
   return envIdPromise;
 }
+/* v8 ignore stop */
 
 /** Pull the first balanced JSON object out of a model response and validate it. */
 export function extractPlan(text: string, fallbackTitle: string): AgentPlan | null {
@@ -92,6 +94,7 @@ function fallback(title: string): PlanResult {
 /** Errors worth retrying — network blips, rate limits, transient upstream failures. */
 const TRANSIENT = /(ECONNRESET|ETIMEDOUT|socket|network|fetch failed|overloaded|rate.?limit|\b(429|500|502|503|529)\b)/i;
 
+/* v8 ignore start -- Anthropic session streaming I/O; verified by live integration on deploy */
 /** One full attempt: session → stream → idle → extract a validated plan (throws on failure). */
 async function runOnce(c: Anthropic, prompt: string, title: string): Promise<PlanResult> {
   const environmentId = await ensureEnvironmentId(c);
@@ -124,6 +127,7 @@ async function runOnce(c: Anthropic, prompt: string, title: string): Promise<Pla
   if (!plan) throw new Error("no valid plan in agent response");
   return { plan, source: "agent" };
 }
+/* v8 ignore stop */
 
 export interface GeneratePlanOptions {
   /** Wall-clock cap before degrading to the fallback (default 90s). */
@@ -141,6 +145,7 @@ export async function generatePlan(prompt: string, opts: GeneratePlanOptions = {
   const c = getClient();
   if (!c || !agentKeyPresent()) return fallback(title);
 
+  /* v8 ignore start -- only reached with a live Anthropic client; covered by live integration */
   const run = (async (): Promise<PlanResult> => {
     let lastErr: unknown;
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -165,4 +170,5 @@ export async function generatePlan(prompt: string, opts: GeneratePlanOptions = {
   );
 
   return Promise.race([run, timeout]);
+  /* v8 ignore stop */
 }
