@@ -23,6 +23,21 @@ describe("routeIntent", () => {
     expect(routeIntent("make me a video from a script")).toBe("create");
   });
 
+  it("routes caption requests to captions", () => {
+    expect(routeIntent("add captions to this")).toBe("captions");
+    expect(routeIntent("burn in subtitles")).toBe("captions");
+  });
+
+  it("routes on-screen-graphics requests to overlay", () => {
+    expect(routeIntent("add a lower third with my name")).toBe("overlay");
+    expect(routeIntent("put a callout on screen")).toBe("overlay");
+  });
+
+  it("routes image/AI-footage requests to generate", () => {
+    expect(routeIntent("generate an image of a sunset")).toBe("generate");
+    expect(routeIntent("make me some ai footage of a city")).toBe("generate");
+  });
+
   it("prefers the specific operation over generic create", () => {
     expect(routeIntent("make a vertical video")).toBe("reframe");
   });

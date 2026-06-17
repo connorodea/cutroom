@@ -20,6 +20,9 @@ export function AgentPalette() {
   const openImport = useEditorStore((s) => s.openImport);
   const openReframe = useEditorStore((s) => s.openReframe);
   const openHighlights = useEditorStore((s) => s.openHighlights);
+  const openCaptions = useEditorStore((s) => s.openCaptions);
+  const openOverlay = useEditorStore((s) => s.openOverlay);
+  const openGenerate = useEditorStore((s) => s.openGenerate);
   const { run, loading, source } = useAgentRun();
   const [query, setQuery] = useState("");
 
@@ -38,7 +41,7 @@ export function AgentPalette() {
     const tool = routeIntent(q);
     if (tool) {
       closeAgent();
-      ({ create: openCreate, import: openImport, reframe: openReframe, highlights: openHighlights })[tool]();
+      ({ create: openCreate, import: openImport, reframe: openReframe, highlights: openHighlights, captions: openCaptions, overlay: openOverlay, generate: openGenerate })[tool]();
       return;
     }
     run(q || "Custom workflow");

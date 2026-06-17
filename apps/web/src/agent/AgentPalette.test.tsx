@@ -63,6 +63,9 @@ describe("AgentPalette", () => {
     ["give me the best moments", "highlightsOpen"],
     ["clean up the silences and filler", "importOpen"],
     ["create a short explainer", "createOpen"],
+    ["add captions to this", "captionsOpen"],
+    ["add a lower third with my name", "overlayOpen"],
+    ["generate an image of a sunset", "generateOpen"],
   ] as const)("routes '%s' to the matching tool and closes the palette", (prompt, flag) => {
     open();
     render(<AgentPalette />);
