@@ -26,6 +26,7 @@ import { runChromaKeyPipeline } from "./chromakey";
 import { runBorderPipeline } from "./border";
 import { runCensorPipeline } from "./censor";
 import { runMusicPipeline } from "./music";
+import { runGridPipeline } from "./grid";
 import { generateImage, imageToVideo, downloadTo, type ImageModel, type VideoModel } from "./higgsfield";
 import { extractAudio, ffprobeDimensions, ffprobeDuration } from "./ffmpeg";
 import { transcribe, type Word } from "./transcribe";
@@ -34,7 +35,7 @@ export type JobStatus = "queued" | "running" | "done" | "error";
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "grid" | "image" | "video";
   status: JobStatus;
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -788,6 +789,31 @@ export function createMusicJob(videoPath: string, audioPath: string, volume: unk
       const r = await runMusicPipeline(videoPath, audioPath, volume, workDir, id);
       job.status = "done";
       job.result = { outputId: id, musicVolume: r.volume, hadAudio: r.hadAudio };
+    } catch (err) {
+      job.status = "error";
+      job.error = (err as Error).message;
+      // eslint-disable-next-line no-console
+      console.error("[job]", id, "failed:", err);
+    }
+  })();
+  return job;
+}
+
+/**
+ * Create + run a Grid job: combine four clips into a 2×2 mosaic. The output is `${jobId}.mp4`.
+ * Runs async; poll the job for status.
+ */
+export function createGridJob(paths: string[], workDir: string): Job {
+  const id = randomUUID();
+  const job: Job = { id, type: "grid", status: "queued", createdAt: Date.now() };
+  jobs.set(id, job);
+  void (async () => {
+    try {
+      job.status = "running";
+      job.step = "tile 2x2 grid";
+      const r = await runGridPipeline(paths, workDir, id);
+      job.status = "done";
+      job.result = { outputId: id, cells: r.cells };
     } catch (err) {
       job.status = "error";
       job.error = (err as Error).message;

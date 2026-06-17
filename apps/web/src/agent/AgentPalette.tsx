@@ -44,6 +44,7 @@ export function AgentPalette() {
   const openBorder = useEditorStore((s) => s.openBorder);
   const openCensor = useEditorStore((s) => s.openCensor);
   const openMusic = useEditorStore((s) => s.openMusic);
+  const openGrid = useEditorStore((s) => s.openGrid);
   const { run, loading, source } = useAgentRun();
   const [query, setQuery] = useState("");
 
@@ -62,7 +63,7 @@ export function AgentPalette() {
     const tool = routeIntent(q);
     if (tool) {
       closeAgent();
-      ({ create: openCreate, import: openImport, reframe: openReframe, highlights: openHighlights, captions: openCaptions, overlay: openOverlay, generate: openGenerate, speed: openSpeed, trim: openTrim, color: openColor, rotate: openRotate, audio: openAudio, fade: openFade, reverse: openReverse, crop: openCrop, gif: openGif, loop: openLoop, thumbnail: openThumbnail, stitch: openStitch, watermark: openWatermark, pip: openPip, split: openSplit, freeze: openFreeze, kenburns: openKenBurns, chromakey: openChromaKey, border: openBorder, censor: openCensor, music: openMusic })[tool]();
+      ({ create: openCreate, import: openImport, reframe: openReframe, highlights: openHighlights, captions: openCaptions, overlay: openOverlay, generate: openGenerate, speed: openSpeed, trim: openTrim, color: openColor, rotate: openRotate, audio: openAudio, fade: openFade, reverse: openReverse, crop: openCrop, gif: openGif, loop: openLoop, thumbnail: openThumbnail, stitch: openStitch, watermark: openWatermark, pip: openPip, split: openSplit, freeze: openFreeze, kenburns: openKenBurns, chromakey: openChromaKey, border: openBorder, censor: openCensor, music: openMusic, grid: openGrid })[tool]();
       return;
     }
     run(q || "Custom workflow");

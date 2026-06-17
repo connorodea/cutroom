@@ -64,6 +64,8 @@ export interface EditorState {
   censorOpen: boolean;
   /** Whether the Background-music modal is open. */
   musicOpen: boolean;
+  /** Whether the Grid (2×2 mosaic) modal is open. */
+  gridOpen: boolean;
 
   /** Output ids of AI-created videos this session, newest-first. */
   createdOutputs: string[];
@@ -135,6 +137,8 @@ export interface EditorState {
   closeCensor: () => void;
   openMusic: () => void;
   closeMusic: () => void;
+  openGrid: () => void;
+  closeGrid: () => void;
   /** Record an AI-created output id (newest-first, de-duplicated). */
   addCreatedOutput: (outputId: string) => void;
 
@@ -177,6 +181,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   borderOpen: false,
   censorOpen: false,
   musicOpen: false,
+  gridOpen: false,
   createdOutputs: [],
   phase: "idle",
   active: -1,
@@ -243,6 +248,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   closeCensor: () => set({ censorOpen: false }),
   openMusic: () => set({ musicOpen: true }),
   closeMusic: () => set({ musicOpen: false }),
+  openGrid: () => set({ gridOpen: true }),
+  closeGrid: () => set({ gridOpen: false }),
   addCreatedOutput: (outputId) =>
     set((s) => ({ createdOutputs: [outputId, ...s.createdOutputs.filter((id) => id !== outputId)] })),
 

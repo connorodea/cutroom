@@ -27,6 +27,7 @@ import {
   submitBorderJob,
   submitCensorJob,
   submitMusicJob,
+  submitGridJob,
   submitChainJob,
   submitTranscriptCut,
   submitHighlightsJob,
@@ -484,6 +485,20 @@ describe("multipart submit endpoints", () => {
   it("submitMusicJob throws the server error on failure", async () => {
     fetchMock.mockResolvedValueOnce(res({ error: "music boom" }, { ok: false, status: 400 }));
     await expect(submitMusicJob(sampleFile(), sampleFile())).rejects.toThrow("music boom");
+  });
+
+  it("submitGridJob POSTs four clips under a repeated 'files' field", async () => {
+    await submitGridJob([sampleFile(), sampleFile(), sampleFile(), sampleFile()]);
+    const [url, init] = lastCall();
+    expect(url).toBe(`${BASE}/api/grid`);
+    const fd = init?.body as FormData;
+    expect(fd.getAll("files")).toHaveLength(4);
+    expect(fd.getAll("files")[0]).toBeInstanceOf(File);
+  });
+
+  it("submitGridJob throws the server error on failure", async () => {
+    fetchMock.mockResolvedValueOnce(res({ error: "grid boom" }, { ok: false, status: 400 }));
+    await expect(submitGridJob([sampleFile()])).rejects.toThrow("grid boom");
   });
 
   it("submitPipJob POSTs main + overlay with corner/scale", async () => {

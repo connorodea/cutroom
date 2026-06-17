@@ -31,6 +31,7 @@ import {
   createBorderJob,
   createCensorJob,
   createMusicJob,
+  createGridJob,
   createStitchJob,
   createThumbnailJob,
   createWatermarkJob,
@@ -463,6 +464,23 @@ app.post("/api/music", async (c) => {
   await writeFile(videoPath, Buffer.from(await video.arrayBuffer()));
   await writeFile(audioPath, Buffer.from(await music.arrayBuffer()));
   const job = createMusicJob(videoPath, audioPath, body["volume"], MEDIA_DIR);
+  return c.json(job, 202);
+});
+
+/** Grid — tile four clips into a 2×2 mosaic: multipart with exactly four 'files'. */
+app.post("/api/grid", async (c) => {
+  const body = await c.req.parseBody({ all: true });
+  const raw = body["files"];
+  const files = (Array.isArray(raw) ? raw : [raw]).filter((f): f is File => f instanceof File);
+  if (files.length !== 4) return c.json({ error: "provide exactly 4 'files' (multipart) for a 2x2 grid" }, 400);
+  const paths: string[] = [];
+  for (let i = 0; i < files.length; i++) {
+    const ext = extname(files[i].name || "") || ".mp4";
+    const p = `${MEDIA_DIR}/grid-${Date.now()}-${i}${ext}`;
+    await writeFile(p, Buffer.from(await files[i].arrayBuffer()));
+    paths.push(p);
+  }
+  const job = createGridJob(paths, MEDIA_DIR);
   return c.json(job, 202);
 });
 

@@ -266,6 +266,14 @@ describe("editor store", () => {
     expect(useEditorStore.getState().musicOpen).toBe(false);
   });
 
+  it("opens and closes the Grid modal", () => {
+    expect(useEditorStore.getState().gridOpen).toBe(false);
+    useEditorStore.getState().openGrid();
+    expect(useEditorStore.getState().gridOpen).toBe(true);
+    useEditorStore.getState().closeGrid();
+    expect(useEditorStore.getState().gridOpen).toBe(false);
+  });
+
   it("starts with the Overlay modal closed", () => {
     expect(useEditorStore.getState().overlayOpen).toBe(false);
   });

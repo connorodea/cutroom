@@ -159,6 +159,12 @@ describe("routeIntent", () => {
     expect(routeIntent("lay a music track under the clip")).toBe("music");
   });
 
+  it("routes 2x2 grid / mosaic requests to grid", () => {
+    expect(routeIntent("make a 2x2 grid")).toBe("grid");
+    expect(routeIntent("tile four clips into a mosaic")).toBe("grid");
+    expect(routeIntent("put these four videos in a grid")).toBe("grid");
+  });
+
   it("prefers the specific operation over generic create", () => {
     expect(routeIntent("make a vertical video")).toBe("reframe");
   });

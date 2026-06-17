@@ -20,7 +20,7 @@ export interface TranscriptWord {
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "grid" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -230,6 +230,13 @@ export class CutroomClient {
   async watermark(filePath: string, text: string, opts: { corner?: "tl" | "tr" | "bl" | "br"; opacity?: number } = {}): Promise<Job> {
     const fd = await this.fileForm(filePath, { text, corner: opts.corner ?? "br", opacity: String(opts.opacity ?? 0.5) });
     return this.json(await fetch(`${this.baseUrl}/api/watermark`, { method: "POST", headers: this.authHeaders(), body: fd }));
+  }
+
+  /** Combine exactly four clips into a 2×2 grid (TL, TR, BL, BR) → job. */
+  async grid(filePaths: string[]): Promise<Job> {
+    const fd = new FormData();
+    for (const p of filePaths) fd.append("files", new File([await readFile(p)], basename(p)));
+    return this.json(await fetch(`${this.baseUrl}/api/grid`, { method: "POST", headers: this.authHeaders(), body: fd }));
   }
 
   /** Concatenate several clips (in order) into one video → job. Pass 2+ file paths. */

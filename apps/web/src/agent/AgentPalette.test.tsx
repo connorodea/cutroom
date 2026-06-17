@@ -87,6 +87,7 @@ describe("AgentPalette", () => {
     ["add a white border", "borderOpen"],
     ["blur out the license plate", "censorOpen"],
     ["add background music", "musicOpen"],
+    ["make a 2x2 grid", "gridOpen"],
   ] as const)("routes '%s' to the matching tool and closes the palette", (prompt, flag) => {
     open();
     render(<AgentPalette />);
