@@ -8,7 +8,7 @@ const WORKER_URL =
 
 export interface EditJob {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: {
@@ -40,6 +40,8 @@ export interface EditJob {
     /** For color jobs: the applied saturation + contrast. */
     saturation?: number;
     contrast?: number;
+    /** For rotate jobs: the applied orientation. */
+    orientation?: string;
   };
   error?: string;
 }
@@ -132,6 +134,19 @@ export async function submitCaptionsJob(file: File, opts: { position?: "bottom" 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error((body as { error?: string }).error || `captions failed (${res.status})`);
+  }
+  return (await res.json()) as EditJob;
+}
+
+/** Rotate (cw/ccw/180) or flip (flip-h/flip-v) a video: multipart { file, orientation }. */
+export async function submitRotateJob(file: File, opts: { orientation?: string } = {}): Promise<EditJob> {
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("orientation", opts.orientation ?? "cw");
+  const res = await fetch(`${WORKER_URL}/api/rotate`, { method: "POST", body: fd });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error || `rotate failed (${res.status})`);
   }
   return (await res.json()) as EditJob;
 }

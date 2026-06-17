@@ -20,7 +20,7 @@ export interface TranscriptWord {
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -161,6 +161,12 @@ export class CutroomClient {
   async speed(filePath: string, opts: { factor?: number } = {}): Promise<Job> {
     const fd = await this.fileForm(filePath, { factor: String(opts.factor ?? 2) });
     return this.json(await fetch(`${this.baseUrl}/api/speed`, { method: "POST", headers: this.authHeaders(), body: fd }));
+  }
+
+  /** Rotate (cw/ccw/180) or flip (flip-h/flip-v) a video → job. */
+  async rotate(filePath: string, opts: { orientation?: "cw" | "ccw" | "180" | "flip-h" | "flip-v" } = {}): Promise<Job> {
+    const fd = await this.fileForm(filePath, { orientation: opts.orientation ?? "cw" });
+    return this.json(await fetch(`${this.baseUrl}/api/rotate`, { method: "POST", headers: this.authHeaders(), body: fd }));
   }
 
   /** Color-grade a video with a named look (vivid/warm/cool/bw/cinematic) or custom adjustments → job. */

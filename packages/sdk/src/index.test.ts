@@ -190,6 +190,21 @@ describe("multipart endpoints", () => {
     expect(fd.get("brightness")).toBeNull();
   });
 
+  it("rotate POSTs the file with the orientation", async () => {
+    await client().rotate(tmpFile, { orientation: "ccw" });
+    const [url, init] = lastCall();
+    expect(url).toBe("http://x/api/rotate");
+    expect(init?.method).toBe("POST");
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("orientation")).toBe("ccw");
+  });
+
+  it("rotate defaults the orientation to cw", async () => {
+    await client().rotate(tmpFile);
+    expect((lastCall()[1]?.body as FormData).get("orientation")).toBe("cw");
+  });
+
   it("trim POSTs the file with the start/end window", async () => {
     await client().trim(tmpFile, { start: 5, end: 12 });
     const [url, init] = lastCall();

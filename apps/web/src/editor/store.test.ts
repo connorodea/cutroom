@@ -122,6 +122,14 @@ describe("editor store", () => {
     expect(useEditorStore.getState().colorOpen).toBe(false);
   });
 
+  it("opens and closes the Rotate modal", () => {
+    expect(useEditorStore.getState().rotateOpen).toBe(false);
+    useEditorStore.getState().openRotate();
+    expect(useEditorStore.getState().rotateOpen).toBe(true);
+    useEditorStore.getState().closeRotate();
+    expect(useEditorStore.getState().rotateOpen).toBe(false);
+  });
+
   it("starts with the Overlay modal closed", () => {
     expect(useEditorStore.getState().overlayOpen).toBe(false);
   });

@@ -8,6 +8,7 @@ import { runCaptionsPipeline } from "./captions";
 import { runSpeedPipeline } from "./speed";
 import { runTrimPipeline } from "./trim";
 import { runColorPipeline, type ColorInput } from "./color";
+import { runRotatePipeline } from "./rotate";
 import { generateImage, imageToVideo, downloadTo, type ImageModel, type VideoModel } from "./higgsfield";
 import { extractAudio, ffprobeDimensions, ffprobeDuration } from "./ffmpeg";
 import { transcribe, type Word } from "./transcribe";
@@ -16,7 +17,7 @@ export type JobStatus = "queued" | "running" | "done" | "error";
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "image" | "video";
   status: JobStatus;
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -320,6 +321,31 @@ export function createColorJob(inputPath: string, input: ColorInput, workDir: st
       const r = await runColorPipeline(inputPath, input, workDir, id);
       job.status = "done";
       job.result = { outputId: id, saturation: r.adjust.saturation, contrast: r.adjust.contrast };
+    } catch (err) {
+      job.status = "error";
+      job.error = (err as Error).message;
+      // eslint-disable-next-line no-console
+      console.error("[job]", id, "failed:", err);
+    }
+  })();
+  return job;
+}
+
+/**
+ * Create + run a Rotate job: rotate (90° cw/ccw, 180°) or flip (h/v) the upload. The output is
+ * `${jobId}.mp4`. Runs async; poll the job for status.
+ */
+export function createRotateJob(inputPath: string, orientation: unknown, workDir: string): Job {
+  const id = randomUUID();
+  const job: Job = { id, type: "rotate", status: "queued", createdAt: Date.now() };
+  jobs.set(id, job);
+  void (async () => {
+    try {
+      job.status = "running";
+      job.step = "rotate / flip";
+      const r = await runRotatePipeline(inputPath, orientation, workDir, id);
+      job.status = "done";
+      job.result = { outputId: id, orientation: r.orientation };
     } catch (err) {
       job.status = "error";
       job.error = (err as Error).message;

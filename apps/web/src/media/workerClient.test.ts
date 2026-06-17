@@ -9,6 +9,7 @@ import {
   submitSpeedJob,
   submitTrimJob,
   submitColorJob,
+  submitRotateJob,
   submitChainJob,
   submitTranscriptCut,
   submitHighlightsJob,
@@ -191,6 +192,25 @@ describe("multipart submit endpoints", () => {
   it("submitColorJob throws the server error on failure", async () => {
     fetchMock.mockResolvedValueOnce(res({ error: "color boom" }, { ok: false, status: 400 }));
     await expect(submitColorJob(sampleFile())).rejects.toThrow("color boom");
+  });
+
+  it("submitRotateJob POSTs the file with the orientation", async () => {
+    await submitRotateJob(sampleFile(), { orientation: "ccw" });
+    const [url, init] = lastCall();
+    expect(url).toBe(`${BASE}/api/rotate`);
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("orientation")).toBe("ccw");
+  });
+
+  it("submitRotateJob defaults the orientation to cw", async () => {
+    await submitRotateJob(sampleFile());
+    expect((lastCall()[1]?.body as FormData).get("orientation")).toBe("cw");
+  });
+
+  it("submitRotateJob throws the server error on failure", async () => {
+    fetchMock.mockResolvedValueOnce(res({ error: "rotate boom" }, { ok: false, status: 400 }));
+    await expect(submitRotateJob(sampleFile())).rejects.toThrow("rotate boom");
   });
 
   it("submitOverlayJob POSTs the file plus a JSON overlays field", async () => {
