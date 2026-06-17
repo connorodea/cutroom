@@ -11,6 +11,7 @@ import { runColorPipeline, type ColorInput } from "./color";
 import { runRotatePipeline } from "./rotate";
 import { runAudioPipeline } from "./audio";
 import { runFadePipeline } from "./fade";
+import { runReversePipeline } from "./reverse";
 import { generateImage, imageToVideo, downloadTo, type ImageModel, type VideoModel } from "./higgsfield";
 import { extractAudio, ffprobeDimensions, ffprobeDuration } from "./ffmpeg";
 import { transcribe, type Word } from "./transcribe";
@@ -19,7 +20,7 @@ export type JobStatus = "queued" | "running" | "done" | "error";
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "image" | "video";
   status: JobStatus;
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -398,6 +399,31 @@ export function createFadeJob(inputPath: string, kind: unknown, dur: unknown, wo
       const r = await runFadePipeline(inputPath, kind, dur, workDir, id);
       job.status = "done";
       job.result = { outputId: id, fadeKind: r.kind, dur: r.dur };
+    } catch (err) {
+      job.status = "error";
+      job.error = (err as Error).message;
+      // eslint-disable-next-line no-console
+      console.error("[job]", id, "failed:", err);
+    }
+  })();
+  return job;
+}
+
+/**
+ * Create + run a Reverse job: play the clip backwards ("reverse") or forward-then-reversed
+ * ("boomerang"). The output is `${jobId}.mp4`. Runs async; poll the job for status.
+ */
+export function createReverseJob(inputPath: string, mode: unknown, workDir: string): Job {
+  const id = randomUUID();
+  const job: Job = { id, type: "reverse", status: "queued", createdAt: Date.now() };
+  jobs.set(id, job);
+  void (async () => {
+    try {
+      job.status = "running";
+      job.step = "reverse / boomerang";
+      const r = await runReversePipeline(inputPath, mode, workDir, id);
+      job.status = "done";
+      job.result = { outputId: id, reverseMode: r.mode, hadAudio: r.hadAudio };
     } catch (err) {
       job.status = "error";
       job.error = (err as Error).message;

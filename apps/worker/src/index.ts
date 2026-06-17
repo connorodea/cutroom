@@ -18,6 +18,7 @@ import {
   createColorJob,
   createFadeJob,
   createReframeJob,
+  createReverseJob,
   createRotateJob,
   createSpeedJob,
   createTrimJob,
@@ -284,6 +285,18 @@ app.post("/api/fade", async (c) => {
   const inputPath = `${MEDIA_DIR}/fade-${Date.now()}${ext}`;
   await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
   const job = createFadeJob(inputPath, body["kind"], body["duration"], MEDIA_DIR);
+  return c.json(job, 202);
+});
+
+/** Reverse / boomerang — play a clip backwards or forward-then-reversed: multipart { file, mode }. */
+app.post("/api/reverse", async (c) => {
+  const body = await c.req.parseBody();
+  const file = body["file"];
+  if (!(file instanceof File)) return c.json({ error: "missing 'file' (multipart)" }, 400);
+  const ext = extname(file.name || "") || ".mp4";
+  const inputPath = `${MEDIA_DIR}/rev-${Date.now()}${ext}`;
+  await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
+  const job = createReverseJob(inputPath, body["mode"], MEDIA_DIR);
   return c.json(job, 202);
 });
 

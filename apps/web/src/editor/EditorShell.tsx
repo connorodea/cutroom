@@ -17,6 +17,7 @@ import { ColorModal } from "../media/ColorModal";
 import { RotateModal } from "../media/RotateModal";
 import { AudioModal } from "../media/AudioModal";
 import { FadeModal } from "../media/FadeModal";
+import { ReverseModal } from "../media/ReverseModal";
 import { ColorPage } from "./pages/ColorPage";
 import { CutPage } from "./pages/CutPage";
 import { DeliverPage } from "./pages/DeliverPage";
@@ -64,6 +65,7 @@ export function EditorShell() {
   const openRotate = useEditorStore((s) => s.openRotate);
   const openAudio = useEditorStore((s) => s.openAudio);
   const openFade = useEditorStore((s) => s.openFade);
+  const openReverse = useEditorStore((s) => s.openReverse);
   const toggleAgent = useEditorStore((s) => s.toggleAgent);
   const closeAgent = useEditorStore((s) => s.closeAgent);
   const agentOpen = useEditorStore((s) => s.agentOpen);
@@ -175,6 +177,9 @@ export function EditorShell() {
           <button onClick={openFade} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
             <Icon name="contrast" size={14} color={ACCENT} />Fade
           </button>
+          <button onClick={openReverse} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
+            <Icon name="rewind" size={14} color={ACCENT} />Reverse
+          </button>
           <button style={{ display: "flex", alignItems: "center", gap: 7, background: ACCENT, color: "#0C1012", border: "none", borderRadius: 10, padding: "8px 16px", fontSize: 12.5, fontWeight: 600, cursor: "pointer" }}>
             <Icon name="upload" size={14} />Render
           </button>
@@ -196,6 +201,7 @@ export function EditorShell() {
       <RotateModal />
       <AudioModal />
       <FadeModal />
+      <ReverseModal />
     </div>
   );
 }

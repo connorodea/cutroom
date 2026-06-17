@@ -12,6 +12,7 @@ import {
   submitRotateJob,
   submitAudioJob,
   submitFadeJob,
+  submitReverseJob,
   submitChainJob,
   submitTranscriptCut,
   submitHighlightsJob,
@@ -257,6 +258,25 @@ describe("multipart submit endpoints", () => {
   it("submitFadeJob throws the server error on failure", async () => {
     fetchMock.mockResolvedValueOnce(res({ error: "fade boom" }, { ok: false, status: 400 }));
     await expect(submitFadeJob(sampleFile())).rejects.toThrow("fade boom");
+  });
+
+  it("submitReverseJob POSTs the file with the mode", async () => {
+    await submitReverseJob(sampleFile(), { mode: "boomerang" });
+    const [url, init] = lastCall();
+    expect(url).toBe(`${BASE}/api/reverse`);
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("mode")).toBe("boomerang");
+  });
+
+  it("submitReverseJob defaults the mode to reverse", async () => {
+    await submitReverseJob(sampleFile());
+    expect((lastCall()[1]?.body as FormData).get("mode")).toBe("reverse");
+  });
+
+  it("submitReverseJob throws the server error on failure", async () => {
+    fetchMock.mockResolvedValueOnce(res({ error: "reverse boom" }, { ok: false, status: 400 }));
+    await expect(submitReverseJob(sampleFile())).rejects.toThrow("reverse boom");
   });
 
   it("submitOverlayJob POSTs the file plus a JSON overlays field", async () => {

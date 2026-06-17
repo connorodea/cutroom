@@ -146,6 +146,14 @@ describe("editor store", () => {
     expect(useEditorStore.getState().fadeOpen).toBe(false);
   });
 
+  it("opens and closes the Reverse modal", () => {
+    expect(useEditorStore.getState().reverseOpen).toBe(false);
+    useEditorStore.getState().openReverse();
+    expect(useEditorStore.getState().reverseOpen).toBe(true);
+    useEditorStore.getState().closeReverse();
+    expect(useEditorStore.getState().reverseOpen).toBe(false);
+  });
+
   it("starts with the Overlay modal closed", () => {
     expect(useEditorStore.getState().overlayOpen).toBe(false);
   });

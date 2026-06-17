@@ -8,7 +8,7 @@ const WORKER_URL =
 
 export interface EditJob {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: {
@@ -46,6 +46,8 @@ export interface EditJob {
     audioMode?: string;
     /** For fade jobs: the fade kind applied (in / out / both). */
     fadeKind?: string;
+    /** For reverse jobs: reverse or boomerang. */
+    reverseMode?: string;
   };
   error?: string;
 }
@@ -138,6 +140,19 @@ export async function submitCaptionsJob(file: File, opts: { position?: "bottom" 
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error((body as { error?: string }).error || `captions failed (${res.status})`);
+  }
+  return (await res.json()) as EditJob;
+}
+
+/** Reverse a video ("reverse") or play it forward-then-reversed ("boomerang"): multipart { file, mode }. */
+export async function submitReverseJob(file: File, opts: { mode?: string } = {}): Promise<EditJob> {
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("mode", opts.mode ?? "reverse");
+  const res = await fetch(`${WORKER_URL}/api/reverse`, { method: "POST", body: fd });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error || `reverse failed (${res.status})`);
   }
   return (await res.json()) as EditJob;
 }

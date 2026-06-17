@@ -226,6 +226,21 @@ describe("multipart endpoints", () => {
     expect(fd.get("level")).toBe("1");
   });
 
+  it("reverse POSTs the file with the mode", async () => {
+    await client().reverse(tmpFile, { mode: "boomerang" });
+    const [url, init] = lastCall();
+    expect(url).toBe("http://x/api/reverse");
+    expect(init?.method).toBe("POST");
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("mode")).toBe("boomerang");
+  });
+
+  it("reverse defaults the mode to reverse", async () => {
+    await client().reverse(tmpFile);
+    expect((lastCall()[1]?.body as FormData).get("mode")).toBe("reverse");
+  });
+
   it("rotate POSTs the file with the orientation", async () => {
     await client().rotate(tmpFile, { orientation: "ccw" });
     const [url, init] = lastCall();
