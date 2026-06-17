@@ -37,6 +37,26 @@ describe("CreateModal", () => {
     expect(screen.getByRole("button", { name: /Generate/ })).toBeEnabled();
   });
 
+  it("shows the generative credits note when the source is generative", () => {
+    open();
+    render(<CreateModal />);
+    fireEvent.click(screen.getByText("Generative"));
+    expect(screen.getByText(/requires account credits/)).toBeInTheDocument();
+  });
+
+  it("surfaces a job-error status from the worker", async () => {
+    open();
+    fetchMock
+      .mockResolvedValueOnce(res({ id: "c1", type: "create", status: "queued" }))
+      .mockResolvedValueOnce(res({ id: "c1", type: "create", status: "error", error: "render failed" }));
+    render(<CreateModal />);
+    fireEvent.change(screen.getByRole("textbox"), { target: { value: "x" } });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /Generate/ }));
+    });
+    expect(await screen.findByText(/Create failed/)).toBeInTheDocument();
+  });
+
   it("submits and shows the result on success", async () => {
     open();
     fetchMock

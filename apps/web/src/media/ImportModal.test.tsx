@@ -47,6 +47,13 @@ describe("ImportModal", () => {
     expect(screen.getByRole("button", { name: /Edit transcript/ })).toBeInTheDocument();
   });
 
+  it("closes via the ✕ button", () => {
+    open();
+    render(<ImportModal />);
+    fireEvent.click(screen.getByText("✕"));
+    expect(useEditorStore.getState().importOpen).toBe(false);
+  });
+
   it("runs clean-up and shows the result", async () => {
     open();
     render(<ImportModal />);

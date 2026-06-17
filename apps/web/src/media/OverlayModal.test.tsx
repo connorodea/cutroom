@@ -68,6 +68,34 @@ describe("OverlayModal", () => {
     expect(await screen.findByText("Done")).toBeInTheDocument();
   });
 
+  it("rejects an empty-text graphic on composite", async () => {
+    open();
+    render(<OverlayModal />);
+    uploadVideo();
+    fireEvent.click(screen.getByRole("button", { name: /Add graphic/ }));
+    fireEvent.click(screen.getByText("Title")); // no text typed
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /Composite/ }));
+    });
+    expect(await screen.findByText(/Add at least one element with text/)).toBeInTheDocument();
+  });
+
+  it("surfaces a job-error status from compositing", async () => {
+    open();
+    render(<OverlayModal />);
+    uploadVideo();
+    fireEvent.click(screen.getByRole("button", { name: /Add graphic/ }));
+    fireEvent.click(screen.getByText("Title"));
+    fireEvent.change(screen.getByPlaceholderText("Text"), { target: { value: "T" } });
+    fetchMock
+      .mockResolvedValueOnce(res({ id: "o1", type: "overlay", status: "queued" }))
+      .mockResolvedValueOnce(res({ id: "o1", type: "overlay", status: "error", error: "composite failed" }));
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: /Composite/ }));
+    });
+    expect(await screen.findByText(/Overlay failed/)).toBeInTheDocument();
+  });
+
   it("surfaces an error when compositing fails", async () => {
     open();
     render(<OverlayModal />);

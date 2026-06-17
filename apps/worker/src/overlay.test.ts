@@ -32,6 +32,11 @@ describe("normalizeElements", () => {
     expect(el).toMatchObject({ type: "callout", x: 1, y: 0.5 });
   });
 
+  it("normalizes a lower_third with its subtitle", () => {
+    const [el] = normalizeElements([{ type: "lower_third", text: "Name", subtitle: "Role", start: 0, end: 2 }]);
+    expect(el).toMatchObject({ type: "lower_third", text: "Name", subtitle: "Role" });
+  });
+
   it("returns [] for a non-array input", () => {
     expect(normalizeElements("nope")).toEqual([]);
     expect(normalizeElements(null)).toEqual([]);
@@ -80,6 +85,11 @@ describe("magickArgs", () => {
     );
     expect(args.join(" ")).toContain("Connor");
     expect(args.join(" ")).toContain("Founder");
+  });
+
+  it("includes the subtitle text for a title", () => {
+    const args = magickArgs({ type: "title", text: "Hi", subtitle: "Sub", start: 0, end: 2 }, DIMS, "/tmp/t2.png");
+    expect(args.join(" ")).toContain("Sub");
   });
 
   it("renders a callout bubble at the given position", () => {
