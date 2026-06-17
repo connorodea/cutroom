@@ -9,6 +9,7 @@ Usage:
   cutroom transcribe <file>                                    word-level transcript (+ sourceId)
   cutroom transcript-cut <sourceId> <i,j,k> [--no-captions] [--out <file>]   remove words by index
   cutroom captions <file> [--out <file>]                       burn word-aligned captions onto a video
+  cutroom chain <outputId> <reframe|captions> [--aspect ...] [--mode ...] [--out <file>]   chain an op onto an output
   cutroom highlights <sourceId> [--count N] [--out <file>]    best-moments reel from a transcribed source
   cutroom create "<prompt>" [--portrait] [--no-captions] [--no-graphics] [--generative] [--video-model dop|kling|seedance] [--overlays <json|@file>] [--out <file>]
                                                                AI: script → stock/generative footage → voiceover → captions → graphics
@@ -152,6 +153,19 @@ async function main(): Promise<void> {
     case "captions": {
       if (!args[0]) throw new Error("usage: cutroom captions <file> [--out <file>]");
       await finish(client, await client.captions(args[0]), flag(args, "out"));
+      break;
+    }
+
+    case "chain": {
+      if (!args[0] || !args[1]) throw new Error("usage: cutroom chain <outputId> <reframe|captions> [--aspect ...] [--mode ...] [--out <file>]");
+      const op = args[1] === "captions" ? "captions" : "reframe";
+      const a = flag(args, "aspect");
+      const m = flag(args, "mode");
+      const job = await client.chain(args[0], op, {
+        aspect: a === "square" || a === "landscape" ? a : a === "portrait" ? "portrait" : undefined,
+        mode: m === "crop" ? "crop" : m === "blur" ? "blur" : undefined,
+      });
+      await finish(client, job, flag(args, "out"));
       break;
     }
 

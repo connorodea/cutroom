@@ -116,6 +116,13 @@ describe("JSON endpoints", () => {
     expect(lastCall()[0]).toBe("http://x/api/jobs/j9");
   });
 
+  it("chain POSTs the outputId, op and options", async () => {
+    await client().chain("out-1", "reframe", { aspect: "portrait", mode: "blur" });
+    const [url, init] = lastCall();
+    expect(url).toBe("http://x/api/chain");
+    expect(JSON.parse(init?.body as string)).toEqual({ outputId: "out-1", op: "reframe", aspect: "portrait", mode: "blur" });
+  });
+
   it("highlights POSTs the sourceId and clip count", async () => {
     await client().highlights("src-1", { count: 5 });
     const [url, init] = lastCall();

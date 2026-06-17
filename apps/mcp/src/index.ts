@@ -192,6 +192,25 @@ server.registerTool(
 );
 
 server.registerTool(
+  "cutroom_chain",
+  {
+    description:
+      "Chain another op onto an existing rendered output (by outputId) without re-uploading — e.g. caption a created video, then reframe it. op = 'reframe' (with aspect/mode) or 'captions'. Waits for the render and returns the output URL.",
+    inputSchema: {
+      outputId: z.string().describe("The outputId of a previously rendered Cutroom job."),
+      op: z.enum(["reframe", "captions"]).describe("Operation to apply."),
+      aspect: z.enum(["portrait", "square", "landscape"]).optional().describe("For reframe."),
+      mode: z.enum(["blur", "crop"]).optional().describe("For reframe."),
+    },
+    annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: true },
+  },
+  async ({ outputId, op, aspect, mode }) => {
+    const job = await client.chain(outputId, op, { aspect, mode });
+    return textResult(jobSummary(await client.pollJob(job.id)));
+  },
+);
+
+server.registerTool(
   "cutroom_captions",
   {
     description:

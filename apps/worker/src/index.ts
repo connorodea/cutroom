@@ -22,6 +22,7 @@ import {
   transcribeSource,
 } from "./jobs";
 import { parseTokens, isAuthorized } from "./auth";
+import { safeOutputId, parseChainOp } from "./chain";
 
 const exec = promisify(execFile);
 
@@ -86,6 +87,29 @@ app.post("/api/captions", async (c) => {
   await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
   const job = createCaptionsJob(inputPath, MEDIA_DIR);
   return c.json(job, 202);
+});
+
+/**
+ * Chain an op onto an existing rendered output (no re-upload): JSON { outputId, op, aspect?, mode? }.
+ * op = "reframe" | "captions". Returns a new job to poll.
+ */
+app.post("/api/chain", async (c) => {
+  const body = (await c.req.json().catch(() => ({}))) as { outputId?: unknown; op?: unknown; aspect?: unknown; mode?: unknown };
+  const id = typeof body.outputId === "string" ? safeOutputId(body.outputId) : null;
+  const op = parseChainOp(body.op);
+  if (!id || !op) return c.json({ error: "provide 'outputId' (string) and 'op' (reframe|captions)" }, 400);
+  const inputPath = `${MEDIA_DIR}/${id}.mp4`;
+  try {
+    await stat(inputPath);
+  } catch {
+    return c.json({ error: "unknown outputId — nothing to chain" }, 404);
+  }
+  if (op === "reframe") {
+    const aspect = body.aspect === "square" || body.aspect === "landscape" ? body.aspect : "portrait";
+    const mode = body.mode === "crop" ? "crop" : "blur";
+    return c.json(createReframeJob(inputPath, { aspect, mode }, MEDIA_DIR), 202);
+  }
+  return c.json(createCaptionsJob(inputPath, MEDIA_DIR), 202);
 });
 
 /**
