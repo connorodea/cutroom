@@ -283,6 +283,20 @@ describe("multipart endpoints", () => {
     expect(fd.get("seconds")).toBe("2");
   });
 
+  it("pixelate POSTs the file with the size", async () => {
+    await client().pixelate(tmpFile, { size: "large" });
+    const [url, init] = lastCall();
+    expect(url).toBe("http://x/api/pixelate");
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("size")).toBe("large");
+  });
+
+  it("pixelate defaults to medium", async () => {
+    await client().pixelate(tmpFile);
+    expect((lastCall()[1]?.body as FormData).get("size")).toBe("medium");
+  });
+
   it("vignette POSTs the file with the strength", async () => {
     await client().vignette(tmpFile, { strength: "strong" });
     const [url, init] = lastCall();

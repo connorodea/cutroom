@@ -201,6 +201,12 @@ describe("routeIntent", () => {
     expect(routeIntent("vignette the clip")).toBe("vignette");
   });
 
+  it("routes pixelate / retro requests to pixelate", () => {
+    expect(routeIntent("pixelate the video")).toBe("pixelate");
+    expect(routeIntent("give it a retro 8-bit look")).toBe("pixelate");
+    expect(routeIntent("make it 8-bit pixel art")).toBe("pixelate");
+  });
+
   it("prefers the specific operation over generic create", () => {
     expect(routeIntent("make a vertical video")).toBe("reframe");
   });

@@ -51,6 +51,7 @@ export function AgentPalette() {
   const openMeme = useEditorStore((s) => s.openMeme);
   const openProgress = useEditorStore((s) => s.openProgress);
   const openVignette = useEditorStore((s) => s.openVignette);
+  const openPixelate = useEditorStore((s) => s.openPixelate);
   const { run, loading, source } = useAgentRun();
   const [query, setQuery] = useState("");
 
@@ -69,7 +70,7 @@ export function AgentPalette() {
     const tool = routeIntent(q);
     if (tool) {
       closeAgent();
-      ({ create: openCreate, import: openImport, reframe: openReframe, highlights: openHighlights, captions: openCaptions, overlay: openOverlay, generate: openGenerate, speed: openSpeed, trim: openTrim, color: openColor, rotate: openRotate, audio: openAudio, fade: openFade, reverse: openReverse, crop: openCrop, gif: openGif, loop: openLoop, thumbnail: openThumbnail, stitch: openStitch, watermark: openWatermark, pip: openPip, split: openSplit, freeze: openFreeze, kenburns: openKenBurns, chromakey: openChromaKey, border: openBorder, censor: openCensor, music: openMusic, grid: openGrid, waveform: openWaveform, letterbox: openLetterbox, subtitles: openSubtitles, meme: openMeme, progress: openProgress, vignette: openVignette })[tool]();
+      ({ create: openCreate, import: openImport, reframe: openReframe, highlights: openHighlights, captions: openCaptions, overlay: openOverlay, generate: openGenerate, speed: openSpeed, trim: openTrim, color: openColor, rotate: openRotate, audio: openAudio, fade: openFade, reverse: openReverse, crop: openCrop, gif: openGif, loop: openLoop, thumbnail: openThumbnail, stitch: openStitch, watermark: openWatermark, pip: openPip, split: openSplit, freeze: openFreeze, kenburns: openKenBurns, chromakey: openChromaKey, border: openBorder, censor: openCensor, music: openMusic, grid: openGrid, waveform: openWaveform, letterbox: openLetterbox, subtitles: openSubtitles, meme: openMeme, progress: openProgress, vignette: openVignette, pixelate: openPixelate })[tool]();
       return;
     }
     run(q || "Custom workflow");

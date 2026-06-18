@@ -322,6 +322,14 @@ describe("editor store", () => {
     expect(useEditorStore.getState().vignetteOpen).toBe(false);
   });
 
+  it("opens and closes the Pixelate modal", () => {
+    expect(useEditorStore.getState().pixelateOpen).toBe(false);
+    useEditorStore.getState().openPixelate();
+    expect(useEditorStore.getState().pixelateOpen).toBe(true);
+    useEditorStore.getState().closePixelate();
+    expect(useEditorStore.getState().pixelateOpen).toBe(false);
+  });
+
   it("starts with the Overlay modal closed", () => {
     expect(useEditorStore.getState().overlayOpen).toBe(false);
   });

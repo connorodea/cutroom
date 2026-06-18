@@ -8,7 +8,7 @@ const WORKER_URL =
 
 export interface EditJob {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "grid" | "waveform" | "letterbox" | "subtitles" | "meme" | "progress" | "vignette" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "grid" | "waveform" | "letterbox" | "subtitles" | "meme" | "progress" | "vignette" | "pixelate" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: {
@@ -92,6 +92,8 @@ export interface EditJob {
     progressColor?: string;
     /** For vignette jobs: the applied strength. */
     vignetteStrength?: string;
+    /** For pixelate jobs: the applied block size. */
+    pixelSize?: string;
   };
   error?: string;
 }
@@ -267,6 +269,19 @@ export async function submitCensorJob(file: File, opts: { region?: string; stren
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error((body as { error?: string }).error || `censor failed (${res.status})`);
+  }
+  return (await res.json()) as EditJob;
+}
+
+/** Pixelate: reduce a clip to chunky mosaic blocks: multipart { file, size }. */
+export async function submitPixelateJob(file: File, opts: { size?: string } = {}): Promise<EditJob> {
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("size", opts.size ?? "medium");
+  const res = await fetch(`${WORKER_URL}/api/pixelate`, { method: "POST", body: fd });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error || `pixelate failed (${res.status})`);
   }
   return (await res.json()) as EditJob;
 }

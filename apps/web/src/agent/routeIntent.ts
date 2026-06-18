@@ -2,7 +2,7 @@
 export type IntentTool =
   | "create" | "import" | "reframe" | "highlights" | "captions" | "overlay" | "generate"
   | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop"
-  | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "grid" | "waveform" | "letterbox" | "subtitles" | "meme" | "progress" | "vignette" | null;
+  | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "grid" | "waveform" | "letterbox" | "subtitles" | "meme" | "progress" | "vignette" | "pixelate" | null;
 
 /**
  * Classify a free-text agent request into the editor tool that fulfills it. Heuristic + ordered:
@@ -77,7 +77,7 @@ export function routeIntent(prompt: string): IntentTool {
   if (/\b(chroma\s?key|green\s?screen|blue\s?screen|key\s+out|replace\s+the\s+(green|blue)\s+(background|screen))\b/.test(p)) {
     return "chromakey";
   }
-  if (/\b(censor|redact|pixel(ate|ise|ize)|blur\s+(out|the|his|her|their|my)|blur\s+(a\s+)?(face|plate|logo|name))\b/.test(p)) {
+  if (/\b(censor|redact|blur\s+(out|the|his|her|their|my)|(blur|pixel\w+)\s+(a\s+|out\s+|the\s+)?(face|plate|logo|name|license))\b/.test(p)) {
     return "censor";
   }
   if (/\b(border|matte|add\s+a\s+(\w+\s+)?(border|frame)|frame\s+(the\s+|this\s+)?(video|clip|it)|put\s+a\s+(border|frame|matte))\b/.test(p)) {
@@ -103,6 +103,9 @@ export function routeIntent(prompt: string): IntentTool {
   }
   if (/\b(vignette|darken\s+the\s+(corners|edges)|corner\s+darken)\b/.test(p)) {
     return "vignette";
+  }
+  if (/\b(pixel(ate|ise|ize)|8-?bit|retro|pixel\s+art)\b/.test(p)) {
+    return "pixelate";
   }
   if (/\b(stitch|concat(enate)?|join\s+(the\s+)?clips|merge\s+(the\s+)?clips|combine\s+(the\s+)?clips)\b/.test(p)) {
     return "stitch";

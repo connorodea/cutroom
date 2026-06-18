@@ -38,6 +38,7 @@ import {
   createMemeJob,
   createProgressJob,
   createVignetteJob,
+  createPixelateJob,
   createStitchJob,
   createThumbnailJob,
   createWatermarkJob,
@@ -565,6 +566,18 @@ app.post("/api/vignette", async (c) => {
   const inputPath = `${MEDIA_DIR}/vig-${Date.now()}${ext}`;
   await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
   const job = createVignetteJob(inputPath, body["strength"], MEDIA_DIR);
+  return c.json(job, 202);
+});
+
+/** Pixelate — reduce a clip to chunky mosaic blocks: multipart { file, size }. */
+app.post("/api/pixelate", async (c) => {
+  const body = await c.req.parseBody();
+  const file = body["file"];
+  if (!(file instanceof File)) return c.json({ error: "missing 'file' (multipart)" }, 400);
+  const ext = extname(file.name || "") || ".mp4";
+  const inputPath = `${MEDIA_DIR}/px-${Date.now()}${ext}`;
+  await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
+  const job = createPixelateJob(inputPath, body["size"], MEDIA_DIR);
   return c.json(job, 202);
 });
 

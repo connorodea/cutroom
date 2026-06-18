@@ -20,7 +20,7 @@ export interface TranscriptWord {
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "grid" | "waveform" | "letterbox" | "subtitles" | "meme" | "progress" | "vignette" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "grid" | "waveform" | "letterbox" | "subtitles" | "meme" | "progress" | "vignette" | "pixelate" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -170,6 +170,12 @@ export class CutroomClient {
     fd.append("right", new File([await readFile(rightPath)], basename(rightPath)));
     fd.append("layout", opts.layout ?? "horizontal");
     return this.json(await fetch(`${this.baseUrl}/api/split`, { method: "POST", headers: this.authHeaders(), body: fd }));
+  }
+
+  /** Pixelate: reduce a clip to chunky mosaic blocks (small / medium / large) → job. */
+  async pixelate(filePath: string, opts: { size?: "small" | "medium" | "large" } = {}): Promise<Job> {
+    const fd = await this.fileForm(filePath, { size: opts.size ?? "medium" });
+    return this.json(await fetch(`${this.baseUrl}/api/pixelate`, { method: "POST", headers: this.authHeaders(), body: fd }));
   }
 
   /** Vignette: darken the corners (subtle / medium / strong) for a cinematic look → job. */

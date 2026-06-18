@@ -94,6 +94,7 @@ describe("AgentPalette", () => {
     ["make this a meme", "memeOpen"],
     ["add a progress bar", "progressOpen"],
     ["add a vignette", "vignetteOpen"],
+    ["pixelate the video", "pixelateOpen"],
   ] as const)("routes '%s' to the matching tool and closes the palette", (prompt, flag) => {
     open();
     render(<AgentPalette />);

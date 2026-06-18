@@ -34,6 +34,7 @@ import {
   submitMemeJob,
   submitProgressJob,
   submitVignetteJob,
+  submitPixelateJob,
   submitChainJob,
   submitTranscriptCut,
   submitHighlightsJob,
@@ -625,6 +626,25 @@ describe("multipart submit endpoints", () => {
   it("submitVignetteJob throws the server error on failure", async () => {
     fetchMock.mockResolvedValueOnce(res({ error: "vig boom" }, { ok: false, status: 400 }));
     await expect(submitVignetteJob(sampleFile())).rejects.toThrow("vig boom");
+  });
+
+  it("submitPixelateJob POSTs the file with the size", async () => {
+    await submitPixelateJob(sampleFile(), { size: "large" });
+    const [url, init] = lastCall();
+    expect(url).toBe(`${BASE}/api/pixelate`);
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("size")).toBe("large");
+  });
+
+  it("submitPixelateJob defaults to medium", async () => {
+    await submitPixelateJob(sampleFile());
+    expect((lastCall()[1]?.body as FormData).get("size")).toBe("medium");
+  });
+
+  it("submitPixelateJob throws the server error on failure", async () => {
+    fetchMock.mockResolvedValueOnce(res({ error: "px boom" }, { ok: false, status: 400 }));
+    await expect(submitPixelateJob(sampleFile())).rejects.toThrow("px boom");
   });
 
   it("submitPipJob POSTs main + overlay with corner/scale", async () => {

@@ -40,6 +40,7 @@ import { SubtitlesModal } from "../media/SubtitlesModal";
 import { MemeModal } from "../media/MemeModal";
 import { ProgressModal } from "../media/ProgressModal";
 import { VignetteModal } from "../media/VignetteModal";
+import { PixelateModal } from "../media/PixelateModal";
 import { ColorPage } from "./pages/ColorPage";
 import { CutPage } from "./pages/CutPage";
 import { DeliverPage } from "./pages/DeliverPage";
@@ -202,6 +203,7 @@ export function EditorShell() {
       <MemeModal />
       <ProgressModal />
       <VignetteModal />
+      <PixelateModal />
     </div>
   );
 }
