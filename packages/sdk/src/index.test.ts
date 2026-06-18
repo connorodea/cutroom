@@ -283,6 +283,20 @@ describe("multipart endpoints", () => {
     expect(fd.get("seconds")).toBe("2");
   });
 
+  it("rgbSplit POSTs the file with the strength", async () => {
+    await client().rgbSplit(tmpFile, { strength: "heavy" });
+    const [url, init] = lastCall();
+    expect(url).toBe("http://x/api/rgbsplit");
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("strength")).toBe("heavy");
+  });
+
+  it("rgbSplit defaults to medium", async () => {
+    await client().rgbSplit(tmpFile);
+    expect((lastCall()[1]?.body as FormData).get("strength")).toBe("medium");
+  });
+
   it("pixelate POSTs the file with the size", async () => {
     await client().pixelate(tmpFile, { size: "large" });
     const [url, init] = lastCall();

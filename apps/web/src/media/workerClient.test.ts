@@ -35,6 +35,7 @@ import {
   submitProgressJob,
   submitVignetteJob,
   submitPixelateJob,
+  submitRgbSplitJob,
   submitChainJob,
   submitTranscriptCut,
   submitHighlightsJob,
@@ -645,6 +646,25 @@ describe("multipart submit endpoints", () => {
   it("submitPixelateJob throws the server error on failure", async () => {
     fetchMock.mockResolvedValueOnce(res({ error: "px boom" }, { ok: false, status: 400 }));
     await expect(submitPixelateJob(sampleFile())).rejects.toThrow("px boom");
+  });
+
+  it("submitRgbSplitJob POSTs the file with the strength", async () => {
+    await submitRgbSplitJob(sampleFile(), { strength: "heavy" });
+    const [url, init] = lastCall();
+    expect(url).toBe(`${BASE}/api/rgbsplit`);
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("strength")).toBe("heavy");
+  });
+
+  it("submitRgbSplitJob defaults to medium", async () => {
+    await submitRgbSplitJob(sampleFile());
+    expect((lastCall()[1]?.body as FormData).get("strength")).toBe("medium");
+  });
+
+  it("submitRgbSplitJob throws the server error on failure", async () => {
+    fetchMock.mockResolvedValueOnce(res({ error: "rgb boom" }, { ok: false, status: 400 }));
+    await expect(submitRgbSplitJob(sampleFile())).rejects.toThrow("rgb boom");
   });
 
   it("submitPipJob POSTs main + overlay with corner/scale", async () => {

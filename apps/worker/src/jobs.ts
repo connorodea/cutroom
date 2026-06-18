@@ -34,6 +34,7 @@ import { runMemePipeline } from "./meme";
 import { runProgressPipeline } from "./progress";
 import { runVignettePipeline } from "./vignette";
 import { runPixelatePipeline } from "./pixelate";
+import { runRgbSplitPipeline } from "./rgbsplit";
 import { generateImage, imageToVideo, downloadTo, type ImageModel, type VideoModel } from "./higgsfield";
 import { extractAudio, ffprobeDimensions, ffprobeDuration } from "./ffmpeg";
 import { transcribe, type Word } from "./transcribe";
@@ -42,7 +43,7 @@ export type JobStatus = "queued" | "running" | "done" | "error";
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "grid" | "waveform" | "letterbox" | "subtitles" | "meme" | "progress" | "vignette" | "pixelate" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "grid" | "waveform" | "letterbox" | "subtitles" | "meme" | "progress" | "vignette" | "pixelate" | "rgbsplit" | "image" | "video";
   status: JobStatus;
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -996,6 +997,31 @@ export function createPixelateJob(inputPath: string, size: unknown, workDir: str
       const r = await runPixelatePipeline(inputPath, size, workDir, id);
       job.status = "done";
       job.result = { outputId: id, pixelSize: r.size };
+    } catch (err) {
+      job.status = "error";
+      job.error = (err as Error).message;
+      // eslint-disable-next-line no-console
+      console.error("[job]", id, "failed:", err);
+    }
+  })();
+  return job;
+}
+
+/**
+ * Create + run an RGB-split job: chromatic-aberration / glitch look. The output is `${jobId}.mp4`.
+ * Runs async; poll the job for status.
+ */
+export function createRgbSplitJob(inputPath: string, strength: unknown, workDir: string): Job {
+  const id = randomUUID();
+  const job: Job = { id, type: "rgbsplit", status: "queued", createdAt: Date.now() };
+  jobs.set(id, job);
+  void (async () => {
+    try {
+      job.status = "running";
+      job.step = "split channels";
+      const r = await runRgbSplitPipeline(inputPath, strength, workDir, id);
+      job.status = "done";
+      job.result = { outputId: id, rgbStrength: r.strength };
     } catch (err) {
       job.status = "error";
       job.error = (err as Error).message;

@@ -3,7 +3,7 @@ import {
   CircleCheckBig, Clapperboard, Columns2, Combine, Contrast, CornerDownLeft, Crop, Dot, EyeOff, Film, Folder, Gauge, Grid2x2, Grid3x3, Layers, Magnet,
   Maximize2, Monitor, MousePointer2, Palette, PictureInPicture2, Play, Plus, Quote, RectangleHorizontal, Redo2, Repeat, Rewind, RotateCw, Scissors,
   Search, SkipBack, SkipForward, SlidersHorizontal, Smartphone, Smile, Snowflake, Sparkles, Square, Type,
-  Undo2, Upload, Volume2, Wand2, ZoomIn, ZoomOut,
+  Undo2, Upload, Volume2, Wand2, Zap, ZoomIn, ZoomOut,
   type LucideIcon,
 } from "lucide-react";
 
@@ -17,7 +17,7 @@ const ICONS: Record<string, LucideIcon> = {
   quote: Quote, "rectangle-horizontal": RectangleHorizontal, "redo-2": Redo2, repeat: Repeat, rewind: Rewind, "rotate-cw": RotateCw, scissors: Scissors, search: Search, "skip-back": SkipBack,
   "skip-forward": SkipForward, "sliders-horizontal": SlidersHorizontal, smartphone: Smartphone, smile: Smile,
   snowflake: Snowflake, sparkles: Sparkles, square: Square, type: Type, "undo-2": Undo2, upload: Upload, "volume-2": Volume2,
-  "wand-2": Wand2, "zoom-in": ZoomIn, "zoom-out": ZoomOut,
+  "wand-2": Wand2, zap: Zap, "zoom-in": ZoomIn, "zoom-out": ZoomOut,
 };
 
 export interface IconProps {

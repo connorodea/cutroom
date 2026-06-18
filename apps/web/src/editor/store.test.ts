@@ -330,6 +330,14 @@ describe("editor store", () => {
     expect(useEditorStore.getState().pixelateOpen).toBe(false);
   });
 
+  it("opens and closes the RGB-split modal", () => {
+    expect(useEditorStore.getState().rgbSplitOpen).toBe(false);
+    useEditorStore.getState().openRgbSplit();
+    expect(useEditorStore.getState().rgbSplitOpen).toBe(true);
+    useEditorStore.getState().closeRgbSplit();
+    expect(useEditorStore.getState().rgbSplitOpen).toBe(false);
+  });
+
   it("starts with the Overlay modal closed", () => {
     expect(useEditorStore.getState().overlayOpen).toBe(false);
   });

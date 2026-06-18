@@ -95,6 +95,7 @@ describe("AgentPalette", () => {
     ["add a progress bar", "progressOpen"],
     ["add a vignette", "vignetteOpen"],
     ["pixelate the video", "pixelateOpen"],
+    ["add a glitch effect", "rgbSplitOpen"],
   ] as const)("routes '%s' to the matching tool and closes the palette", (prompt, flag) => {
     open();
     render(<AgentPalette />);

@@ -80,6 +80,8 @@ export interface EditorState {
   vignetteOpen: boolean;
   /** Whether the Pixelate modal is open. */
   pixelateOpen: boolean;
+  /** Whether the RGB-split (glitch) modal is open. */
+  rgbSplitOpen: boolean;
 
   /** Output ids of AI-created videos this session, newest-first. */
   createdOutputs: string[];
@@ -167,6 +169,8 @@ export interface EditorState {
   closeVignette: () => void;
   openPixelate: () => void;
   closePixelate: () => void;
+  openRgbSplit: () => void;
+  closeRgbSplit: () => void;
   /** Record an AI-created output id (newest-first, de-duplicated). */
   addCreatedOutput: (outputId: string) => void;
 
@@ -217,6 +221,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   progressOpen: false,
   vignetteOpen: false,
   pixelateOpen: false,
+  rgbSplitOpen: false,
   createdOutputs: [],
   phase: "idle",
   active: -1,
@@ -299,6 +304,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   closeVignette: () => set({ vignetteOpen: false }),
   openPixelate: () => set({ pixelateOpen: true }),
   closePixelate: () => set({ pixelateOpen: false }),
+  openRgbSplit: () => set({ rgbSplitOpen: true }),
+  closeRgbSplit: () => set({ rgbSplitOpen: false }),
   addCreatedOutput: (outputId) =>
     set((s) => ({ createdOutputs: [outputId, ...s.createdOutputs.filter((id) => id !== outputId)] })),
 

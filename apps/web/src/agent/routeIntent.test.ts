@@ -207,6 +207,12 @@ describe("routeIntent", () => {
     expect(routeIntent("make it 8-bit pixel art")).toBe("pixelate");
   });
 
+  it("routes glitch / RGB-split requests to rgbsplit", () => {
+    expect(routeIntent("add a glitch effect")).toBe("rgbsplit");
+    expect(routeIntent("rgb split the clip")).toBe("rgbsplit");
+    expect(routeIntent("add chromatic aberration")).toBe("rgbsplit");
+  });
+
   it("prefers the specific operation over generic create", () => {
     expect(routeIntent("make a vertical video")).toBe("reframe");
   });

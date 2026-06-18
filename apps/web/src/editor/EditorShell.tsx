@@ -41,6 +41,7 @@ import { MemeModal } from "../media/MemeModal";
 import { ProgressModal } from "../media/ProgressModal";
 import { VignetteModal } from "../media/VignetteModal";
 import { PixelateModal } from "../media/PixelateModal";
+import { GlitchModal } from "../media/GlitchModal";
 import { ColorPage } from "./pages/ColorPage";
 import { CutPage } from "./pages/CutPage";
 import { DeliverPage } from "./pages/DeliverPage";
@@ -204,6 +205,7 @@ export function EditorShell() {
       <ProgressModal />
       <VignetteModal />
       <PixelateModal />
+      <GlitchModal />
     </div>
   );
 }

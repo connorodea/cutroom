@@ -8,7 +8,7 @@ const WORKER_URL =
 
 export interface EditJob {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "grid" | "waveform" | "letterbox" | "subtitles" | "meme" | "progress" | "vignette" | "pixelate" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "grid" | "waveform" | "letterbox" | "subtitles" | "meme" | "progress" | "vignette" | "pixelate" | "rgbsplit" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: {
@@ -94,6 +94,8 @@ export interface EditJob {
     vignetteStrength?: string;
     /** For pixelate jobs: the applied block size. */
     pixelSize?: string;
+    /** For RGB-split jobs: the applied strength. */
+    rgbStrength?: string;
   };
   error?: string;
 }
@@ -269,6 +271,19 @@ export async function submitCensorJob(file: File, opts: { region?: string; stren
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error((body as { error?: string }).error || `censor failed (${res.status})`);
+  }
+  return (await res.json()) as EditJob;
+}
+
+/** RGB split: chromatic-aberration / glitch look: multipart { file, strength }. */
+export async function submitRgbSplitJob(file: File, opts: { strength?: string } = {}): Promise<EditJob> {
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("strength", opts.strength ?? "medium");
+  const res = await fetch(`${WORKER_URL}/api/rgbsplit`, { method: "POST", body: fd });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error || `rgb split failed (${res.status})`);
   }
   return (await res.json()) as EditJob;
 }

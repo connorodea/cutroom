@@ -43,6 +43,7 @@ export const TOOL_GROUPS: ToolGroup[] = [
       { id: "censor", label: "Censor", icon: "eye-off", opener: "openCensor" },
       { id: "vignette", label: "Vignette", icon: "aperture", opener: "openVignette" },
       { id: "pixelate", label: "Pixelate", icon: "grid-3x3", opener: "openPixelate" },
+      { id: "glitch", label: "Glitch", icon: "zap", opener: "openRgbSplit" },
     ],
   },
   {

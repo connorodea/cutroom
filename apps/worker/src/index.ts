@@ -39,6 +39,7 @@ import {
   createProgressJob,
   createVignetteJob,
   createPixelateJob,
+  createRgbSplitJob,
   createStitchJob,
   createThumbnailJob,
   createWatermarkJob,
@@ -578,6 +579,18 @@ app.post("/api/pixelate", async (c) => {
   const inputPath = `${MEDIA_DIR}/px-${Date.now()}${ext}`;
   await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
   const job = createPixelateJob(inputPath, body["size"], MEDIA_DIR);
+  return c.json(job, 202);
+});
+
+/** RGB split — chromatic-aberration / glitch look: multipart { file, strength }. */
+app.post("/api/rgbsplit", async (c) => {
+  const body = await c.req.parseBody();
+  const file = body["file"];
+  if (!(file instanceof File)) return c.json({ error: "missing 'file' (multipart)" }, 400);
+  const ext = extname(file.name || "") || ".mp4";
+  const inputPath = `${MEDIA_DIR}/rgb-${Date.now()}${ext}`;
+  await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
+  const job = createRgbSplitJob(inputPath, body["strength"], MEDIA_DIR);
   return c.json(job, 202);
 });
 
