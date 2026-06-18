@@ -34,6 +34,7 @@ import {
   createGridJob,
   createWaveformJob,
   createLetterboxJob,
+  createSubtitlesJob,
   createStitchJob,
   createThumbnailJob,
   createWatermarkJob,
@@ -507,6 +508,21 @@ app.post("/api/letterbox", async (c) => {
   const inputPath = `${MEDIA_DIR}/lb-${Date.now()}${ext}`;
   await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
   const job = createLetterboxJob(inputPath, body["preset"], MEDIA_DIR);
+  return c.json(job, 202);
+});
+
+/** Subtitles — burn a user-supplied .srt onto a clip: multipart { file (video), srt (.srt) }. */
+app.post("/api/subtitles", async (c) => {
+  const body = await c.req.parseBody();
+  const video = body["file"];
+  const srt = body["srt"];
+  if (!(video instanceof File) || !(srt instanceof File)) return c.json({ error: "provide 'file' (video) and 'srt' (.srt, multipart)" }, 400);
+  const vext = extname(video.name || "") || ".mp4";
+  const videoPath = `${MEDIA_DIR}/sub-${Date.now()}-v${vext}`;
+  const srtPath = `${MEDIA_DIR}/sub-${Date.now()}.srt`;
+  await writeFile(videoPath, Buffer.from(await video.arrayBuffer()));
+  await writeFile(srtPath, Buffer.from(await srt.arrayBuffer()));
+  const job = createSubtitlesJob(videoPath, srtPath, MEDIA_DIR);
   return c.json(job, 202);
 });
 

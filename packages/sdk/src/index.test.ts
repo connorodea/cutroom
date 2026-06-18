@@ -450,6 +450,15 @@ describe("multipart endpoints", () => {
     expect(fd.getAll("files")[0]).toBeInstanceOf(File);
   });
 
+  it("subtitles POSTs the video + the srt file", async () => {
+    await client().subtitles(tmpFile, tmpFile);
+    const [url, init] = lastCall();
+    expect(url).toBe("http://x/api/subtitles");
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("srt")).toBeInstanceOf(File);
+  });
+
   it("grid POSTs four clips under a repeated 'files' field", async () => {
     await client().grid([tmpFile, tmpFile, tmpFile, tmpFile]);
     const [url, init] = lastCall();

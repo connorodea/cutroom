@@ -20,7 +20,7 @@ export interface TranscriptWord {
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "grid" | "waveform" | "letterbox" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "grid" | "waveform" | "letterbox" | "subtitles" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -249,6 +249,14 @@ export class CutroomClient {
     const fd = new FormData();
     for (const p of filePaths) fd.append("files", new File([await readFile(p)], basename(p)));
     return this.json(await fetch(`${this.baseUrl}/api/grid`, { method: "POST", headers: this.authHeaders(), body: fd }));
+  }
+
+  /** Burn a user-supplied SRT subtitle file onto a video → job. */
+  async subtitles(videoPath: string, srtPath: string): Promise<Job> {
+    const fd = new FormData();
+    fd.append("file", new File([await readFile(videoPath)], basename(videoPath)));
+    fd.append("srt", new File([await readFile(srtPath)], basename(srtPath)));
+    return this.json(await fetch(`${this.baseUrl}/api/subtitles`, { method: "POST", headers: this.authHeaders(), body: fd }));
   }
 
   /** Concatenate several clips (in order) into one video → job. Pass 2+ file paths. */

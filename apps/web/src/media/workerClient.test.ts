@@ -30,6 +30,7 @@ import {
   submitGridJob,
   submitWaveformJob,
   submitLetterboxJob,
+  submitSubtitlesJob,
   submitChainJob,
   submitTranscriptCut,
   submitHighlightsJob,
@@ -544,6 +545,20 @@ describe("multipart submit endpoints", () => {
   it("submitLetterboxJob throws the server error on failure", async () => {
     fetchMock.mockResolvedValueOnce(res({ error: "lb boom" }, { ok: false, status: 400 }));
     await expect(submitLetterboxJob(sampleFile())).rejects.toThrow("lb boom");
+  });
+
+  it("submitSubtitlesJob POSTs the video + the srt file", async () => {
+    await submitSubtitlesJob(sampleFile(), sampleFile());
+    const [url, init] = lastCall();
+    expect(url).toBe(`${BASE}/api/subtitles`);
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("srt")).toBeInstanceOf(File);
+  });
+
+  it("submitSubtitlesJob throws the server error on failure", async () => {
+    fetchMock.mockResolvedValueOnce(res({ error: "srt boom" }, { ok: false, status: 400 }));
+    await expect(submitSubtitlesJob(sampleFile(), sampleFile())).rejects.toThrow("srt boom");
   });
 
   it("submitPipJob POSTs main + overlay with corner/scale", async () => {

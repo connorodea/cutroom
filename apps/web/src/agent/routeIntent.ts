@@ -2,7 +2,7 @@
 export type IntentTool =
   | "create" | "import" | "reframe" | "highlights" | "captions" | "overlay" | "generate"
   | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop"
-  | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "grid" | "waveform" | "letterbox" | null;
+  | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "grid" | "waveform" | "letterbox" | "subtitles" | null;
 
 /**
  * Classify a free-text agent request into the editor tool that fulfills it. Heuristic + ordered:
@@ -16,6 +16,9 @@ export function routeIntent(prompt: string): IntentTool {
   }
   if (/\b(highlight|highlights|best\s+(moments?|bits?|parts?)|montage|supercut|sizzle|top\s+moments?)\b/.test(p)) {
     return "highlights";
+  }
+  if (/\b(srt|subtitle\s+file|burn\s+(my\s+|the\s+|an?\s+)?srt|import\s+(an?\s+)?(srt|subtitles?\s+file))\b/.test(p)) {
+    return "subtitles";
   }
   if (/\b(captions?|subtitles?)\b/.test(p)) {
     return "captions";

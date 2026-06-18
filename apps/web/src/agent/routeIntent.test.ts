@@ -28,6 +28,12 @@ describe("routeIntent", () => {
     expect(routeIntent("burn in subtitles")).toBe("captions");
   });
 
+  it("routes SRT-file requests to subtitles (not the auto-captioner)", () => {
+    expect(routeIntent("burn in my srt file")).toBe("subtitles");
+    expect(routeIntent("burn the subtitle file")).toBe("subtitles");
+    expect(routeIntent("import an srt")).toBe("subtitles");
+  });
+
   it("routes on-screen-graphics requests to overlay", () => {
     expect(routeIntent("add a lower third with my name")).toBe("overlay");
     expect(routeIntent("put a callout on screen")).toBe("overlay");

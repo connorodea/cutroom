@@ -8,7 +8,7 @@ const WORKER_URL =
 
 export interface EditJob {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "grid" | "waveform" | "letterbox" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "grid" | "waveform" | "letterbox" | "subtitles" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: {
@@ -83,6 +83,8 @@ export interface EditJob {
     /** For letterbox jobs: the cinematic preset + bar height (px). */
     letterboxPreset?: string;
     barHeight?: number;
+    /** For subtitles jobs: how many cues were burned in. */
+    cues?: number;
   };
   error?: string;
 }
@@ -258,6 +260,19 @@ export async function submitCensorJob(file: File, opts: { region?: string; stren
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error((body as { error?: string }).error || `censor failed (${res.status})`);
+  }
+  return (await res.json()) as EditJob;
+}
+
+/** Subtitles: burn a user-supplied .srt onto a clip: multipart { file (video), srt (.srt) }. */
+export async function submitSubtitlesJob(video: File, srt: File): Promise<EditJob> {
+  const fd = new FormData();
+  fd.append("file", video);
+  fd.append("srt", srt);
+  const res = await fetch(`${WORKER_URL}/api/subtitles`, { method: "POST", body: fd });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error || `subtitles failed (${res.status})`);
   }
   return (await res.json()) as EditJob;
 }

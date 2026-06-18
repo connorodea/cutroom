@@ -290,6 +290,14 @@ describe("editor store", () => {
     expect(useEditorStore.getState().letterboxOpen).toBe(false);
   });
 
+  it("opens and closes the Subtitles modal", () => {
+    expect(useEditorStore.getState().subtitlesOpen).toBe(false);
+    useEditorStore.getState().openSubtitles();
+    expect(useEditorStore.getState().subtitlesOpen).toBe(true);
+    useEditorStore.getState().closeSubtitles();
+    expect(useEditorStore.getState().subtitlesOpen).toBe(false);
+  });
+
   it("starts with the Overlay modal closed", () => {
     expect(useEditorStore.getState().overlayOpen).toBe(false);
   });

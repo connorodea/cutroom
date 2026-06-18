@@ -70,6 +70,8 @@ export interface EditorState {
   waveformOpen: boolean;
   /** Whether the Letterbox (cinematic bars) modal is open. */
   letterboxOpen: boolean;
+  /** Whether the Subtitles (burn SRT) modal is open. */
+  subtitlesOpen: boolean;
 
   /** Output ids of AI-created videos this session, newest-first. */
   createdOutputs: string[];
@@ -147,6 +149,8 @@ export interface EditorState {
   closeWaveform: () => void;
   openLetterbox: () => void;
   closeLetterbox: () => void;
+  openSubtitles: () => void;
+  closeSubtitles: () => void;
   /** Record an AI-created output id (newest-first, de-duplicated). */
   addCreatedOutput: (outputId: string) => void;
 
@@ -192,6 +196,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   gridOpen: false,
   waveformOpen: false,
   letterboxOpen: false,
+  subtitlesOpen: false,
   createdOutputs: [],
   phase: "idle",
   active: -1,
@@ -264,6 +269,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   closeWaveform: () => set({ waveformOpen: false }),
   openLetterbox: () => set({ letterboxOpen: true }),
   closeLetterbox: () => set({ letterboxOpen: false }),
+  openSubtitles: () => set({ subtitlesOpen: true }),
+  closeSubtitles: () => set({ subtitlesOpen: false }),
   addCreatedOutput: (outputId) =>
     set((s) => ({ createdOutputs: [outputId, ...s.createdOutputs.filter((id) => id !== outputId)] })),
 

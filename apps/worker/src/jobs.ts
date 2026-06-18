@@ -29,6 +29,7 @@ import { runMusicPipeline } from "./music";
 import { runGridPipeline } from "./grid";
 import { runWaveformPipeline } from "./waveform";
 import { runLetterboxPipeline } from "./letterbox";
+import { runSubtitlesPipeline } from "./subtitles";
 import { generateImage, imageToVideo, downloadTo, type ImageModel, type VideoModel } from "./higgsfield";
 import { extractAudio, ffprobeDimensions, ffprobeDuration } from "./ffmpeg";
 import { transcribe, type Word } from "./transcribe";
@@ -37,7 +38,7 @@ export type JobStatus = "queued" | "running" | "done" | "error";
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "grid" | "waveform" | "letterbox" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "grid" | "waveform" | "letterbox" | "subtitles" | "image" | "video";
   status: JobStatus;
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -866,6 +867,31 @@ export function createLetterboxJob(inputPath: string, preset: unknown, workDir: 
       const r = await runLetterboxPipeline(inputPath, preset, workDir, id);
       job.status = "done";
       job.result = { outputId: id, letterboxPreset: r.preset, barHeight: r.bar };
+    } catch (err) {
+      job.status = "error";
+      job.error = (err as Error).message;
+      // eslint-disable-next-line no-console
+      console.error("[job]", id, "failed:", err);
+    }
+  })();
+  return job;
+}
+
+/**
+ * Create + run a Subtitles job: burn a user-supplied SRT onto a clip. The output is `${jobId}.mp4`.
+ * Runs async; poll the job for status.
+ */
+export function createSubtitlesJob(videoPath: string, srtPath: string, workDir: string): Job {
+  const id = randomUUID();
+  const job: Job = { id, type: "subtitles", status: "queued", createdAt: Date.now() };
+  jobs.set(id, job);
+  void (async () => {
+    try {
+      job.status = "running";
+      job.step = "burn subtitles";
+      const r = await runSubtitlesPipeline(videoPath, srtPath, workDir, id);
+      job.status = "done";
+      job.result = { outputId: id, cues: r.cues };
     } catch (err) {
       job.status = "error";
       job.error = (err as Error).message;
