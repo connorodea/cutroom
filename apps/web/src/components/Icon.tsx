@@ -1,5 +1,5 @@
 import {
-  Activity, ArrowLeft, ArrowUpRight, AudioLines, Camera, Captions, Check, ChevronDown,
+  Activity, Aperture, ArrowLeft, ArrowUpRight, AudioLines, Camera, Captions, Check, ChevronDown,
   CircleCheckBig, Clapperboard, Columns2, Combine, Contrast, CornerDownLeft, Crop, Dot, EyeOff, Film, Folder, Gauge, Grid2x2, Layers, Magnet,
   Maximize2, Monitor, MousePointer2, Palette, PictureInPicture2, Play, Plus, Quote, RectangleHorizontal, Redo2, Repeat, Rewind, RotateCw, Scissors,
   Search, SkipBack, SkipForward, SlidersHorizontal, Smartphone, Smile, Snowflake, Sparkles, Square, Type,
@@ -9,7 +9,7 @@ import {
 
 /** Maps the design's kebab-case icon names to lucide-react components. */
 const ICONS: Record<string, LucideIcon> = {
-  activity: Activity, "arrow-left": ArrowLeft, "arrow-up-right": ArrowUpRight,
+  activity: Activity, aperture: Aperture, "arrow-left": ArrowLeft, "arrow-up-right": ArrowUpRight,
   "audio-lines": AudioLines, camera: Camera, captions: Captions, check: Check, "chevron-down": ChevronDown,
   "circle-check-big": CircleCheckBig, clapperboard: Clapperboard, "columns-2": Columns2, combine: Combine, contrast: Contrast, "corner-down-left": CornerDownLeft,
   crop: Crop, dot: Dot, "eye-off": EyeOff, film: Film, folder: Folder, gauge: Gauge, "grid-2x2": Grid2x2, layers: Layers, magnet: Magnet, "maximize-2": Maximize2,

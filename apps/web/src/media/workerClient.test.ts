@@ -33,6 +33,7 @@ import {
   submitSubtitlesJob,
   submitMemeJob,
   submitProgressJob,
+  submitVignetteJob,
   submitChainJob,
   submitTranscriptCut,
   submitHighlightsJob,
@@ -605,6 +606,25 @@ describe("multipart submit endpoints", () => {
   it("submitProgressJob throws the server error on failure", async () => {
     fetchMock.mockResolvedValueOnce(res({ error: "prog boom" }, { ok: false, status: 400 }));
     await expect(submitProgressJob(sampleFile())).rejects.toThrow("prog boom");
+  });
+
+  it("submitVignetteJob POSTs the file with the strength", async () => {
+    await submitVignetteJob(sampleFile(), { strength: "strong" });
+    const [url, init] = lastCall();
+    expect(url).toBe(`${BASE}/api/vignette`);
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("strength")).toBe("strong");
+  });
+
+  it("submitVignetteJob defaults to medium", async () => {
+    await submitVignetteJob(sampleFile());
+    expect((lastCall()[1]?.body as FormData).get("strength")).toBe("medium");
+  });
+
+  it("submitVignetteJob throws the server error on failure", async () => {
+    fetchMock.mockResolvedValueOnce(res({ error: "vig boom" }, { ok: false, status: 400 }));
+    await expect(submitVignetteJob(sampleFile())).rejects.toThrow("vig boom");
   });
 
   it("submitPipJob POSTs main + overlay with corner/scale", async () => {

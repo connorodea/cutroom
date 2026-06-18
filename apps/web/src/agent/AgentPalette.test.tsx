@@ -93,6 +93,7 @@ describe("AgentPalette", () => {
     ["burn in my srt file", "subtitlesOpen"],
     ["make this a meme", "memeOpen"],
     ["add a progress bar", "progressOpen"],
+    ["add a vignette", "vignetteOpen"],
   ] as const)("routes '%s' to the matching tool and closes the palette", (prompt, flag) => {
     open();
     render(<AgentPalette />);

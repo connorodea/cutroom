@@ -314,6 +314,14 @@ describe("editor store", () => {
     expect(useEditorStore.getState().progressOpen).toBe(false);
   });
 
+  it("opens and closes the Vignette modal", () => {
+    expect(useEditorStore.getState().vignetteOpen).toBe(false);
+    useEditorStore.getState().openVignette();
+    expect(useEditorStore.getState().vignetteOpen).toBe(true);
+    useEditorStore.getState().closeVignette();
+    expect(useEditorStore.getState().vignetteOpen).toBe(false);
+  });
+
   it("starts with the Overlay modal closed", () => {
     expect(useEditorStore.getState().overlayOpen).toBe(false);
   });

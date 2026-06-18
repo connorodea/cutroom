@@ -41,6 +41,7 @@ export const TOOL_GROUPS: ToolGroup[] = [
       { id: "fade", label: "Fade", icon: "contrast", opener: "openFade" },
       { id: "border", label: "Border", icon: "square", opener: "openBorder" },
       { id: "censor", label: "Censor", icon: "eye-off", opener: "openCensor" },
+      { id: "vignette", label: "Vignette", icon: "aperture", opener: "openVignette" },
     ],
   },
   {

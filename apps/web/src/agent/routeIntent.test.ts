@@ -195,6 +195,12 @@ describe("routeIntent", () => {
     expect(routeIntent("add a playback bar")).toBe("progress");
   });
 
+  it("routes vignette requests to vignette", () => {
+    expect(routeIntent("add a vignette")).toBe("vignette");
+    expect(routeIntent("darken the corners")).toBe("vignette");
+    expect(routeIntent("vignette the clip")).toBe("vignette");
+  });
+
   it("prefers the specific operation over generic create", () => {
     expect(routeIntent("make a vertical video")).toBe("reframe");
   });

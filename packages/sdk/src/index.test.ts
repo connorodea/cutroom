@@ -283,6 +283,20 @@ describe("multipart endpoints", () => {
     expect(fd.get("seconds")).toBe("2");
   });
 
+  it("vignette POSTs the file with the strength", async () => {
+    await client().vignette(tmpFile, { strength: "strong" });
+    const [url, init] = lastCall();
+    expect(url).toBe("http://x/api/vignette");
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("strength")).toBe("strong");
+  });
+
+  it("vignette defaults to medium", async () => {
+    await client().vignette(tmpFile);
+    expect((lastCall()[1]?.body as FormData).get("strength")).toBe("medium");
+  });
+
   it("progress POSTs the file with color + thickness", async () => {
     await client().progress(tmpFile, { color: "red", thickness: "thick" });
     const [url, init] = lastCall();

@@ -76,6 +76,8 @@ export interface EditorState {
   memeOpen: boolean;
   /** Whether the Progress-bar modal is open. */
   progressOpen: boolean;
+  /** Whether the Vignette modal is open. */
+  vignetteOpen: boolean;
 
   /** Output ids of AI-created videos this session, newest-first. */
   createdOutputs: string[];
@@ -159,6 +161,8 @@ export interface EditorState {
   closeMeme: () => void;
   openProgress: () => void;
   closeProgress: () => void;
+  openVignette: () => void;
+  closeVignette: () => void;
   /** Record an AI-created output id (newest-first, de-duplicated). */
   addCreatedOutput: (outputId: string) => void;
 
@@ -207,6 +211,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   subtitlesOpen: false,
   memeOpen: false,
   progressOpen: false,
+  vignetteOpen: false,
   createdOutputs: [],
   phase: "idle",
   active: -1,
@@ -285,6 +290,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   closeMeme: () => set({ memeOpen: false }),
   openProgress: () => set({ progressOpen: true }),
   closeProgress: () => set({ progressOpen: false }),
+  openVignette: () => set({ vignetteOpen: true }),
+  closeVignette: () => set({ vignetteOpen: false }),
   addCreatedOutput: (outputId) =>
     set((s) => ({ createdOutputs: [outputId, ...s.createdOutputs.filter((id) => id !== outputId)] })),
 
