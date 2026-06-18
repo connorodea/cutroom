@@ -1,0 +1,22 @@
+{
+  "name": "@cutroom/cli",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Cutroom CLI — drive the Cutroom API from the terminal (uses an API token).",
+  "bin": { "cutroom": "dist/index.mjs" },
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "esbuild src/index.ts --bundle --platform=node --format=esm --target=node20 --outfile=dist/index.mjs --banner:js=\"#!/usr/bin/env node\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@cutroom/sdk": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.3",
+    "esbuild": "^0.28.1",
+    "tsx": "^4.22.4",
+    "typescript": "^5.9.3"
+  }
+}

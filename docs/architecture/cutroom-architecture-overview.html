@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cutroom — Architecture Overview</title>
+  <style>
+    :root{
+      --data:#4299e1; --proc:#ed8936; --ai:#9f7aea; --ok:#48bb78; --teal:#4FD1C5;
+      --ink:#1a202c; --muted:#4a5568; --faint:#718096; --line:#e2e8f0; --bg:#f7fafc; --card:#fff;
+    }
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;max-width:1200px;margin:0 auto;padding:0 20px 80px;color:var(--ink);background:var(--bg);line-height:1.5}
+    h1{background:linear-gradient(135deg,#0f766e 0%,#4FD1C5 60%,#5B8DEF 100%);color:#fff;padding:34px 30px;border-radius:0 0 16px 16px;margin:0 -20px 8px;font-size:28px;letter-spacing:-.02em}
+    h1 small{display:block;font-size:14px;font-weight:400;opacity:.92;margin-top:6px}
+    h2{font-size:20px;margin:36px 0 14px;padding-bottom:8px;border-bottom:2px solid var(--line);display:flex;align-items:center;gap:10px}
+    h2 .chip{font-size:11px;font-weight:700;color:#fff;background:var(--teal);padding:2px 9px;border-radius:999px;letter-spacing:.04em}
+    h3{font-size:14px;margin:16px 0 8px;color:var(--muted)}
+    .section{margin:8px 0}
+    .grid{display:grid;gap:14px}
+    .g4{grid-template-columns:repeat(4,1fr)} .g3{grid-template-columns:repeat(3,1fr)} .g2{grid-template-columns:repeat(2,1fr)}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+    .card .k{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--faint);font-weight:700}
+    .card .v{font-size:14px;margin-top:4px}
+    .card.b{border-top:3px solid var(--data)} .card.p{border-top:3px solid var(--proc)} .card.a{border-top:3px solid var(--ai)} .card.s{border-top:3px solid var(--ok)}
+    svg{max-width:100%;height:auto;background:var(--card);border:1px solid var(--line);border-radius:12px}
+    .layer{display:grid;grid-template-columns:130px 1fr;gap:12px;align-items:stretch;margin:10px 0}
+    .layer .ll{display:flex;flex-direction:column;justify-content:center;text-align:right;padding-right:6px}
+    .layer .ll .n{font-size:10px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;font-weight:700}
+    .layer .ll .t{font-weight:700;font-size:14px}
+    .lrow{display:flex;flex-wrap:wrap;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
+    .node{flex:1 1 190px;min-width:180px;border:1px solid var(--line);border-radius:9px;padding:9px 11px;background:#fff}
+    .node.live{border-left:4px solid var(--ok);background:#f0fff4}
+    .node.plan{border-left:4px dashed var(--ai);background:#faf5ff}
+    .node .h{font-weight:700;font-size:13px;display:flex;align-items:center;gap:6px}
+    .node .h .b{margin-left:auto;font-size:9px;font-weight:700;padding:1px 6px;border-radius:5px}
+    .node .h .b.l{background:var(--ok);color:#fff} .node .h .b.n{background:#e9d8fd;color:#553c9a}
+    .node .d{font-size:11.5px;color:var(--muted);margin-top:2px}
+    .node .tech{font-size:10px;color:var(--faint);font-family:ui-monospace,Menlo,monospace;margin-top:4px}
+    .feat{display:flex;gap:9px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
+    .feat:last-child{border-bottom:0}
+    .feat .ic{width:20px;height:20px;border-radius:6px;flex:none;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff}
+    .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:6px 0 0}
+    .legend span{display:flex;align-items:center;gap:6px}
+    .sw{width:12px;height:12px;border-radius:3px}
+    .meta{font-size:12px;color:var(--faint);margin-top:6px}
+    a{color:#2b6cb0}
+  </style>
+</head>
+<body>
+  <h1>Cutroom — Architecture Overview
+    <small>AI video editing &amp; creation platform · live at cutroom.preecursor.com · compute on Railway</small>
+  </h1>
+
+  <!-- ============ 1. BUSINESS CONTEXT ============ -->
+  <h2>1 · Business Context</h2>
+  <div class="section grid g4">
+    <div class="card b"><div class="k">Objective</div><div class="v">One tool to <b>create</b> video from scratch <i>and</i> <b>edit</b> existing footage — with AI doing the heavy lifting.</div></div>
+    <div class="card b"><div class="k">Users</div><div class="v">Creators &amp; prosumers (one-click), and professional editors (full timeline). Adapts depth to skill.</div></div>
+    <div class="card b"><div class="k">Value</div><div class="v">Minutes, not hours: idea→video, or raw footage→polished clip — cut, captioned, reframed, exported.</div></div>
+    <div class="card b"><div class="k">Competes with</div><div class="v">CapCut · Descript · Opus Clip · Submagic · DaVinci · Final Cut.</div></div>
+  </div>
+  <h3>Success metrics</h3>
+  <div class="section grid g4">
+    <div class="card"><div class="k">Time-to-first-video</div><div class="v">idea/upload → finished MP4</div></div>
+    <div class="card"><div class="k">Edit accuracy</div><div class="v">silence/filler cut precision · caption sync</div></div>
+    <div class="card"><div class="k">Render throughput</div><div class="v">jobs/min on Railway · queue depth</div></div>
+    <div class="card"><div class="k">Reliability</div><div class="v">agent success rate · fail-soft fallbacks</div></div>
+  </div>
+
+  <!-- ============ 2. DATA FLOW ============ -->
+  <h2>2 · Data Flow</h2>
+  <div class="legend section">
+    <span><span class="sw" style="background:var(--data)"></span> Inputs</span>
+    <span><span class="sw" style="background:var(--ai)"></span> AI</span>
+    <span><span class="sw" style="background:var(--proc)"></span> Processing</span>
+    <span><span class="sw" style="background:var(--ok)"></span> Outputs</span>
+  </div>
+  <svg viewBox="0 0 900 320" role="img" aria-label="Cutroom data flow">
+    <defs>
+      <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto">
+        <path d="M0,0 L8,3 L0,6 Z" fill="#94a3b8"/>
+      </marker>
+    </defs>
+    <!-- inputs -->
+    <rect x="30" y="70" width="160" height="56" rx="10" fill="var(--data)"/>
+    <text x="110" y="94" fill="#fff" font-size="14" font-weight="700" text-anchor="middle">Upload video</text>
+    <text x="110" y="112" fill="#e6f0fb" font-size="11" text-anchor="middle">edit existing footage</text>
+    <rect x="30" y="194" width="160" height="56" rx="10" fill="var(--data)"/>
+    <text x="110" y="218" fill="#fff" font-size="14" font-weight="700" text-anchor="middle">Script / idea</text>
+    <text x="110" y="236" fill="#e6f0fb" font-size="11" text-anchor="middle">create from scratch</text>
+    <!-- AI -->
+    <rect x="300" y="40" width="180" height="100" rx="10" fill="var(--ai)"/>
+    <text x="390" y="78" fill="#fff" font-size="13" font-weight="700" text-anchor="middle">AI layer</text>
+    <text x="390" y="98" fill="#efe6fb" font-size="11" text-anchor="middle">Whisper ASR · Cutroom Agent</text>
+    <text x="390" y="114" fill="#efe6fb" font-size="11" text-anchor="middle">fal.ai gen · TTS</text>
+    <!-- processing -->
+    <rect x="300" y="180" width="180" height="92" rx="10" fill="var(--proc)"/>
+    <text x="390" y="214" fill="#fff" font-size="13" font-weight="700" text-anchor="middle">ffmpeg pipeline</text>
+    <text x="390" y="232" fill="#fde9d6" font-size="11" text-anchor="middle">cut · caption · loudnorm</text>
+    <text x="390" y="248" fill="#fde9d6" font-size="11" text-anchor="middle">reframe · assemble · render</text>
+    <!-- outputs -->
+    <rect x="600" y="70" width="170" height="56" rx="10" fill="var(--ok)"/>
+    <text x="685" y="94" fill="#fff" font-size="14" font-weight="700" text-anchor="middle">Edited MP4</text>
+    <text x="685" y="112" fill="#e6f7ee" font-size="11" text-anchor="middle">+ burned captions</text>
+    <rect x="600" y="194" width="170" height="56" rx="10" fill="var(--ok)"/>
+    <text x="685" y="218" fill="#fff" font-size="14" font-weight="700" text-anchor="middle">Generated MP4</text>
+    <text x="685" y="236" fill="#e6f7ee" font-size="11" text-anchor="middle">social formats 9:16 / 1:1</text>
+    <!-- arrows -->
+    <path d="M190,98 L300,90" stroke="#94a3b8" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+    <path d="M190,222 L300,226" stroke="#94a3b8" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+    <path d="M390,140 L390,180" stroke="#94a3b8" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+    <path d="M480,118 L600,100" stroke="#94a3b8" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+    <path d="M480,226 L600,222" stroke="#94a3b8" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+  </svg>
+
+  <!-- ============ 3. PROCESSING PIPELINE ============ -->
+  <h2>3 · Processing Pipelines</h2>
+  <h3>Edit — "clean up" (P2, first to build)</h3>
+  <svg viewBox="0 0 980 110" role="img" aria-label="Edit pipeline">
+    <defs><marker id="a2" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6 Z" fill="#94a3b8"/></marker></defs>
+    <g font-size="12" text-anchor="middle">
+      <rect x="10"  y="35" width="135" height="48" rx="9" fill="#ebf8ff" stroke="#90cdf4"/><text x="77"  y="58" font-weight="700">Upload</text><text x="77"  y="74" fill="#4a5568">store</text>
+      <rect x="178" y="35" width="135" height="48" rx="9" fill="#faf5ff" stroke="#d6bcfa"/><text x="245" y="58" font-weight="700">Transcribe</text><text x="245" y="74" fill="#4a5568">Whisper words</text>
+      <rect x="346" y="35" width="135" height="48" rx="9" fill="#faf5ff" stroke="#d6bcfa"/><text x="413" y="58" font-weight="700">Decide cuts</text><text x="413" y="74" fill="#4a5568">heuristic + agent</text>
+      <rect x="514" y="35" width="135" height="48" rx="9" fill="#fffaf0" stroke="#fbd38d"/><text x="581" y="55" font-weight="700">Cut + caption</text><text x="581" y="73" fill="#4a5568">ffmpeg + loudnorm</text>
+      <rect x="682" y="35" width="135" height="48" rx="9" fill="#fffaf0" stroke="#fbd38d"/><text x="749" y="58" font-weight="700">Render</text><text x="749" y="74" fill="#4a5568">H.264 MP4</text>
+      <rect x="850" y="35" width="120" height="48" rx="9" fill="#f0fff4" stroke="#9ae6b4"/><text x="910" y="58" font-weight="700">Deliver</text><text x="910" y="74" fill="#4a5568">play · download</text>
+      <path d="M145,59 L178,59" stroke="#94a3b8" stroke-width="2" marker-end="url(#a2)"/>
+      <path d="M313,59 L346,59" stroke="#94a3b8" stroke-width="2" marker-end="url(#a2)"/>
+      <path d="M481,59 L514,59" stroke="#94a3b8" stroke-width="2" marker-end="url(#a2)"/>
+      <path d="M649,59 L682,59" stroke="#94a3b8" stroke-width="2" marker-end="url(#a2)"/>
+      <path d="M817,59 L850,59" stroke="#94a3b8" stroke-width="2" marker-end="url(#a2)"/>
+    </g>
+  </svg>
+  <h3>Create — script → video (P-create)</h3>
+  <svg viewBox="0 0 980 110" role="img" aria-label="Create pipeline">
+    <g font-size="12" text-anchor="middle">
+      <rect x="10"  y="35" width="150" height="48" rx="9" fill="#ebf8ff" stroke="#90cdf4"/><text x="85"  y="58" font-weight="700">Script / idea</text><text x="85" y="74" fill="#4a5568">prompt</text>
+      <rect x="195" y="35" width="150" height="48" rx="9" fill="#faf5ff" stroke="#d6bcfa"/><text x="270" y="55" font-weight="700">Agent plans</text><text x="270" y="73" fill="#4a5568">scenes + script</text>
+      <rect x="380" y="35" width="150" height="48" rx="9" fill="#faf5ff" stroke="#d6bcfa"/><text x="455" y="55" font-weight="700">Generate</text><text x="455" y="73" fill="#4a5568">fal.ai clips + TTS</text>
+      <rect x="565" y="35" width="150" height="48" rx="9" fill="#fffaf0" stroke="#fbd38d"/><text x="640" y="55" font-weight="700">Assemble</text><text x="640" y="73" fill="#4a5568">captions + music</text>
+      <rect x="750" y="35" width="150" height="48" rx="9" fill="#f0fff4" stroke="#9ae6b4"/><text x="825" y="58" font-weight="700">Render MP4</text><text x="825" y="74" fill="#4a5568">deliver</text>
+      <path d="M160,59 L195,59" stroke="#94a3b8" stroke-width="2" marker-end="url(#a2)"/>
+      <path d="M345,59 L380,59" stroke="#94a3b8" stroke-width="2" marker-end="url(#a2)"/>
+      <path d="M530,59 L565,59" stroke="#94a3b8" stroke-width="2" marker-end="url(#a2)"/>
+      <path d="M715,59 L750,59" stroke="#94a3b8" stroke-width="2" marker-end="url(#a2)"/>
+    </g>
+  </svg>
+
+  <!-- ============ 4. SYSTEM ARCHITECTURE ============ -->
+  <h2>4 · System Architecture <span class="chip">layered</span></h2>
+  <div class="legend section">
+    <span><span class="sw" style="background:var(--ok)"></span> Live</span>
+    <span><span class="sw" style="background:var(--ai)"></span> Planned</span>
+  </div>
+  <div class="section">
+    <div class="layer"><div class="ll"><div class="n">L1</div><div class="t">Client</div></div><div class="lrow">
+      <div class="node live"><div class="h">Editor UI<span class="b l">LIVE</span></div><div class="d">5 pages + ⌘K agent palette</div><div class="tech">React 19 · Vite · Zustand</div></div>
+      <div class="node plan"><div class="h">Create &amp; Import<span class="b n">P1</span></div><div class="d">Script box (create) + drag-drop upload (edit)</div><div class="tech">resumable upload</div></div>
+      <div class="node plan"><div class="h">Real viewer + jobs<span class="b n">P1</span></div><div class="d">Plays real output; live job progress</div><div class="tech">&lt;video&gt; · poll/SSE</div></div>
+    </div></div>
+    <div class="layer"><div class="ll"><div class="n">L2</div><div class="t">Edge (CO VPS)</div></div><div class="lrow">
+      <div class="node live"><div class="h">nginx + TLS<span class="b l">LIVE</span></div><div class="d">Static SPA + /api proxy; Let's Encrypt</div><div class="tech">cutroom.preecursor.com</div></div>
+      <div class="node live"><div class="h">Agent API (Hono)<span class="b l">LIVE</span></div><div class="d">/api/agent/plan · /api/health</div><div class="tech">systemd :8790</div></div>
+    </div></div>
+    <div class="layer"><div class="ll"><div class="n">L3</div><div class="t">AI</div></div><div class="lrow">
+      <div class="node live"><div class="h">Cutroom Agent<span class="b l">LIVE</span></div><div class="d">Anthropic Managed Agent — plans edits</div><div class="tech">sonnet-4-6</div></div>
+      <div class="node plan"><div class="h">Whisper ASR<span class="b n">P2</span></div><div class="d">Word-level transcript</div><div class="tech">OpenAI</div></div>
+      <div class="node plan"><div class="h">fal.ai gen + TTS<span class="b n">create</span></div><div class="d">Text/image→video, voiceover</div><div class="tech">FAL_KEY</div></div>
+    </div></div>
+    <div class="layer"><div class="ll"><div class="n">L4</div><div class="t">Compute (Railway)</div></div><div class="lrow">
+      <div class="node live"><div class="h">cutroom-worker<span class="b l">LIVE</span></div><div class="d">ffmpeg in-container; public URL verified</div><div class="tech">Railway · Docker</div></div>
+      <div class="node plan"><div class="h">Jobs + pipelines<span class="b n">P1/P2</span></div><div class="d">Queue → Edit / Create pipeline runners</div><div class="tech">ffmpeg · Whisper · fal</div></div>
+    </div></div>
+    <div class="layer"><div class="ll"><div class="n">L5</div><div class="t">Storage</div></div><div class="lrow">
+      <div class="node plan"><div class="h">Media + jobs<span class="b n">P1</span></div><div class="d">Uploads, outputs, transcripts, job state</div><div class="tech">Railway volume → R2/S3</div></div>
+    </div></div>
+    <div class="layer"><div class="ll"><div class="n">L6</div><div class="t">DevOps</div></div><div class="lrow">
+      <div class="node live"><div class="h">CI/CD + runtime<span class="b l">LIVE*</span></div><div class="d">GitHub Actions · systemd · Railway deploys</div><div class="tech">esbuild bundles</div></div>
+    </div></div>
+  </div>
+  <div class="meta">* web/agent auto-deploy pending deploy key + secrets; worker deploys via Railway CLI.</div>
+
+  <!-- ============ 5. FEATURES ============ -->
+  <h2>5 · Features</h2>
+  <div class="section grid g2">
+    <div class="card">
+      <h3 style="margin-top:0">Functional</h3>
+      <div class="feat"><span class="ic" style="background:var(--ai)">C</span> Create from script/idea → AI-generated video</div>
+      <div class="feat"><span class="ic" style="background:var(--data)">E</span> Edit uploads: cut silences/filler, dead-air removal</div>
+      <div class="feat"><span class="ic" style="background:var(--proc)">T</span> Word-level captions, burned-in (Submagic-style)</div>
+      <div class="feat"><span class="ic" style="background:var(--proc)">R</span> Auto-reframe 9:16 / 1:1 for social</div>
+      <div class="feat"><span class="ic" style="background:var(--ai)">H</span> Highlights → short reel (rank moments)</div>
+      <div class="feat"><span class="ic" style="background:var(--teal)">⌘</span> ⌘K agent: plan + run multi-step edits, reversible</div>
+      <div class="feat"><span class="ic" style="background:var(--ok)">X</span> Export real MP4 · download</div>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">Non-functional</h3>
+      <div class="feat"><span class="ic" style="background:var(--ok)">✓</span> HTTPS, auto-renewing TLS</div>
+      <div class="feat"><span class="ic" style="background:var(--ok)">✓</span> Fail-soft agent (deadline + fallback, never crashes)</div>
+      <div class="feat"><span class="ic" style="background:var(--ok)">✓</span> Isolated compute (Railway) — renders off the shared box</div>
+      <div class="feat"><span class="ic" style="background:var(--ok)">✓</span> 46 tests, strict TS, typechecked CI</div>
+      <div class="feat"><span class="ic" style="background:var(--proc)">~</span> Async jobs + progress (no request blocking)</div>
+      <div class="feat"><span class="ic" style="background:var(--proc)">~</span> Resource caps / queue for heavy renders</div>
+      <div class="feat"><span class="ic" style="background:var(--ai)">~</span> Observability: job logs + render metrics (planned)</div>
+    </div>
+  </div>
+
+  <!-- ============ 6. DEPLOYMENT ============ -->
+  <h2>6 · Deployment</h2>
+  <div class="section grid g3">
+    <div class="card s"><div class="k">Model</div><div class="v"><b>Edge</b> on Hetzner CO VPS (nginx + web + agent API). <b>Compute</b> on Railway (worker: ffmpeg/ASR/gen). DNS on Namecheap, TLS via Let's Encrypt.</div></div>
+    <div class="card s"><div class="k">Prerequisites</div><div class="v">ANTHROPIC + OPENAI + FAL keys (server-side), Railway project, GitHub Actions secrets (HETZNER_CO_*), domain A record.</div></div>
+    <div class="card s"><div class="k">Workflow</div><div class="v">Push to <code>main</code> → CI (typecheck/test/build) → deploy web/agent to VPS (rsync+systemd) · worker to Railway (Docker). Manual first deploy validated; auto-deploy pending secrets.</div></div>
+  </div>
+  <div class="meta">Live: <a href="https://cutroom.preecursor.com">cutroom.preecursor.com</a> · worker <a href="https://cutroom-worker-production-74b1.up.railway.app/health">…railway.app</a> · repo connorodea/cutroom · companion layered diagram: <code>cutroom-architecture.html</code></div>
+</body>
+</html>

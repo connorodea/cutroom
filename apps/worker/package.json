@@ -1,0 +1,24 @@
+{
+  "name": "@cutroom/worker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Cutroom media worker — ffmpeg/ASR pipeline for Create + Edit. Runs on Railway.",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.mjs",
+    "build": "esbuild src/index.ts --bundle --platform=node --format=esm --target=node20 --outfile=dist/index.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.0.5",
+    "hono": "^4.12.25",
+    "openai": "^6.42.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.3",
+    "esbuild": "^0.28.1",
+    "tsx": "^4.22.4",
+    "typescript": "^5.9.3"
+  }
+}

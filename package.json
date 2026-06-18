@@ -8,12 +8,14 @@
   "scripts": {
     "dev": "pnpm --filter @cutroom/web dev",
     "dev:server": "pnpm --filter @cutroom/server dev",
-    "build": "pnpm -r build",
+    "build": "pnpm -r --if-present build",
     "typecheck": "pnpm -r typecheck",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "devDependencies": {
+    "@vitest/coverage-v8": "^2.1.9",
     "typescript": "^5.7.2",
     "vitest": "^2.1.8"
   },
