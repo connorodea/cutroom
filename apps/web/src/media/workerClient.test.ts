@@ -32,6 +32,7 @@ import {
   submitLetterboxJob,
   submitSubtitlesJob,
   submitMemeJob,
+  submitProgressJob,
   submitChainJob,
   submitTranscriptCut,
   submitHighlightsJob,
@@ -582,6 +583,28 @@ describe("multipart submit endpoints", () => {
   it("submitMemeJob throws the server error on failure", async () => {
     fetchMock.mockResolvedValueOnce(res({ error: "meme boom" }, { ok: false, status: 400 }));
     await expect(submitMemeJob(sampleFile())).rejects.toThrow("meme boom");
+  });
+
+  it("submitProgressJob POSTs the file with color + thickness", async () => {
+    await submitProgressJob(sampleFile(), { color: "red", thickness: "thick" });
+    const [url, init] = lastCall();
+    expect(url).toBe(`${BASE}/api/progress`);
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("color")).toBe("red");
+    expect(fd.get("thickness")).toBe("thick");
+  });
+
+  it("submitProgressJob defaults to a medium cyan bar", async () => {
+    await submitProgressJob(sampleFile());
+    const fd = lastCall()[1]?.body as FormData;
+    expect(fd.get("color")).toBe("cyan");
+    expect(fd.get("thickness")).toBe("medium");
+  });
+
+  it("submitProgressJob throws the server error on failure", async () => {
+    fetchMock.mockResolvedValueOnce(res({ error: "prog boom" }, { ok: false, status: 400 }));
+    await expect(submitProgressJob(sampleFile())).rejects.toThrow("prog boom");
   });
 
   it("submitPipJob POSTs main + overlay with corner/scale", async () => {

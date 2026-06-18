@@ -306,6 +306,14 @@ describe("editor store", () => {
     expect(useEditorStore.getState().memeOpen).toBe(false);
   });
 
+  it("opens and closes the Progress modal", () => {
+    expect(useEditorStore.getState().progressOpen).toBe(false);
+    useEditorStore.getState().openProgress();
+    expect(useEditorStore.getState().progressOpen).toBe(true);
+    useEditorStore.getState().closeProgress();
+    expect(useEditorStore.getState().progressOpen).toBe(false);
+  });
+
   it("starts with the Overlay modal closed", () => {
     expect(useEditorStore.getState().overlayOpen).toBe(false);
   });

@@ -36,6 +36,7 @@ import {
   createLetterboxJob,
   createSubtitlesJob,
   createMemeJob,
+  createProgressJob,
   createStitchJob,
   createThumbnailJob,
   createWatermarkJob,
@@ -539,6 +540,18 @@ app.post("/api/meme", async (c) => {
   const inputPath = `${MEDIA_DIR}/meme-${Date.now()}${ext}`;
   await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
   const job = createMemeJob(inputPath, top, bottom, MEDIA_DIR);
+  return c.json(job, 202);
+});
+
+/** Progress bar — overlay an animated bottom progress bar: multipart { file, color, thickness }. */
+app.post("/api/progress", async (c) => {
+  const body = await c.req.parseBody();
+  const file = body["file"];
+  if (!(file instanceof File)) return c.json({ error: "missing 'file' (multipart)" }, 400);
+  const ext = extname(file.name || "") || ".mp4";
+  const inputPath = `${MEDIA_DIR}/prog-${Date.now()}${ext}`;
+  await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
+  const job = createProgressJob(inputPath, body["color"], body["thickness"], MEDIA_DIR);
   return c.json(job, 202);
 });
 

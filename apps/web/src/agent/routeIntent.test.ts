@@ -189,6 +189,12 @@ describe("routeIntent", () => {
     expect(routeIntent("impact text meme")).toBe("meme");
   });
 
+  it("routes progress-bar requests to progress", () => {
+    expect(routeIntent("add a progress bar")).toBe("progress");
+    expect(routeIntent("put a progress bar at the bottom")).toBe("progress");
+    expect(routeIntent("add a playback bar")).toBe("progress");
+  });
+
   it("prefers the specific operation over generic create", () => {
     expect(routeIntent("make a vertical video")).toBe("reframe");
   });

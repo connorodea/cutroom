@@ -20,7 +20,7 @@ export interface TranscriptWord {
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "grid" | "waveform" | "letterbox" | "subtitles" | "meme" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "grid" | "waveform" | "letterbox" | "subtitles" | "meme" | "progress" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -170,6 +170,12 @@ export class CutroomClient {
     fd.append("right", new File([await readFile(rightPath)], basename(rightPath)));
     fd.append("layout", opts.layout ?? "horizontal");
     return this.json(await fetch(`${this.baseUrl}/api/split`, { method: "POST", headers: this.authHeaders(), body: fd }));
+  }
+
+  /** Progress bar: overlay an animated bottom bar that fills as the clip plays (color, thickness) → job. */
+  async progress(filePath: string, opts: { color?: "cyan" | "magenta" | "lime" | "white" | "red"; thickness?: "thin" | "medium" | "thick" } = {}): Promise<Job> {
+    const fd = await this.fileForm(filePath, { color: opts.color ?? "cyan", thickness: opts.thickness ?? "medium" });
+    return this.json(await fetch(`${this.baseUrl}/api/progress`, { method: "POST", headers: this.authHeaders(), body: fd }));
   }
 
   /** Letterbox: overlay cinematic black bars at a target aspect (cinema 2.39 / wide 2.0 / classic 1.85) → job. */

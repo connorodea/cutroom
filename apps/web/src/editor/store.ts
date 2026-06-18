@@ -74,6 +74,8 @@ export interface EditorState {
   subtitlesOpen: boolean;
   /** Whether the Meme-text modal is open. */
   memeOpen: boolean;
+  /** Whether the Progress-bar modal is open. */
+  progressOpen: boolean;
 
   /** Output ids of AI-created videos this session, newest-first. */
   createdOutputs: string[];
@@ -155,6 +157,8 @@ export interface EditorState {
   closeSubtitles: () => void;
   openMeme: () => void;
   closeMeme: () => void;
+  openProgress: () => void;
+  closeProgress: () => void;
   /** Record an AI-created output id (newest-first, de-duplicated). */
   addCreatedOutput: (outputId: string) => void;
 
@@ -202,6 +206,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   letterboxOpen: false,
   subtitlesOpen: false,
   memeOpen: false,
+  progressOpen: false,
   createdOutputs: [],
   phase: "idle",
   active: -1,
@@ -278,6 +283,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   closeSubtitles: () => set({ subtitlesOpen: false }),
   openMeme: () => set({ memeOpen: true }),
   closeMeme: () => set({ memeOpen: false }),
+  openProgress: () => set({ progressOpen: true }),
+  closeProgress: () => set({ progressOpen: false }),
   addCreatedOutput: (outputId) =>
     set((s) => ({ createdOutputs: [outputId, ...s.createdOutputs.filter((id) => id !== outputId)] })),
 

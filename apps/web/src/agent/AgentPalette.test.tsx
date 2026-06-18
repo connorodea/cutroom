@@ -92,6 +92,7 @@ describe("AgentPalette", () => {
     ["add letterbox bars", "letterboxOpen"],
     ["burn in my srt file", "subtitlesOpen"],
     ["make this a meme", "memeOpen"],
+    ["add a progress bar", "progressOpen"],
   ] as const)("routes '%s' to the matching tool and closes the palette", (prompt, flag) => {
     open();
     render(<AgentPalette />);

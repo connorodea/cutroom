@@ -283,6 +283,23 @@ describe("multipart endpoints", () => {
     expect(fd.get("seconds")).toBe("2");
   });
 
+  it("progress POSTs the file with color + thickness", async () => {
+    await client().progress(tmpFile, { color: "red", thickness: "thick" });
+    const [url, init] = lastCall();
+    expect(url).toBe("http://x/api/progress");
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("color")).toBe("red");
+    expect(fd.get("thickness")).toBe("thick");
+  });
+
+  it("progress defaults to a medium cyan bar", async () => {
+    await client().progress(tmpFile);
+    const fd = lastCall()[1]?.body as FormData;
+    expect(fd.get("color")).toBe("cyan");
+    expect(fd.get("thickness")).toBe("medium");
+  });
+
   it("letterbox POSTs the file with the preset", async () => {
     await client().letterbox(tmpFile, { preset: "wide" });
     const [url, init] = lastCall();

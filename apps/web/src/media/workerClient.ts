@@ -8,7 +8,7 @@ const WORKER_URL =
 
 export interface EditJob {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "grid" | "waveform" | "letterbox" | "subtitles" | "meme" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "grid" | "waveform" | "letterbox" | "subtitles" | "meme" | "progress" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: {
@@ -88,6 +88,8 @@ export interface EditJob {
     /** For meme jobs: the burned top/bottom text. */
     memeTop?: string;
     memeBottom?: string;
+    /** For progress-bar jobs: the bar color. */
+    progressColor?: string;
   };
   error?: string;
 }
@@ -263,6 +265,20 @@ export async function submitCensorJob(file: File, opts: { region?: string; stren
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error((body as { error?: string }).error || `censor failed (${res.status})`);
+  }
+  return (await res.json()) as EditJob;
+}
+
+/** Progress bar: overlay an animated bottom progress bar: multipart { file, color, thickness }. */
+export async function submitProgressJob(file: File, opts: { color?: string; thickness?: string } = {}): Promise<EditJob> {
+  const fd = new FormData();
+  fd.append("file", file);
+  fd.append("color", opts.color ?? "cyan");
+  fd.append("thickness", opts.thickness ?? "medium");
+  const res = await fetch(`${WORKER_URL}/api/progress`, { method: "POST", body: fd });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error((body as { error?: string }).error || `progress failed (${res.status})`);
   }
   return (await res.json()) as EditJob;
 }
