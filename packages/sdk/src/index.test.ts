@@ -404,6 +404,23 @@ describe("multipart endpoints", () => {
     expect(fd.get("blend")).toBe("0.1");
   });
 
+  it("meme POSTs the file with top + bottom text", async () => {
+    await client().meme(tmpFile, { top: "one does not simply", bottom: "make a meme" });
+    const [url, init] = lastCall();
+    expect(url).toBe("http://x/api/meme");
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("top")).toBe("one does not simply");
+    expect(fd.get("bottom")).toBe("make a meme");
+  });
+
+  it("meme defaults both texts to empty strings", async () => {
+    await client().meme(tmpFile);
+    const fd = lastCall()[1]?.body as FormData;
+    expect(fd.get("top")).toBe("");
+    expect(fd.get("bottom")).toBe("");
+  });
+
   it("pip POSTs the main + overlay files with corner/scale", async () => {
     await client().pip(tmpFile, tmpFile, { corner: "tl", scale: 0.25 });
     const [url, init] = lastCall();

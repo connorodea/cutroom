@@ -20,7 +20,7 @@ export interface TranscriptWord {
 
 export interface Job {
   id: string;
-  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "grid" | "waveform" | "letterbox" | "subtitles" | "image" | "video";
+  type: "edit" | "create" | "overlay" | "reframe" | "highlights" | "captions" | "speed" | "trim" | "color" | "rotate" | "audio" | "fade" | "reverse" | "crop" | "gif" | "loop" | "thumbnail" | "stitch" | "watermark" | "pip" | "split" | "freeze" | "kenburns" | "chromakey" | "border" | "censor" | "music" | "grid" | "waveform" | "letterbox" | "subtitles" | "meme" | "image" | "video";
   status: "queued" | "running" | "done" | "error";
   step?: string;
   result?: { outputId: string; [key: string]: unknown };
@@ -236,6 +236,12 @@ export class CutroomClient {
     fd.append("corner", opts.corner ?? "br");
     fd.append("scale", String(opts.scale ?? 0.3));
     return this.json(await fetch(`${this.baseUrl}/api/pip`, { method: "POST", headers: this.authHeaders(), body: fd }));
+  }
+
+  /** Burn classic top/bottom Impact-style meme text into a video (at least one of top/bottom) → job. */
+  async meme(filePath: string, opts: { top?: string; bottom?: string } = {}): Promise<Job> {
+    const fd = await this.fileForm(filePath, { top: opts.top ?? "", bottom: opts.bottom ?? "" });
+    return this.json(await fetch(`${this.baseUrl}/api/meme`, { method: "POST", headers: this.authHeaders(), body: fd }));
   }
 
   /** Burn a persistent corner watermark (text) into a video → job. corner tl/tr/bl/br, opacity 0.1–1. */

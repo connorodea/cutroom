@@ -183,6 +183,12 @@ describe("routeIntent", () => {
     expect(routeIntent("add black bars top and bottom")).toBe("letterbox");
   });
 
+  it("routes meme-text requests to meme", () => {
+    expect(routeIntent("make this a meme")).toBe("meme");
+    expect(routeIntent("add top and bottom meme text")).toBe("meme");
+    expect(routeIntent("impact text meme")).toBe("meme");
+  });
+
   it("prefers the specific operation over generic create", () => {
     expect(routeIntent("make a vertical video")).toBe("reframe");
   });

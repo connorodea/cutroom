@@ -2,7 +2,7 @@ import {
   Activity, ArrowLeft, ArrowUpRight, AudioLines, Camera, Captions, Check, ChevronDown,
   CircleCheckBig, Clapperboard, Columns2, Combine, Contrast, CornerDownLeft, Crop, Dot, EyeOff, Film, Folder, Gauge, Grid2x2, Layers, Magnet,
   Maximize2, Monitor, MousePointer2, Palette, PictureInPicture2, Play, Plus, Quote, RectangleHorizontal, Redo2, Repeat, Rewind, RotateCw, Scissors,
-  Search, SkipBack, SkipForward, SlidersHorizontal, Smartphone, Snowflake, Sparkles, Square, Type,
+  Search, SkipBack, SkipForward, SlidersHorizontal, Smartphone, Smile, Snowflake, Sparkles, Square, Type,
   Undo2, Upload, Volume2, Wand2, ZoomIn, ZoomOut,
   type LucideIcon,
 } from "lucide-react";
@@ -15,7 +15,7 @@ const ICONS: Record<string, LucideIcon> = {
   crop: Crop, dot: Dot, "eye-off": EyeOff, film: Film, folder: Folder, gauge: Gauge, "grid-2x2": Grid2x2, layers: Layers, magnet: Magnet, "maximize-2": Maximize2,
   monitor: Monitor, "mouse-pointer-2": MousePointer2, palette: Palette, pip: PictureInPicture2, play: Play, plus: Plus,
   quote: Quote, "rectangle-horizontal": RectangleHorizontal, "redo-2": Redo2, repeat: Repeat, rewind: Rewind, "rotate-cw": RotateCw, scissors: Scissors, search: Search, "skip-back": SkipBack,
-  "skip-forward": SkipForward, "sliders-horizontal": SlidersHorizontal, smartphone: Smartphone,
+  "skip-forward": SkipForward, "sliders-horizontal": SlidersHorizontal, smartphone: Smartphone, smile: Smile,
   snowflake: Snowflake, sparkles: Sparkles, square: Square, type: Type, "undo-2": Undo2, upload: Upload, "volume-2": Volume2,
   "wand-2": Wand2, "zoom-in": ZoomIn, "zoom-out": ZoomOut,
 };

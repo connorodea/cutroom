@@ -72,6 +72,8 @@ export interface EditorState {
   letterboxOpen: boolean;
   /** Whether the Subtitles (burn SRT) modal is open. */
   subtitlesOpen: boolean;
+  /** Whether the Meme-text modal is open. */
+  memeOpen: boolean;
 
   /** Output ids of AI-created videos this session, newest-first. */
   createdOutputs: string[];
@@ -151,6 +153,8 @@ export interface EditorState {
   closeLetterbox: () => void;
   openSubtitles: () => void;
   closeSubtitles: () => void;
+  openMeme: () => void;
+  closeMeme: () => void;
   /** Record an AI-created output id (newest-first, de-duplicated). */
   addCreatedOutput: (outputId: string) => void;
 
@@ -197,6 +201,7 @@ export const useEditorStore = create<EditorState>((set) => ({
   waveformOpen: false,
   letterboxOpen: false,
   subtitlesOpen: false,
+  memeOpen: false,
   createdOutputs: [],
   phase: "idle",
   active: -1,
@@ -271,6 +276,8 @@ export const useEditorStore = create<EditorState>((set) => ({
   closeLetterbox: () => set({ letterboxOpen: false }),
   openSubtitles: () => set({ subtitlesOpen: true }),
   closeSubtitles: () => set({ subtitlesOpen: false }),
+  openMeme: () => set({ memeOpen: true }),
+  closeMeme: () => set({ memeOpen: false }),
   addCreatedOutput: (outputId) =>
     set((s) => ({ createdOutputs: [outputId, ...s.createdOutputs.filter((id) => id !== outputId)] })),
 

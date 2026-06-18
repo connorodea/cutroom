@@ -298,6 +298,14 @@ describe("editor store", () => {
     expect(useEditorStore.getState().subtitlesOpen).toBe(false);
   });
 
+  it("opens and closes the Meme modal", () => {
+    expect(useEditorStore.getState().memeOpen).toBe(false);
+    useEditorStore.getState().openMeme();
+    expect(useEditorStore.getState().memeOpen).toBe(true);
+    useEditorStore.getState().closeMeme();
+    expect(useEditorStore.getState().memeOpen).toBe(false);
+  });
+
   it("starts with the Overlay modal closed", () => {
     expect(useEditorStore.getState().overlayOpen).toBe(false);
   });

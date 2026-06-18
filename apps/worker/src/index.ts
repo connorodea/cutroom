@@ -35,6 +35,7 @@ import {
   createWaveformJob,
   createLetterboxJob,
   createSubtitlesJob,
+  createMemeJob,
   createStitchJob,
   createThumbnailJob,
   createWatermarkJob,
@@ -523,6 +524,21 @@ app.post("/api/subtitles", async (c) => {
   await writeFile(videoPath, Buffer.from(await video.arrayBuffer()));
   await writeFile(srtPath, Buffer.from(await srt.arrayBuffer()));
   const job = createSubtitlesJob(videoPath, srtPath, MEDIA_DIR);
+  return c.json(job, 202);
+});
+
+/** Meme — burn top/bottom Impact-style text onto a clip: multipart { file, top, bottom }. */
+app.post("/api/meme", async (c) => {
+  const body = await c.req.parseBody();
+  const file = body["file"];
+  if (!(file instanceof File)) return c.json({ error: "missing 'file' (multipart)" }, 400);
+  const top = String(body["top"] ?? "").trim();
+  const bottom = String(body["bottom"] ?? "").trim();
+  if (!top && !bottom) return c.json({ error: "provide 'top' and/or 'bottom' text" }, 400);
+  const ext = extname(file.name || "") || ".mp4";
+  const inputPath = `${MEDIA_DIR}/meme-${Date.now()}${ext}`;
+  await writeFile(inputPath, Buffer.from(await file.arrayBuffer()));
+  const job = createMemeJob(inputPath, top, bottom, MEDIA_DIR);
   return c.json(job, 202);
 });
 

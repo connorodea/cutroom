@@ -31,6 +31,7 @@ import {
   submitWaveformJob,
   submitLetterboxJob,
   submitSubtitlesJob,
+  submitMemeJob,
   submitChainJob,
   submitTranscriptCut,
   submitHighlightsJob,
@@ -559,6 +560,28 @@ describe("multipart submit endpoints", () => {
   it("submitSubtitlesJob throws the server error on failure", async () => {
     fetchMock.mockResolvedValueOnce(res({ error: "srt boom" }, { ok: false, status: 400 }));
     await expect(submitSubtitlesJob(sampleFile(), sampleFile())).rejects.toThrow("srt boom");
+  });
+
+  it("submitMemeJob POSTs the file with top + bottom text", async () => {
+    await submitMemeJob(sampleFile(), { top: "one does not simply", bottom: "make a meme" });
+    const [url, init] = lastCall();
+    expect(url).toBe(`${BASE}/api/meme`);
+    const fd = init?.body as FormData;
+    expect(fd.get("file")).toBeInstanceOf(File);
+    expect(fd.get("top")).toBe("one does not simply");
+    expect(fd.get("bottom")).toBe("make a meme");
+  });
+
+  it("submitMemeJob defaults both texts to empty strings", async () => {
+    await submitMemeJob(sampleFile());
+    const fd = lastCall()[1]?.body as FormData;
+    expect(fd.get("top")).toBe("");
+    expect(fd.get("bottom")).toBe("");
+  });
+
+  it("submitMemeJob throws the server error on failure", async () => {
+    fetchMock.mockResolvedValueOnce(res({ error: "meme boom" }, { ok: false, status: 400 }));
+    await expect(submitMemeJob(sampleFile())).rejects.toThrow("meme boom");
   });
 
   it("submitPipJob POSTs main + overlay with corner/scale", async () => {
