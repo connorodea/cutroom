@@ -3,6 +3,7 @@ import type { PageId } from "@cutroom/core";
 import { sampleProject } from "@cutroom/core";
 import { useEditorStore } from "./store";
 import { Icon } from "../components/Icon";
+import { ToolsMenu } from "./ToolsMenu";
 import { AgentPalette } from "../agent/AgentPalette";
 import { ImportModal } from "../media/ImportModal";
 import { CreateModal } from "../media/CreateModal";
@@ -75,37 +76,6 @@ export function EditorShell() {
   const openImport = useEditorStore((s) => s.openImport);
   const openCreate = useEditorStore((s) => s.openCreate);
   const openGenerate = useEditorStore((s) => s.openGenerate);
-  const openOverlay = useEditorStore((s) => s.openOverlay);
-  const openReframe = useEditorStore((s) => s.openReframe);
-  const openHighlights = useEditorStore((s) => s.openHighlights);
-  const openCaptions = useEditorStore((s) => s.openCaptions);
-  const openSpeed = useEditorStore((s) => s.openSpeed);
-  const openTrim = useEditorStore((s) => s.openTrim);
-  const openColor = useEditorStore((s) => s.openColor);
-  const openRotate = useEditorStore((s) => s.openRotate);
-  const openAudio = useEditorStore((s) => s.openAudio);
-  const openFade = useEditorStore((s) => s.openFade);
-  const openReverse = useEditorStore((s) => s.openReverse);
-  const openCrop = useEditorStore((s) => s.openCrop);
-  const openGif = useEditorStore((s) => s.openGif);
-  const openLoop = useEditorStore((s) => s.openLoop);
-  const openThumbnail = useEditorStore((s) => s.openThumbnail);
-  const openStitch = useEditorStore((s) => s.openStitch);
-  const openWatermark = useEditorStore((s) => s.openWatermark);
-  const openPip = useEditorStore((s) => s.openPip);
-  const openSplit = useEditorStore((s) => s.openSplit);
-  const openFreeze = useEditorStore((s) => s.openFreeze);
-  const openKenBurns = useEditorStore((s) => s.openKenBurns);
-  const openChromaKey = useEditorStore((s) => s.openChromaKey);
-  const openBorder = useEditorStore((s) => s.openBorder);
-  const openCensor = useEditorStore((s) => s.openCensor);
-  const openMusic = useEditorStore((s) => s.openMusic);
-  const openGrid = useEditorStore((s) => s.openGrid);
-  const openWaveform = useEditorStore((s) => s.openWaveform);
-  const openLetterbox = useEditorStore((s) => s.openLetterbox);
-  const openSubtitles = useEditorStore((s) => s.openSubtitles);
-  const openMeme = useEditorStore((s) => s.openMeme);
-  const openProgress = useEditorStore((s) => s.openProgress);
   const toggleAgent = useEditorStore((s) => s.toggleAgent);
   const closeAgent = useEditorStore((s) => s.closeAgent);
   const agentOpen = useEditorStore((s) => s.agentOpen);
@@ -187,99 +157,7 @@ export function EditorShell() {
           <button onClick={openGenerate} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
             <Icon name="sparkles" size={14} color={ACCENT} />Generate
           </button>
-          <button onClick={openOverlay} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
-            <Icon name="layers" size={14} color={ACCENT} />Overlay
-          </button>
-          <button onClick={openReframe} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
-            <Icon name="smartphone" size={14} color={ACCENT} />Reframe
-          </button>
-          <button onClick={openHighlights} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
-            <Icon name="film" size={14} color={ACCENT} />Highlights
-          </button>
-          <button onClick={openCaptions} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
-            <Icon name="captions" size={14} color={ACCENT} />Captions
-          </button>
-          <button onClick={openSpeed} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
-            <Icon name="gauge" size={14} color={ACCENT} />Speed
-          </button>
-          <button onClick={openTrim} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
-            <Icon name="scissors" size={14} color={ACCENT} />Trim
-          </button>
-          <button onClick={openColor} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
-            <Icon name="palette" size={14} color={ACCENT} />Color
-          </button>
-          <button onClick={openRotate} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
-            <Icon name="rotate-cw" size={14} color={ACCENT} />Rotate
-          </button>
-          <button onClick={openAudio} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
-            <Icon name="volume-2" size={14} color={ACCENT} />Audio
-          </button>
-          <button onClick={openFade} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
-            <Icon name="contrast" size={14} color={ACCENT} />Fade
-          </button>
-          <button onClick={openReverse} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
-            <Icon name="rewind" size={14} color={ACCENT} />Reverse
-          </button>
-          <button onClick={openCrop} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
-            <Icon name="crop" size={14} color={ACCENT} />Crop
-          </button>
-          <button onClick={openGif} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
-            <Icon name="film" size={14} color={ACCENT} />GIF
-          </button>
-          <button onClick={openLoop} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
-            <Icon name="repeat" size={14} color={ACCENT} />Loop
-          </button>
-          <button onClick={openThumbnail} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
-            <Icon name="camera" size={14} color={ACCENT} />Thumbnail
-          </button>
-          <button onClick={openStitch} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
-            <Icon name="combine" size={14} color={ACCENT} />Stitch
-          </button>
-          <button onClick={openWatermark} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
-            <Icon name="type" size={14} color={ACCENT} />Watermark
-          </button>
-          <button onClick={openPip} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
-            <Icon name="pip" size={14} color={ACCENT} />PiP
-          </button>
-          <button onClick={openSplit} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
-            <Icon name="columns-2" size={14} color={ACCENT} />Split
-          </button>
-          <button onClick={openFreeze} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
-            <Icon name="snowflake" size={14} color={ACCENT} />Freeze
-          </button>
-          <button onClick={openKenBurns} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
-            <Icon name="film" size={14} color={ACCENT} />Animate
-          </button>
-          <button onClick={openChromaKey} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
-            <Icon name="wand-2" size={14} color={ACCENT} />Green screen
-          </button>
-          <button onClick={openBorder} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
-            <Icon name="square" size={14} color={ACCENT} />Border
-          </button>
-          <button onClick={openCensor} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
-            <Icon name="eye-off" size={14} color={ACCENT} />Censor
-          </button>
-          <button onClick={openMusic} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
-            <Icon name="audio-lines" size={14} color={ACCENT} />Music
-          </button>
-          <button onClick={openGrid} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
-            <Icon name="grid-2x2" size={14} color={ACCENT} />Grid
-          </button>
-          <button onClick={openWaveform} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
-            <Icon name="activity" size={14} color={ACCENT} />Audiogram
-          </button>
-          <button onClick={openLetterbox} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
-            <Icon name="rectangle-horizontal" size={14} color={ACCENT} />Letterbox
-          </button>
-          <button onClick={openSubtitles} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
-            <Icon name="captions" size={14} color={ACCENT} />Subtitles
-          </button>
-          <button onClick={openMeme} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
-            <Icon name="smile" size={14} color={ACCENT} />Meme
-          </button>
-          <button onClick={openProgress} style={{ display: "flex", alignItems: "center", gap: 7, background: "#202022", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: "8px 13px", fontSize: 12.5, color: "#D6D6DB", cursor: "pointer" }}>
-            <Icon name="gauge" size={14} color={ACCENT} />Progress
-          </button>
+          <ToolsMenu />
           <button style={{ display: "flex", alignItems: "center", gap: 7, background: ACCENT, color: "#0C1012", border: "none", borderRadius: 10, padding: "8px 16px", fontSize: 12.5, fontWeight: 600, cursor: "pointer" }}>
             <Icon name="upload" size={14} />Render
           </button>
